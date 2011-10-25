@@ -1,9 +1,12 @@
-from malice_lexer import MAliceLexer
+#from malice_lexer import MAliceLexer
+import ply.lex as lex
+import tokrules
 
 def run():
-    ml = MAliceLexer()
-    ml.build()
-    lexer = ml.lexer
+    #ml = MAliceLexer()
+    #ml.build()
+    #lexer = ml.lexer
+    lexer = lex.lex(module=tokrules)
     data = '''
     x was a number and x became 42.
     y was a number, y became 30.
