@@ -48,35 +48,34 @@ class MAliceLexer:
     tokens += list(reserved.values())
     # A string containing ignored characters (spaces and tabs)
     t_ignore  = ' \t\n\r'
+    
+    def __init__(self, **kwargs):
+        pass
+    
+    def build(self, **kwargs):
+        self.lexer = lex.lex(object=self,**kwargs)
 
     # A regular expression rule with some action code
-    def t_NUMBER(t):
+    def t_NUMBER(self, t):
         r'\d+'
         t.value = int(t.value)    
         return t
 
     # Define a rule so we can track line numbers
-    def t_newline(t):
+    def t_newline(self, t):
         r'\n+'
         t.lexer.lineno += len(t.value)
 
     # Error handling rule
-    def t_error(t):
+    def t_error(self, t):
         print "Illegal character '%s'" % t.value[0]
         t.lexer.skip(1)
 
-    def t_ID(t):
+    def t_ID(self, t):
         r'[a-zA-Z][a-zA-Z_0-9]*'
         t.type = reserved.get(t.value,'ID')    # Check for reserved words
         return t
 
-    def t_TOO(t):
+    def t_TOO(self, t):
         r'\too'
         pass
-
-    def get_lexer(self):
-        return lex.lex()
-        
-    def __init__(self, **kwargs):
-        pass
-        # self.lexer = lex.lex(object=self,**kwargs)
