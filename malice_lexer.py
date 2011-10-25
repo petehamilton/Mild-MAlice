@@ -3,54 +3,52 @@ import ply.lex as lex
 # This attempts to use the method outlined at: http://www.dabeaz.com/ply/ply.html#ply_nn18
 
 class MAliceLexer:
-    tokens = [
-        'NUMBER',
-        'LETTER',
-        'PLUS',
-        'MINUS',
-        'TIMES',
-        'DIVIDE',
-        'EQUALS',
-        'LPAREN',
-        'RPAREN',
-        'SEP_COMMA',
-        'SEP_PERIOD',
-        'ID',
-    ]
-
-    reserved = {
-        'Alice'       : 'PRINT_ALICE',
-        'Spoke'       : 'PRINT_SPOKE',
-        'drank'       : 'DECREMENT',
-        'ate'         : 'INCREMENT', 
-        'and'         : 'SEP_AND',
-        'but'         : 'SEP_BUT',
-        'then'        : 'SEP_THEN',
-        'was'         : 'DEC_WAS',
-        'a'           : 'DEC_A',
-        'became'      : 'ASSIGNMENT',
-        'too'         : 'TOO',
-        'number'      : 'TYPE_NUMBER',
-        'letter'      : 'TYPE_LETTER',
-    }
-
-    # Tokens 
-    t_PLUS = r'\+'
-    t_MINUS = r'-'
-    t_TIMES = r'\*'
-    t_DIVIDE = r'/'
-    t_EQUALS = r'='
-    t_LPAREN = r'\('
-    t_RPAREN = r'\)'
-    t_SEP_COMMA = r'\,'
-    t_SEP_PERIOD = r'\.'
-
-    tokens += list(reserved.values())
-    # A string containing ignored characters (spaces and tabs)
-    t_ignore  = ' \t\n\r'
-    
     def __init__(self, **kwargs):
-        pass
+        self.tokens = [
+            'NUMBER',
+            'LETTER',
+            'PLUS',
+            'MINUS',
+            'TIMES',
+            'DIVIDE',
+            'EQUALS',
+            'LPAREN',
+            'RPAREN',
+            'SEP_COMMA',
+            'SEP_PERIOD',
+            'ID',
+        ]
+
+        self.reserved = {
+            'Alice'       : 'PRINT_ALICE',
+            'Spoke'       : 'PRINT_SPOKE',
+            'drank'       : 'DECREMENT',
+            'ate'         : 'INCREMENT', 
+            'and'         : 'SEP_AND',
+            'but'         : 'SEP_BUT',
+            'then'        : 'SEP_THEN',
+            'was'         : 'DEC_WAS',
+            'a'           : 'DEC_A',
+            'became'      : 'ASSIGNMENT',
+            'too'         : 'TOO',
+            'number'      : 'TYPE_NUMBER',
+            'letter'      : 'TYPE_LETTER',
+        }
+
+        # Tokens 
+        self.t_PLUS = r'\+'
+        self.t_MINUS = r'-'
+        self.t_TIMES = r'\*'
+        self.t_DIVIDE = r'/'
+        self.t_EQUALS = r'='
+        self.t_LPAREN = r'\('
+        self.t_RPAREN = r'\)'
+        self.t_SEP_COMMA = r'\,'
+        self.t_SEP_PERIOD = r'\.'
+
+        self.tokens += list(self.reserved.values())
+        # A string containing ignored characters (spaces and tabs)
+        self.t_ignore  = ' \t\n\r'
     
     def build(self, **kwargs):
         self.lexer = lex.lex(object=self,**kwargs)
@@ -73,7 +71,7 @@ class MAliceLexer:
 
     def t_ID(self, t):
         r'[a-zA-Z][a-zA-Z_0-9]*'
-        t.type = reserved.get(t.value,'ID')    # Check for reserved words
+        t.type = self.reserved.get(t.value,'ID')    # Check for reserved words
         return t
 
     def t_TOO(self, t):
