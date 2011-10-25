@@ -5,13 +5,16 @@ tokens = [
         'LETTER',
         'PLUS',
         'MINUS',
-        'TIMES',
+        'MULTIPLY',
         'DIVIDE',
-        'EQUALS',
         'LPAREN',
         'RPAREN',
         'SEP_COMMA',
         'SEP_PERIOD',
+        'B_AND',
+        'B_OR',
+        'B_XOR',
+        'B_NOT',
         'ID',
     ]
 
@@ -34,13 +37,16 @@ reserved = {
 # Tokens 
 t_PLUS = r'\+'
 t_MINUS = r'-'
-t_TIMES = r'\*'
+t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
-t_EQUALS = r'='
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_SEP_COMMA = r'\,'
 t_SEP_PERIOD = r'\.'
+t_B_AND = r'\&'
+t_B_OR = r'\|'
+t_B_XOR = r'\^'
+t_B_NOT = r'\~'
 
 tokens += list(reserved.values())
 

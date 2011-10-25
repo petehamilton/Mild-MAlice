@@ -52,8 +52,7 @@ def p_expression_factor(p):
 
 def p_expression_not(p):
     'expression : B_NOT expression'
-    #TODO: write rule for this BNF
-    # p[0] = p[2]
+    p[0] = not p[1]
 
 def p_expression_drank(p):
     'expression : ID DECREMENT'
@@ -63,18 +62,18 @@ def p_expression_ate(p):
     'expression : ID INCREMENT'
     p[0] = p[1] + 1
 
-def p_expression_pipe(p):
+def p_expression_or(p):
     'expression : expression B_OR term1'
-    p[0] = p[1] | p[3]
+    p[0] = p[1] | 1
 
-def p_expression_hat(p):
+def p_expression_xor(p):
     'expression : expression B_XOR term1'
-    p[0] = p[1] ^ p[3]
+    p[0] = p[1] ^ 1
 
-def p_expression_ampersand(p):
+def p_expression_and(p):
     'expression : expression B_AND term1'
-    p[0] = p[1] & p[3]
-
+    p[0] = p[1] & 1
+    
 def p_expression_term1(p):
     'expression : term1'
     p[0] = p[1]
@@ -99,14 +98,14 @@ def p_term2_divide(p):
     'term2 : term2 DIVIDE factor'
     p[0] = p[1] / p[3]
 
-def p_term2_factor(p):
-    'term2 : factor'
-    p[0] = p[1]
-
 def p_factor_parentheses(p):
     'term2 : LPAREN expression RPAREN'
     p[0] = p[2]
 
+def p_term2_factor(p):
+    'term2 : factor'
+    p[0] = p[1]
+    
 def p_factor_number(p):
     'factor : NUMBER'
     p[0] = p[1]
