@@ -1,3 +1,5 @@
+
+from tokrules import tokens
 start = 'statement_list' # Optional as uses first rule
 
 def p_statement_list_alicefound(p):
@@ -50,15 +52,16 @@ def p_expression_factor(p):
 
 def p_expression_not(p):
     'expression : B_NOT expression'
-    p[0] = !p[2]
+    #TODO: write rule for this BNF
+    # p[0] = p[2]
 
 def p_expression_drank(p):
     'expression : ID DECREMENT'
-    p[0] = p[1]--
+    p[0] = p[1] - 1
 
 def p_expression_ate(p):
     'expression : ID INCREMENT'
-    p[0] = p[1]++
+    p[0] = p[1] + 1
 
 def p_expression_pipe(p):
     'expression : expression B_OR term1'
@@ -115,10 +118,6 @@ def p_factor_letter(p):
 def p_factor_id(p):
     'factor : ID'
     p[0] = p[1]
-
-def p_empty(p):
-    'empty :'
-    pass
 
 # Error rule for syntax errors
 def p_error(p):

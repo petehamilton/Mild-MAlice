@@ -1,6 +1,8 @@
 #from malice_lexer import MAliceLexer
 import ply.lex as lex
 import tokrules
+from yacc_config import *
+import ply.yacc as yacc
 
 def run():
     #ml = MAliceLexer()
@@ -18,6 +20,21 @@ def run():
         tok = lexer.token()
         if not tok: break      # No more input
         print tok
+
+def parse():
+    from tokrules import tokens
+    # Build the parser
+    parser = yacc.yacc()
+
+    while True:
+       try:
+           s = raw_input('calc > ')
+       except EOFError:
+           break
+       if not s: continue
+       result = parser.parse(s)
+       print result
         
 if __name__ == '__main__':
     run()
+    parse()
