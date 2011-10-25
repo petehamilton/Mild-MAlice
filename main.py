@@ -1,7 +1,8 @@
 from malice_lexer import MAliceLexer
 
 def run():
-    lexer = MAliceLexer().lexer
+    ml = MAliceLexer()
+    lexer = ml.get_lexer()
     data = '''
     x was a number and x became 42.
     y was a number, y became 30.

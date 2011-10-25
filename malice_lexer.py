@@ -74,5 +74,9 @@ class MAliceLexer:
         r'\too'
         pass
 
+    def get_lexer(self):
+        return lex.lex()
+        
     def __init__(self, **kwargs):
-        self.lexer = lex.lex(object=self,**kwargs)
+        pass
+        # self.lexer = lex.lex(object=self,**kwargs)
