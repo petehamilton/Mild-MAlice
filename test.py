@@ -2,8 +2,8 @@ import ply.lex as lex
 
 def setup():
     tokens = [
-        'NAME',
         'NUMBER',
+        'LETTER',
         'PLUS',
         'MINUS',
         'TIMES',
@@ -11,39 +11,41 @@ def setup():
         'EQUALS',
         'LPAREN',
         'RPAREN',
-        'WAS',
+        'SEP_COMMA',
+        'SEP_PERIOD',
         'ID',
     ]
 
     reserved = {
-        'Alice Spoke' : 'PRINT',
+        'Alice'       : 'PRINT_ALICE',
+        'Spoke'       : 'PRINT_SPOKE',
         'drank'       : 'DECREMENT',
         'ate'         : 'INCREMENT', 
-        'and'         : 'SEPARATOR',
-        'but'         : 'SEPARATOR',
-        'then'        : 'SEPARATOR',
-        ','           : 'SEPARATOR',
-        '.'           : 'SEPARATOR',
-        #'was a'       : 'DECLARATOR',
+        'and'         : 'SEP_AND',
+        'but'         : 'SEP_BUT',
+        'then'        : 'SEP_THEN',
+        'was'         : 'DEC_WAS',
+        'a'           : 'DEC_A',
         'became'      : 'ASSIGNMENT',
         'too'         : 'TOO',
+        'number'      : 'TYPE_NUMBER',
+        'letter'      : 'TYPE_LETTER',
     }
-    
-    
 
     # Tokens 
-    t_PLUS = r'\+' 
-    t_MINUS = r'-' 
-    t_TIMES = r'\*' 
-    t_DIVIDE = r'/' 
-    t_EQUALS = r'=' 
-    t_LPAREN = r'\(' 
-    t_RPAREN = r'\)' 
-    t_NAME = r'[a-zA-Z][a-zA-Z0-9_]*'
-    t_WAS = r'was\ a'    
+    t_PLUS = r'\+'
+    t_MINUS = r'-'
+    t_TIMES = r'\*'
+    t_DIVIDE = r'/'
+    t_EQUALS = r'='
+    t_LPAREN = r'\('
+    t_RPAREN = r'\)'
+    t_SEP_COMMA = r'\,'
+    t_SEP_PERIOD = r'\.'
 
     tokens += list(reserved.values())
-
+    # A string containing ignored characters (spaces and tabs)
+    t_ignore  = ' \t\n\r'
 
     # A regular expression rule with some action code
     def t_NUMBER(t):
@@ -55,9 +57,6 @@ def setup():
     def t_newline(t):
         r'\n+'
         t.lexer.lineno += len(t.value)
-
-    # A string containing ignored characters (spaces and tabs)
-    t_ignore  = ' \t'
 
     # Error handling rule
     def t_error(t):
@@ -82,6 +81,7 @@ def run():
     x was a number and x became 42.
     y was a number, y became 30.
     '''
+    data = data.replace(".", " . ").replace(",", " , ")
     lexer.input(data)
     # Tokenize
     while True:
