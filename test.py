@@ -11,7 +11,24 @@ def setup():
         'EQUALS',
         'LPAREN',
         'RPAREN',
+        'ID',
     )
+
+    reserved = {
+        'Alice Spoke' : 'PRINT',
+        'drank'       : 'DECREMENT',
+        'ate'         : 'INCREMENT, 
+        'and'         : 'SEPARATOR',
+        'but'         : 'SEPARATOR',,
+        'then'        : 'SEPARATOR',,
+        ','           : 'SEPARATOR',,
+        '.'           : 'SEPARATOR',,
+        'was a'       : 'DECLARATOR',
+        'became'      : 'ASSIGNMENT',
+        'too'         : 'TOO',
+    }
+    
+    
 
     # Tokens 
     t_PLUS = r'\+' 
@@ -23,6 +40,8 @@ def setup():
     t_RPAREN = r'\)' 
     t_NAME = r'[a-zA-Z][a-zA-Z0-9_]*'
 
+
+    tokens += list(reserved.values())
 
     # A regular expression rule with some action code
     def t_NUMBER(t):
@@ -42,6 +61,15 @@ def setup():
     def t_error(t):
         print "Illegal character '%s'" % t.value[0]
         t.lexer.skip(1)
+
+    def t_ID(t):
+        r'[a-zA-Z][a-zA-Z_0-9]*'
+        t.type = reserved.get(t.value,'ID')    # Check for reserved words
+        return t
+
+    def t_TOO(t):
+        r'\too'
+        pass
 
     # Build the lexer
     return lex.lex()
