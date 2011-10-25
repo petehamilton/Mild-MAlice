@@ -46,7 +46,7 @@ def p_type_letter(p):
 
 def p_expression_factor(p):
     'expression : factor'
-    #TODO: write rule for this BNF
+    p[0] = p[1]
 
 def p_expression_not(p):
     'expression : B_NOT expression'
@@ -106,15 +106,15 @@ def p_factor_parentheses(p):
 
 def p_factor_number(p):
     'factor : NUMBER'
-    p[0] = p[1].value
+    p[0] = p[1]
 
 def p_factor_letter(p):
     'factor : LETTER'
-    p[0] = p[1].value
+    p[0] = p[1]
 
 def p_factor_id(p):
     'factor : ID'
-    p[0] = p[1].value
+    p[0] = p[1]
 
 def p_empty(p):
     'empty :'
