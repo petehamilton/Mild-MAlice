@@ -1,4 +1,4 @@
 main:
-	python main.py
+	touch compile; echo "python main.py" >> compile; chmod +x compile;
 clean:
-	rm -rf *pyc
+	rm -rf *pyc compile
