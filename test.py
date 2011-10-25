@@ -1,7 +1,7 @@
 import ply.lex as lex
 
 def setup():
-    tokens = (
+    tokens = [
         'NAME',
         'NUMBER',
         'PLUS',
@@ -11,19 +11,20 @@ def setup():
         'EQUALS',
         'LPAREN',
         'RPAREN',
+        'WAS',
         'ID',
-    )
+    ]
 
     reserved = {
         'Alice Spoke' : 'PRINT',
         'drank'       : 'DECREMENT',
-        'ate'         : 'INCREMENT, 
+        'ate'         : 'INCREMENT', 
         'and'         : 'SEPARATOR',
-        'but'         : 'SEPARATOR',,
-        'then'        : 'SEPARATOR',,
-        ','           : 'SEPARATOR',,
-        '.'           : 'SEPARATOR',,
-        'was a'       : 'DECLARATOR',
+        'but'         : 'SEPARATOR',
+        'then'        : 'SEPARATOR',
+        ','           : 'SEPARATOR',
+        '.'           : 'SEPARATOR',
+        #'was a'       : 'DECLARATOR',
         'became'      : 'ASSIGNMENT',
         'too'         : 'TOO',
     }
@@ -39,9 +40,10 @@ def setup():
     t_LPAREN = r'\(' 
     t_RPAREN = r'\)' 
     t_NAME = r'[a-zA-Z][a-zA-Z0-9_]*'
-
+    t_WAS = r'was\ a'    
 
     tokens += list(reserved.values())
+
 
     # A regular expression rule with some action code
     def t_NUMBER(t):
@@ -77,8 +79,8 @@ def setup():
 def run():
     lexer = setup()
     data = '''
-    3 + 4 * 10
-    + -20 *2
+    x was a number and x became 42.
+    y was a number, y became 30.
     '''
     lexer.input(data)
     # Tokenize
