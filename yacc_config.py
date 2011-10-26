@@ -32,19 +32,19 @@ def p_statement_too(p):
 
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
-    #TODO: write rule for this BNF
+    p[0] = p[4]
 
 def p_statement_became(p):
     'statement : ID ASSIGNMENT expression'
-    #TODO: write rule for this BNF
+    p[0] = p[3]
 
 def p_type_number(p):
     'type : TYPE_NUMBER'
-    #TODO: write rule for this BNF
+    p[0] = p[1]
 
 def p_type_letter(p):
     'type : TYPE_LETTER'
-    #TODO: write rule for this BNF
+    p[0] = p[1]
 
 def p_expression_factor(p):
     'expression : factor'
