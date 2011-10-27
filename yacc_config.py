@@ -1,4 +1,4 @@
-import Node
+from Node import Node
 from tokrules import tokens
 
 start = 'statement_list' # Optional as uses first rule
