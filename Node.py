@@ -4,9 +4,13 @@ class Node:
         self.children = children or []
         self.leaves = leaves or []
     
-    def visit(self, depth):
-        print (" "*depth) + self.tokType
+    def display(self, depth = 0):
+        print ("   " * (depth-1)) + \
+              ("|> " if (depth > 0) else "") + \
+              self.tokType
+
         for leaf in self.leaves:
-            print (" "*(depth+1)) + str(leaf)
+            print ("   " * (depth)) + "|> '" + str(leaf) + "'"
+
         for child in self.children:
-            child.visit(depth+1)
+            child.display(depth + 1)

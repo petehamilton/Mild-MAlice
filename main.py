@@ -30,7 +30,7 @@ def parse():
     #s = r'x was a number, x became 5. Alice Spoke x.'
     s = r'Alice spoke 3 + 5.'
     result = parser.parse(s)
-    result.visit(0)
+    result.display()
     """   
     while True:
        try:
