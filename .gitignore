@@ -3,3 +3,4 @@ update.sh
 compile
 *.out
 parsetab.py
+test.sh
