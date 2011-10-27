@@ -1,11 +1,12 @@
 class Node:
-    def __init__(self,type,children=None,leaf=None):
-         self.type = type
-         if children:
-              self.children = children
-         else:
-              self.children = [ ]
-         self.leaf = leaf
+    def __init__(self, tokType, children=None, leaves=None):
+        self.tokType = tokType
+        self.children = children or []
+        self.leaves = leaves or []
     
-    def display(self):
-        print "hi"
+    def visit(self, depth):
+        print (" "*depth) + self.tokType
+        for leaf in self.leaves:
+            print (" "*(depth+1)) + str(leaf)
+        for child in self.children:
+            child.visit(depth+1)

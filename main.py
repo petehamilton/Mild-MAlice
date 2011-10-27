@@ -28,9 +28,9 @@ def parse():
     # Build the parser
     parser = yacc.yacc()
     #s = r'x was a number, x became 5. Alice Spoke x.'
-    #s = r'Alice spoke 3 + 5.'
+    s = r'Alice spoke 3 + 5.'
     result = parser.parse(s)
-    print result
+    result.visit(0)
     """   
     while True:
        try:
