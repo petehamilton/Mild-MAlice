@@ -6,3 +6,6 @@ class Node:
          else:
               self.children = [ ]
          self.leaf = leaf
+    
+    def display(self):
+        print "hi"

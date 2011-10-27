@@ -4,6 +4,8 @@ import tokrules
 from yacc_config import *
 import ply.yacc as yacc
 
+import inspect
+
 def run():
     #ml = MAliceLexer()
     #ml.build()
@@ -25,15 +27,17 @@ def parse():
     from tokrules import tokens
     # Build the parser
     parser = yacc.yacc()
-
-    while True:
-       try:
-           s = raw_input('calc > ')
-       except EOFError:
-           break
-       if not s: continue
-       result = parser.parse(s)
-       print result
+    s = r'x was a number, x became 5. Alice Spoke x.'
+    result = parser.parse(s)
+    print result
+    #while True:
+    #   try:
+    #       s = raw_input('calc > ')
+    #   except EOFError:
+    #       break
+    #   if not s: continue
+    #   result = parser.parse(s)
+    #   print result.display()
         
 if __name__ == '__main__':
     run()
