@@ -20,7 +20,7 @@ tokens = [
 
 reserved = {
     'Alice'       : 'PRINT_ALICE',
-    'Spoke'       : 'PRINT_SPOKE',
+    'spoke'       : 'PRINT_SPOKE',
     'drank'       : 'DECREMENT',
     'ate'         : 'INCREMENT', 
     'and'         : 'SEP_AND',

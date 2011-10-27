@@ -27,18 +27,21 @@ def parse():
     from tokrules import tokens
     # Build the parser
     parser = yacc.yacc()
-    s = r'x was a number, x became 5. Alice Spoke x.'
+    #s = r'x was a number, x became 5. Alice Spoke x.'
+    #s = r'Alice spoke 3 + 5.'
     result = parser.parse(s)
     print result
-    #while True:
-    #   try:
-    #       s = raw_input('calc > ')
-    #   except EOFError:
-    #       break
-    #   if not s: continue
-    #   result = parser.parse(s)
-    #   print result.display()
-        
+    """   
+    while True:
+       try:
+           s = raw_input('hi Pete > ')
+       except EOFError:
+           break
+       if not s: continue
+       result = parser.parse(s)
+       print result
+    """
+
 if __name__ == '__main__':
     run()
     parse()
