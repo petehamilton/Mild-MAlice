@@ -28,7 +28,7 @@ def parse():
 
     while True:
        try:
-           s = raw_input('x was a number, x became 5. Alice Spoke x.')
+           s = raw_input('calc > ')
        except EOFError:
            break
        if not s: continue
