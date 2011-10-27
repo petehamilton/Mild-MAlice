@@ -16,10 +16,10 @@ def run():
     data = data.replace(".", " . ").replace(",", " , ")
     lexer.input(data)
     # Tokenize
-    while True:
-        tok = lexer.token()
-        if not tok: break      # No more input
-        print tok
+    #while True:
+    #    tok = lexer.token()
+    #    if not tok: break      # No more input
+    #    print tok
 
 def parse():
     from tokrules import tokens
@@ -28,7 +28,7 @@ def parse():
 
     while True:
        try:
-           s = raw_input('calc > ')
+           s = raw_input('x was a number, x became 5. Alice Spoke x.')
        except EOFError:
            break
        if not s: continue
