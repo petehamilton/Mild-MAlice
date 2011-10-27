@@ -3,6 +3,13 @@ from tokrules import tokens
 
 start = 'statement_list' # Optional as uses first rule
 
+precedence = (
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'MULTIPLY', 'DIVIDE'),
+    ('left', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
+)
+
+
 def p_statement_list_alicespoke(p):
     'statement_list : PRINT_ALICE PRINT_SPOKE expression SEP_PERIOD'
     p[0] = Node("statement_list", [p[3]], [p[1], p[2], p[4]])
