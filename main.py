@@ -4,7 +4,7 @@ import tokrules
 from yacc_config import *
 import ply.yacc as yacc
 
-import inspect
+import Node
 
 def run():
     #ml = MAliceLexer()

@@ -3,31 +3,37 @@ from tokrules import tokens
 
 start = 'statement_list' # Optional as uses first rule
 
-def p_statement_list_alicefound(p):
+def p_statement_list_alicespoke(p):
     'statement_list : PRINT_ALICE PRINT_SPOKE expression SEP_PERIOD'
-    p[0] = Node("alicefound", [p[3]])
+    #p[0] = Node("alicefound", [p[3]])
+    p[0] = ("statement_list", [p[3]])
 
 
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
-    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+#    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+    p[0] = ("statement_list", [p[1],p[3]], p[2])
 
 def p_statement_list_sep_period(p):
     'statement_list : statement SEP_PERIOD statement_list'
-    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+#    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+    p[0] = ("statement_list", [p[1],p[3]], p[2])
 
 
 def p_statement_list_sep_and(p):
     'statement_list : statement SEP_AND statement_list'
-    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+#    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+    p[0] = ("statement_list", [p[1],p[3]], p[2])
 
 def p_statement_list_sep_but(p):
     'statement_list : statement SEP_BUT statement_list'
-    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+#    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+    p[0] = ("statement_list", [p[1],p[3]], p[2])
 
 def p_statement_list_sep_then(p):
     'statement_list : statement SEP_THEN statement_list'
-    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+#    p[0] = Node("statement_list", [p[1],p[3]], p[2])
+    p[0] = ("statement_list", [p[1],p[3]], p[2])
 
 
 def p_statement_too(p):
