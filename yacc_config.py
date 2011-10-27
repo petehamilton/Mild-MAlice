@@ -56,10 +56,6 @@ def p_type_letter(p):
     'type : TYPE_LETTER'
     p[0] = p[1]
 
-def p_expression_factor(p):
-    'expression : factor'
-    p[0] = p[1]
-
 def p_expression_not(p):
     'expression : B_NOT expression'
     p[0] = not p[1]
