@@ -19,7 +19,6 @@ tokens = [
     ]
 
 reserved = {
-    'Alice'       : 'PRINT_ALICE',
     'spoke'       : 'PRINT_SPOKE',
     'drank'       : 'DECREMENT',
     'ate'         : 'INCREMENT', 

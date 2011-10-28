@@ -11,8 +11,8 @@ precedence = (
 
 
 def p_statement_list_alicespoke(p):
-    'statement_list : PRINT_ALICE PRINT_SPOKE expression SEP_PERIOD'
-    p[0] = Node("statement_list", [p[3]], [p[1], p[2], p[4]])
+    'statement_list : expression PRINT_SPOKE SEP_PERIOD'
+    p[0] = Node("statement_list", [p[1]], [p[2], p[3]])
 
 
 def p_statement_list_sep_comma(p):
