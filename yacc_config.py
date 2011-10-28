@@ -122,7 +122,7 @@ def p_factor_letter(p):
 
 def p_factor_id(p):
     'factor : ID'
-    p[0] = ('factor', [], [p[1]])
+    p[0] = Node('factor', leaves = [p[1]])
 
 # Error rule for syntax errors
 def p_error(p):
