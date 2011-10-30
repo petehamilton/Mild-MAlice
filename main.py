@@ -7,13 +7,18 @@ from yacc_config import *
 
 import Node
 
-if __name__ == '__main__':
-    lexer = lex.lex(module=tokrules)
-    parser = yacc.yacc()
-    s = r'Alice spoke 3 + 5.'
-    result = parser.parse(s)
-    result.display()
-    
+def run():
+    tests()
+    return 0
+    parse_code('''
+    x was a number and x became 42.
+    y was a number, y became 30.
+
+    z was a number but z became x + y.
+    z spoke.
+    ''')
+    return 0
+
     """   
     while True:
        try:
@@ -24,3 +29,27 @@ if __name__ == '__main__':
        result = parser.parse(s)
        print result
     """
+
+def parse_code(code):
+    lexer = lex.lex(module=tokrules)
+    parser = yacc.yacc()
+    result = parser.parse(code)
+    if result:
+        pass
+        # result.display()
+
+def tests():
+    import fnmatch
+    import os
+    
+    for file in os.listdir('./milestone2'):
+        if fnmatch.fnmatch(file, '*.alice'):
+            fin = open('./milestone2/' + file, "r");
+            print "Parsing", file
+            code = fin.read()
+            # print code
+            parse_code(code)
+            print
+
+if __name__ == '__main__':
+    run()

@@ -46,6 +46,7 @@ t_B_AND = r'\&'
 t_B_OR = r'\|'
 t_B_XOR = r'\^'
 t_B_NOT = r'\~'
+t_LETTER = r'\'[a-zA-Z]\''
 
 tokens += list(reserved.values())
 

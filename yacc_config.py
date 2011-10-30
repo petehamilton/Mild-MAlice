@@ -14,7 +14,6 @@ def p_statement_list_alicespoke(p):
     'statement_list : expression PRINT_SPOKE SEP_PERIOD'
     p[0] = Node("statement_list", [p[1]], [p[2], p[3]])
 
-
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
     p[0] = Node("statement_list", [p[1],p[3]], p[2])
@@ -126,7 +125,9 @@ def p_factor_id(p):
 
 # Error rule for syntax errors
 def p_error(p):
-    print "Syntax error in input!"
+    print "Oh No! You started writing utter nonsense."
+    # pass
+    # print "An error prevented the program from being compiled :("
 
 
 
