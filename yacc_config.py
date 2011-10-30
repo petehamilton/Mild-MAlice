@@ -3,12 +3,21 @@ from tokrules import tokens
 
 start = 'statement_list' # Optional as uses first rule
 
+class ParseError(Exception): 
+    pass
+
 precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE'),
     ('left', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
 )
 
+def _parse_error(msg, coord):
+    raise ParseError("%s: %s" % (coord, msg))  
+
+def p_statement_list_empty(p):
+    'statement_list : '
+    pass
 
 def p_statement_list_alicespoke(p):
     'statement_list : expression PRINT_SPOKE SEP_PERIOD'
@@ -99,8 +108,12 @@ def p_term2_multiply(p):
     'term2 : term2 MULTIPLY factor'
     p[0] = Node('term2', [p[1],p[3]], [p[2]])
 
+#Handles division by 0 constant
 def p_term2_divide(p):
     'term2 : term2 DIVIDE factor'
+    if p[3].tokType == 'factor':
+        if p[3].leaves[0] == 0:
+            print "Oops!"
     p[0] = Node('term2', [p[1],p[3]], [p[2]])
 
 def p_term2_factor(p):
@@ -124,11 +137,17 @@ def p_factor_id(p):
     p[0] = Node('factor', leaves = [p[1]])
 
 # Error rule for syntax errors
-def p_error(p):
-    print "Oh No! You started writing utter nonsense."
+#def p_error(p):
+#    print "Oh No! You started writing utter nonsense."
     # pass
     # print "An error prevented the program from being compiled :("
 
 
 
-
+def p_error(p):
+    print "Error", p
+    #print "Oh No! You started writing utter nonsense."
+    #if p:
+    #    _parse_error( 'Oh No! You started writing utter nonsense.', '')#self._coord(p.lineno))
+    #else:
+    #   _parse_error('At end of input', '')
