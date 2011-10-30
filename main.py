@@ -41,8 +41,9 @@ def parse_code(code):
 def tests():
     import fnmatch
     import os
-    
-    for file in os.listdir('./milestone2'):
+    files = os.listdir('./milestone2')
+    files.sort()
+    for file in files:
         if fnmatch.fnmatch(file, '*.alice'):
             fin = open('./milestone2/' + file, "r");
             print "Parsing", file
