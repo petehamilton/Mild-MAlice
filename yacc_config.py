@@ -8,7 +8,7 @@ class ParseError(Exception):
 
 precedence = (
     ('left', 'PLUS', 'MINUS'),
-    ('left', 'MULTIPLY', 'DIVIDE'),
+    ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
     ('left', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
 )
 
@@ -119,6 +119,10 @@ def p_term2_divide(p):
     if p[3].tokType == 'factor':
         if p[3].leaves[0] == 0:
             print "Oops!"
+    p[0] = Node('term2', [p[1],p[3]], [p[2]])
+
+def p_term2_mod(p):
+    'term2 : term2 MOD factor'
     p[0] = Node('term2', [p[1],p[3]], [p[2]])
 
 def p_term2_factor(p):
