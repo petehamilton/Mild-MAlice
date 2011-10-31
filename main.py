@@ -11,11 +11,11 @@ def run():
     tests()
     return 0
     parse_code('''
-    x was a number and x became 42.
-    y was a number, y became 30.
-
-    z was a number but z became x + y.
-    z spoke.
+    Cat was a number.
+    Dog was a number.
+    Cat became 7 then Dog became 6 and Cat drank and Dog ate.
+    Armagedon was a number and Armagedon became Cat * Dog.
+    Armagedon spoke.
     ''')
     return 0
 

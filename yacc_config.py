@@ -56,6 +56,11 @@ def p_statement_became(p):
     'statement : ID ASSIGNMENT expression'
     p[0] = Node('statement', [p[3]], [p[1], p[2]])
 
+# Have to implement for drank and ate
+def p_statement_expression(p):
+    'statement : expression'
+    p[0] = Node('statement', [p[1]], [])
+
 def p_type_number(p):
     'type : TYPE_NUMBER'
     p[0] = Node('type', leaves = [p[1]])
@@ -143,10 +148,14 @@ def p_factor_id(p):
     # print "An error prevented the program from being compiled :("
 
 
+# "Oh No! You were writing such silly things at the start of the story." means could
+# not match to statement-list so can't start.
 
 def p_error(p):
-    print "Error", p
-    #print "Oh No! You started writing utter nonsense."
+    if p == None:
+        print "Oh No! You were writing such silly things at the start of the story."
+    else:
+        print "Oh No! You started writing utter nonsense.", p
     #if p:
     #    _parse_error( 'Oh No! You started writing utter nonsense.', '')#self._coord(p.lineno))
     #else:
