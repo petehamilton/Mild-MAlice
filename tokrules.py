@@ -15,6 +15,7 @@ tokens = [
         'B_OR',
         'B_XOR',
         'B_NOT',
+        'MOD',
         'ID',
     ]
 
@@ -46,6 +47,7 @@ t_B_AND = r'\&'
 t_B_OR = r'\|'
 t_B_XOR = r'\^'
 t_B_NOT = r'\~'
+t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
 
 tokens += list(reserved.values())
@@ -55,7 +57,7 @@ t_ignore  = ' \t\n\r'
 
 # A regular expression rule with some action code
 def t_NUMBER(t):
-    r'\d+'
+    r'-?\d+'
     t.value = int(t.value)    
     return t
 
