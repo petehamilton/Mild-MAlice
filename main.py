@@ -8,8 +8,8 @@ from yacc_config import *
 import Node
 
 def run():
-    tests()
-    return 0
+    #tests()
+    #return 0
     parse_code('''
     Cat was a number.
     Dog was a number.
@@ -34,6 +34,7 @@ def parse_code(code):
     lexer = lex.lex(module=tokrules)
     parser = yacc.yacc()
     result = parser.parse(code)
+    print symbolTable
     if result:
         pass
         # result.display()

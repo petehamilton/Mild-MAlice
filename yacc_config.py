@@ -2,7 +2,7 @@ from Node import Node
 from tokrules import tokens
 
 start = 'statement_list' # Optional as uses first rule
-
+symbolTable = []
 class ParseError(Exception): 
     pass
 
@@ -50,6 +50,7 @@ def p_statement_too(p):
 
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
+    symbolTable.append(p[1])
     p[0] = Node('statement', [p[4]], [p[1], p[2], p[3]])
 
 def p_statement_became(p):
@@ -159,7 +160,7 @@ def p_error(p):
     if p == None:
         print "Oh No! You were writing such silly things at the start of the story."
     else:
-        print "Oh No! You started writing utter nonsense.", p
+        print "Oh No! You started writing utter nonsense.", p.lineno
     #if p:
     #    _parse_error( 'Oh No! You started writing utter nonsense.', '')#self._coord(p.lineno))
     #else:
