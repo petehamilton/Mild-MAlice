@@ -34,10 +34,10 @@ def parse_code(code):
     lexer = lex.lex(module=tokrules)
     parser = yacc.yacc()
     result = parser.parse(code)
-    print symbolTable
+    # print symbolTable
     if result:
         pass
-        # result.display()
+        result.display()
 
 def tests():
     import fnmatch
