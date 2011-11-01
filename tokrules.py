@@ -53,7 +53,7 @@ t_LETTER = r'\'[a-zA-Z]\''
 tokens += list(reserved.values())
 
 # A string containing ignored characters (spaces and tabs)
-t_ignore  = ' \t\n\r'
+t_ignore  = ' \t\r'
 
 # A regular expression rule with some action code
 def t_NUMBER(t):
@@ -63,7 +63,7 @@ def t_NUMBER(t):
 
 # Define a rule so we can track line numbers
 def t_newline(t):
-    r'\n+'
+    r'\n'
     t.lexer.lineno += len(t.value)
 
 # Error handling rule
