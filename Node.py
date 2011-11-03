@@ -1,6 +1,7 @@
 class Node:
-    def __init__(self, tokType, children=None):
+    def __init__(self, tokType, lineno, children=None):
         self.tokType = tokType
+        self.lineno = lineno
         self.children = children or []
     
     def display(self, depth = 0):
