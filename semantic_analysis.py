@@ -1,4 +1,6 @@
 import sys
+from exceptions import *
+
 def analyse( symbolTable, node ):
     if node.tokType == "statement_list":
         analyse( symbolTable, node.children[0] )
@@ -11,7 +13,7 @@ def analyse( symbolTable, node ):
             if not assigned:
                 print "Error you haven't assigned your identifier"
                 print "Paragraph %d" %node.lineno
-                exit(1)
+                raise SemanticException
 
     elif node.tokType == "assignment":
         (identifier, expression) = node.children
@@ -21,6 +23,7 @@ def analyse( symbolTable, node ):
         else:
             print "Error can't assign wrong type idiot!"
             print "Paragraph %d" %node.lineno
+            raise SemanticException
 
     elif node.tokType == "type":
         return node.children[0]
@@ -32,10 +35,11 @@ def analyse( symbolTable, node ):
         else:
             print "Oh No Silly you!"
             #print "Error can't use unop on things that aren't numbers"
-            print "Paragraph %d" %Node.lineno
-            exit(1)
+            print "Paragraph %d" %node.lineno
+            raise SemanticException
     
     elif node.tokType == "binary_op":
+        print node.tokType
         type1 = analyse( symbolTable, node.children[1])
         type2 = analyse( symbolTable, node.children[2])
         if type1 == type2 == "number":
@@ -44,7 +48,7 @@ def analyse( symbolTable, node ):
             print "Oh No Silly you!"
             #print "Error can't use binop on things that aren't numbers"
             print "Paragraph %d" %node.lineno
-            exit(1)
+            raise SemanticException
 
     elif node.tokType == "factor":
         if node.children[0] == 'ID':
@@ -55,9 +59,11 @@ def analyse( symbolTable, node ):
                 print "Oh No Silly you!"
                 #print "Error you haven't assigned your identifier"
                 print "Paragraph %d" %node.lineno
-                exit(1)
+                raise SemanticException
         return node.children[0]
         
 
-     
+class SemanticException(Exception):
+    pass
+  
 

@@ -4,10 +4,12 @@ import ply.yacc as yacc
 
 import tokrules
 from yacc_config import *
+from exceptions import *
 
 import Node
 
 from semantic_analysis import analyse
+from semantic_analysis import SemanticException
 
 def run():
     tests()
@@ -39,8 +41,10 @@ def parse_code(code):
         result = parser.parse(code)
         if result:
             #result.display()
-            analyse(symbolTable, result)
-            pass
+            try:
+                analyse(symbolTable, result)
+            except SemanticException:
+                pass
     except SyntaxException:
         pass
 

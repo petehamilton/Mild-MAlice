@@ -75,15 +75,17 @@ def p_type_letter(p):
 
 def p_expression_not(p):
     'expression : B_NOT expression'
-    p[0] = Node('unaryOp', p.lineno(2), [p[1], p[2]])
+    p[0] = Node('unary_op', p.lineno(2), [p[1], p[2]])
 
+#TODO: CHECK IF ITS SEMANTIC OR SYNTACTIC USING MAlice IE 
+# expression: factor DECREMENT
 def p_expression_drank(p):
     'expression : ID DECREMENT'
-    p[0] = Node('unaryOp', p.lineno(1), [p[2], p[1]])
+    p[0] = Node('unary_op', p.lineno(1), [p[2], Node('factor', p.lineno(1), ["ID", p[1]])])
 
 def p_expression_ate(p):
     'expression : ID INCREMENT'
-    p[0] = Node('unary_op', p.lineno(1), [p[2], p[1]])
+    p[0] = Node('unary_op', p.lineno(1), [p[2], Node('factor', p.lineno(1), ["ID", p[1]])])
 
 def p_expression_or(p):
     'expression : expression B_OR term1'
@@ -91,7 +93,7 @@ def p_expression_or(p):
 
 def p_expression_xor(p):
     'expression : expression B_XOR term1'
-    p[0] = Node('binary_op', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', p.lineno(1), [p[2], p[1],p[3]])
 
 def p_expression_and(p):
     'expression : expression B_AND term1'
@@ -120,9 +122,9 @@ def p_term2_multiply(p):
 #Handles division by 0 constant
 def p_term2_divide(p):
     'term2 : term2 DIVIDE factor'
-    if p[3].tokType == 'factor':
-        if p[3].leaves[0] == 0:
-            print "Oops!"
+    if p[3].children[1] == 0:
+        print "Oops!"
+        raise SyntaxException
     p[0] = Node('binary_op', p.lineno(1), [p[2], p[1],p[3]])
 
 def p_term2_mod(p):
@@ -157,8 +159,10 @@ def p_empty(p):
 def p_error(p):
     if p == None:
         print "Oh No! You were writing such silly things at the start of the story."
+        raise SyntaxException
     else:
         print "Oh No! You started writing utter nonsense.", p.lineno, p.lexpos
+        raise SyntaxException
 
 
 def print_error( msg, lineno, pos ):
