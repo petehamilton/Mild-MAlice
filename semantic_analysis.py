@@ -30,7 +30,8 @@ def analyse( symbolTable, node ):
         if type1 == "number":
             return "number"
         else:
-            print "Error can't use unop on things that aren't numbers"
+            print "Oh No Silly you!"
+            #print "Error can't use unop on things that aren't numbers"
             print "Paragraph %d" %Node.lineno
             exit(1)
     
@@ -40,7 +41,8 @@ def analyse( symbolTable, node ):
         if type1 == type2 == "number":
             return "number"
         else:
-            print "Error can't use binop on things that aren't numbers"
+            print "Oh No Silly you!"
+            #print "Error can't use binop on things that aren't numbers"
             print "Paragraph %d" %Node.lineno
             exit(1)
 
@@ -50,7 +52,8 @@ def analyse( symbolTable, node ):
             if assigned:
                 return idType
             else:
-                print "Error you haven't assigned your identifier"
+                print "Oh No Silly you!"
+                #print "Error you haven't assigned your identifier"
                 print "Paragraph %d" %Node.lineno
                 exit(1)
         return node.children[0]
