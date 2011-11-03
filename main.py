@@ -7,9 +7,11 @@ from yacc_config import *
 
 import Node
 
+from semantic_analysis import analyse
+
 def run():
-    #tests()
-    #return 0
+    tests()
+    return 0
     parse_code('''
     Cat was a number.
     Dog was a number.
@@ -34,10 +36,11 @@ def parse_code(code):
     lexer = lex.lex(module=tokrules)
     parser = yacc.yacc()
     result = parser.parse(code)
+    analyse(symbolTable, result)
     # print symbolTable
     if result:
         pass
-        result.display()
+        # result.display()
 
 def tests():
     import fnmatch
