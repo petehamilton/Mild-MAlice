@@ -26,7 +26,7 @@ def analyse( symbolTable, node ):
         return node.children[0]
         
     elif node.tokType == "unary_op":
-        type1 = analyse( symboLTable, node.children[1])
+        type1 = analyse( symbolTable, node.children[1])
         if type1 == "number":
             return "number"
         else:
