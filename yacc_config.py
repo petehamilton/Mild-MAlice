@@ -21,7 +21,7 @@ def p_statement_list_empty(p):
 
 def p_statement_list_alicespoke(p):
     'statement_list : expression PRINT_SPOKE SEP_PERIOD'
-    p[0] = Node("spoke", [p[2]])
+    p[0] = Node("spoke", [p[1]])
 
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
@@ -138,11 +138,11 @@ def p_term2_factor(p):
 
 def p_factor_number(p):
     'factor : NUMBER'
-    p[0] = Node('factor', ["NUMBER", p[1]])
+    p[0] = Node('factor', ["number", p[1]])
 
 def p_factor_letter(p):
     'factor : LETTER'
-    p[0] = Node('factor', ["LETTER", p[1]])
+    p[0] = Node('factor', ["letter", p[1]])
 
 def p_factor_id(p):
     'factor : ID'
