@@ -39,7 +39,6 @@ def analyse( symbolTable, node ):
             raise SemanticException
     
     elif node.tokType == "binary_op":
-        print node.tokType
         type1 = analyse( symbolTable, node.children[1])
         type2 = analyse( symbolTable, node.children[2])
         if type1 == type2 == "number":
