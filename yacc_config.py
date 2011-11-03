@@ -15,12 +15,16 @@ precedence = (
 def _parse_error(msg, coord):
     raise ParseError("%s: %s" % (coord, msg))  
 
-def p_statement_list_empty(p):
-    'statement_list : '
-    pass
-
-def p_statement_list_alicespoke(p):
-    'statement_list : expression PRINT_SPOKE SEP_PERIOD'
+#def p_statement_list_empty(p):
+#    'statement_list : '
+#    p[0]=p[1]
+ 
+def p_statement_list(p):
+    'statement_list : statement'
+    p[0] = p[1]
+    
+def p_statement_alicespoke(p):
+    'statement : expression PRINT_SPOKE SEP_PERIOD'
     p[0] = Node("spoke", p.lineno(1), [p[1]])
 
 def p_statement_list_sep_comma(p):
@@ -51,8 +55,8 @@ def p_statement_too(p):
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
     if p[1] in symbolTable:
-        print_error( ("Oh No! Silly you! You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1])), p.lineno(1))
-        return 0
+        print_error( ("Oh No! Silly you! You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1])), p.lineno(1), 0)
+        
     else:    
         symbolTable[p[1]] = [p[4].children[0], p.lineno(1), False]
     p[0] = Node('declaration', p.lineno(1), [p[1], p[4]])
@@ -147,10 +151,15 @@ def p_factor_id(p):
     'factor : ID'
     p[0] = Node('factor', p.lineno(1), ["ID", p[1]])
 
+
+def p_empty(p):
+    'empty : ' 
+    pass
+    
+    
 # "Oh No! You were writing such silly things at the start of the story." means could
 # not match to statement-list so can't start.
 def p_error(p):
-    print p
     if p == None:
         print "Oh No! You were writing such silly things at the start of the story."
     else:
@@ -160,4 +169,9 @@ def p_error(p):
 def print_error( msg, lineno, pos ):
     print msg
     print "(Paragraph:  %d Clause: %d)" %(lineno, pos)
+    raise SyntaxException
+    
+    
+class SyntaxException(Exception):
+    pass
    
