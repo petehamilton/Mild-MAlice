@@ -1,5 +1,6 @@
 from Node import Node
 from tokrules import tokens
+import grammar_exceptions as e
 
 start = 'statement_list' # Optional as uses first rule
 symbolTable = {}
@@ -50,7 +51,7 @@ def p_statement_too(p):
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
     if p[1] in symbolTable:
-        print_error( ("Oh No! Silly you! You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1])), p.lineno(1), p.clauseno(1))
+        raise e.SemanticException( p.lineno(1), p.clauseno(1), "You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1]) )
         
     else:    
         symbolTable[p[1]] = [p[4].children[0], p.lineno(1), False]
@@ -124,7 +125,7 @@ def p_term2_divide(p):
     'term2 : term2 DIVIDE factor'
     if p[3].children[1] == 0:
         print "Oops!"
-        raise SyntaxException
+        raise e.DivisionByZeroException(p.lineno(1), p.clauseno(1))
     p[0] = Node('binary_op', p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
 def p_term2_mod(p):
@@ -148,27 +149,15 @@ def p_factor_id(p):
     'factor : ID'
     p[0] = Node('factor', p.lineno(1), p.clauseno(1), ["ID", p[1]])
 
-
-def p_empty(p):
-    'empty :'
-    pass
-    
     
 # "Oh No! You were writing such silly things at the start of the story." means could
 # not match to statement-list so can't start.
 def p_error(p):
     if p == None:
-        print "Oh No! You were writing such silly things at the start of the story."
-        raise SyntaxException
+        raise e.NoMatchException()
     else:
-        print "Oh No! You started writing utter nonsense.", p.lineno, p.lexpos
-        raise SyntaxException
+        raise e.SyntaxException(p.lineno, p.clauseno)
 
-
-def print_error( msg, lineno, clauseno ):
-    print msg
-    print "(Paragraph:  %d Clause: %d)" %(lineno, clauseno)
-    raise SyntaxException
     
     
 class SyntaxException(Exception):

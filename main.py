@@ -3,15 +3,12 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 import tokrules
-from tokrules import LexicalException
-
 from yacc_config import *
-from exceptions import *
 
 import Node
 
 from semantic_analysis import analyse
-from semantic_analysis import SemanticException
+import grammar_exceptions as e
 
 def run():
     tests()
@@ -40,19 +37,14 @@ def parse_code(code):
     try:
         lexer = lex.lex(module=tokrules)
         parser = yacc.yacc()
-        try:
-            result = parser.parse(code)
-            if result:
-                #result.display()
-                try:
-                    analyse(symbolTable, result)
-                except SemanticException:
-                    pass
-        except SyntaxException:
-            pass
-    except LexicalException:
-        pass
-
+        #try:
+        result = parser.parse(code)
+        if result:
+            #result.display()
+     #       try:
+            analyse(symbolTable, result)
+    except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
+        print exception.value
 def tests():
     import fnmatch
     import os

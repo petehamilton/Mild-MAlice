@@ -1,5 +1,8 @@
 # module: tokrules.py
 # This module just contains the lexing rules
+
+from grammar_exceptions import LexicalException
+
 tokens = [
         'NUMBER',
         'LETTER',
@@ -91,7 +94,7 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
-    raise LexicalException
+    raise LexicalException( t.lexer.lineno, t.lexer.clauseno )
     t.lexer.skip(1)
 
 def t_ID(t):
@@ -103,5 +106,4 @@ def t_TOO(t):
     r'\too'
     pass
 
-class LexicalException(Exception):
-    pass
+

@@ -1,5 +1,5 @@
 import sys
-from exceptions import *
+from grammar_exceptions import SemanticException
 
 def analyse( symbolTable, node ):
     if node.tokType == "statement_list":
@@ -11,9 +11,7 @@ def analyse( symbolTable, node ):
         if type1[0] == 'ID':
             (idType, lineNo, assigned ) = symbolTable[node.children[0]]
             if not assigned:
-                print "Error you haven't assigned your identifier"
-                print "Paragraph %d" %node.lineno
-                raise SemanticException
+                raise SemanticException( node.lineno, node.clauseno)
 
     elif node.tokType == "assignment":
         (identifier, expression) = node.children
@@ -21,10 +19,7 @@ def analyse( symbolTable, node ):
         if type1 == symbolTable[identifier][0]:
             symbolTable[identifier][2] = True
         else:
-            print "Oh No Silly you!"
-            #print "Error can't assign wrong type idiot!"
-            print "Paragraph %d" %node.lineno
-            raise SemanticException
+            raise SemanticException( node.lineno, node.clauseno)
 
     elif node.tokType == "type":
         return node.children[0]
@@ -34,10 +29,7 @@ def analyse( symbolTable, node ):
         if type1 == "number":
             return "number"
         else:
-            print "Oh No Silly you!"
-            #print "Error can't use unop on things that aren't numbers"
-            print "Paragraph %d" %node.lineno
-            raise SemanticException
+            raise SemanticException( node.lineno, node.clauseno)
     
     elif node.tokType == "binary_op":
         type1 = analyse( symbolTable, node.children[1])
@@ -45,10 +37,7 @@ def analyse( symbolTable, node ):
         if type1 == type2 == "number":
             return "number"
         else:
-            print "Oh No Silly you!"
-            #print "Error can't use binop on things that aren't numbers"
-            print "Paragraph %d" %node.lineno
-            raise SemanticException
+            raise SemanticException( node.lineno, node.clauseno)
 
     elif node.tokType == "factor":
         if node.children[0] == 'ID':
@@ -56,14 +45,11 @@ def analyse( symbolTable, node ):
             if assigned:
                 return idType
             else:
-                print "Oh No Silly you!"
-                #print "Error you haven't assigned your identifier"
-                print "Paragraph %d" %node.lineno
-                raise SemanticException
+                raise SemanticException( node.lineno, node.clauseno)
         return node.children[0]
         
 
-class SemanticException(Exception):
-    pass
+#class SemanticException(Exception):
+#    pass
   
 
