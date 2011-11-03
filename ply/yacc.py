@@ -209,6 +209,9 @@ class YaccProduction:
 
     def lineno(self,n):
         return getattr(self.slice[n],"lineno",0)
+        
+    def clauseno(self, n):
+        return getattr(self.slice[n],"clauseno", 0)
 
     def set_lineno(self,n,lineno):
         self.slice[n].lineno = lineno
