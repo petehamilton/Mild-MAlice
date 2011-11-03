@@ -25,24 +25,24 @@ def p_statement_list_alicespoke(p):
 
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
-    p[0] = Node("statement_list", [p[2], p[1],p[3]])
+    p[0] = Node("statement_list", [p[1], p[3]])
 
 def p_statement_list_sep_period(p):
     'statement_list : statement SEP_PERIOD statement_list'
-    p[0] = Node("statement_list", [p[2], p[1], p[3]])
+    p[0] = Node("statement_list", [p[1], p[3]])
 
 
 def p_statement_list_sep_and(p):
     'statement_list : statement SEP_AND statement_list'
-    p[0] = Node("statement_list", [p[2], p[1],p[3]])
+    p[0] = Node("statement_list", [p[1], p[3]])
 
 def p_statement_list_sep_but(p):
     'statement_list : statement SEP_BUT statement_list'
-    p[0] = Node("statement_list", [p[2], p[1],p[3]])
+    p[0] = Node("statement_list", [p[1], p[3]])
 
 def p_statement_list_sep_then(p):
     'statement_list : statement SEP_THEN statement_list'
-    p[0] = Node("statement_list", [p[2], p[1],p[3]])
+    p[0] = Node("statement_list", [p[1], p[3]])
 
 def p_statement_too(p):
     'statement : statement TOO'
@@ -55,7 +55,7 @@ def p_statement_wasa(p):
         print_error( ("Oh No! Silly you! You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1])), p.lineno(1))
         return 0
     else:    
-        symbolTable[p[1]] = [p[4].children[0], p.lineno(1)]
+        symbolTable[p[1]] = [p[4].children[0], p.lineno(1), False]
     p[0] = Node('declaration', [p[1], p[4]])
 
 def p_statement_became(p):
@@ -77,27 +77,27 @@ def p_type_letter(p):
 
 def p_expression_not(p):
     'expression : B_NOT expression'
-    p[0] = Node('not', [p[2]])
+    p[0] = Node('unaryOp', [p[1], p[2]])
 
 def p_expression_drank(p):
     'expression : ID DECREMENT'
-    p[0] = Node('decrement', [p[2]])
+    p[0] = Node('unaryOp', [p[2], p[1]])
 
 def p_expression_ate(p):
     'expression : ID INCREMENT'
-    p[0] = Node('increment', [p[2]])
+    p[0] = Node('unary_op', [p[2], p[1]])
 
 def p_expression_or(p):
     'expression : expression B_OR term1'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_expression_xor(p):
     'expression : expression B_XOR term1'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_expression_and(p):
     'expression : expression B_AND term1'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
     
 def p_expression_term1(p):
     'expression : term1'
@@ -105,11 +105,11 @@ def p_expression_term1(p):
 
 def p_term1_plus(p):
     'term1 : term1 PLUS term2'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_term1_minus(p):
     'term1 : term1 MINUS term2'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_term1_term2(p):
     'term1 : term2'
@@ -117,7 +117,7 @@ def p_term1_term2(p):
 
 def p_term2_multiply(p):
     'term2 : term2 MULTIPLY factor'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 #Handles division by 0 constant
 def p_term2_divide(p):
@@ -125,31 +125,28 @@ def p_term2_divide(p):
     if p[3].tokType == 'factor':
         if p[3].leaves[0] == 0:
             print "Oops!"
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_term2_mod(p):
     'term2 : term2 MOD factor'
-    p[0] = Node('binaryOp', [p[2], p[1],p[3]])
+    p[0] = Node('binary_op', [p[2], p[1],p[3]])
 
 def p_term2_factor(p):
     'term2 : factor'
     p[0] = p[1]
 
-def p_factor_parentheses(p):
-    'factor : LPAREN expression RPAREN'
-    p[0] = Node('factor',[p[1],p[3], p[2]])
 
 def p_factor_number(p):
     'factor : NUMBER'
-    p[0] = Node('factor', [p[1]])
+    p[0] = Node('factor', ["NUMBER", p[1]])
 
 def p_factor_letter(p):
     'factor : LETTER'
-    p[0] = Node('factor', [p[1]])
+    p[0] = Node('factor', ["LETTER", p[1]])
 
 def p_factor_id(p):
     'factor : ID'
-    p[0] = Node('factor', [p[1]])
+    p[0] = Node('factor', ["ID", p[1]])
 
 # "Oh No! You were writing such silly things at the start of the story." means could
 # not match to statement-list so can't start.
