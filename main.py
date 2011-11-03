@@ -35,12 +35,14 @@ def run():
 def parse_code(code):
     lexer = lex.lex(module=tokrules)
     parser = yacc.yacc()
-    result = parser.parse(code)
-    analyse(symbolTable, result)
-    # print symbolTable
-    if result:
+    try:
+        result = parser.parse(code)
+        if result:
+            #result.display()
+            analyse(symbolTable, result)
+            pass
+    except SyntaxException:
         pass
-        # result.display()
 
 def tests():
     import fnmatch
@@ -49,12 +51,14 @@ def tests():
     files.sort()
     for file in files:
         if fnmatch.fnmatch(file, '*.alice'):
-            fin = open('./milestone2/' + file, "r");
-            print "Parsing", file
-            code = fin.read()
-            # print code
-            parse_code(code)
-            print
+            symbolTable.clear()
+            if os.path.getsize('./milestone2/' + file):
+                fin = open('./milestone2/' + file, "r");
+                print "Parsing", file
+                code = fin.read()
+                # print code
+                parse_code(code)
+                print
 
 if __name__ == '__main__':
     run()

@@ -15,18 +15,6 @@ precedence = (
 def _parse_error(msg, coord):
     raise ParseError("%s: %s" % (coord, msg))  
 
-#def p_statement_list_empty(p):
-#    'statement_list : '
-#    p[0]=p[1]
- 
-def p_statement_list(p):
-    'statement_list : statement'
-    p[0] = p[1]
-    
-def p_statement_alicespoke(p):
-    'statement : expression PRINT_SPOKE SEP_PERIOD'
-    p[0] = Node("spoke", p.lineno(1), [p[1]])
-
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
     p[0] = Node("statement_list", p.lineno(1), [p[1], p[3]])
@@ -35,6 +23,9 @@ def p_statement_list_sep_period(p):
     'statement_list : statement SEP_PERIOD statement_list'
     p[0] = Node("statement_list", p.lineno(1), [p[1], p[3]])
 
+def p_statement_list_statement(p):
+    'statement_list : statement SEP_PERIOD'
+    p[0] = p[1]
 
 def p_statement_list_sep_and(p):
     'statement_list : statement SEP_AND statement_list'
@@ -47,6 +38,10 @@ def p_statement_list_sep_but(p):
 def p_statement_list_sep_then(p):
     'statement_list : statement SEP_THEN statement_list'
     p[0] = Node("statement_list", p.lineno(1), [p[1], p[3]])
+
+def p_statement_alicespoke(p):
+    'statement : expression PRINT_SPOKE'
+    p[0] = Node("spoke", p.lineno(1), [p[1]])
 
 def p_statement_too(p):
     'statement : statement TOO'
@@ -153,7 +148,7 @@ def p_factor_id(p):
 
 
 def p_empty(p):
-    'empty : ' 
+    'empty :'
     pass
     
     

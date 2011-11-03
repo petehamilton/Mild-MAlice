@@ -10,7 +10,7 @@ def analyse( symbolTable, node ):
             (idType, lineNo, assigned ) = symbolTable[node.children[0]]
             if not assigned:
                 print "Error you haven't assigned your identifier"
-                print "Paragraph %d" %Node.lineno
+                print "Paragraph %d" %node.lineno
                 exit(1)
 
     elif node.tokType == "assignment":
@@ -20,7 +20,7 @@ def analyse( symbolTable, node ):
             symbolTable[identifier][2] = True
         else:
             print "Error can't assign wrong type idiot!"
-            print "Paragraph %d" %Node.lineno
+            print "Paragraph %d" %node.lineno
 
     elif node.tokType == "type":
         return node.children[0]
@@ -43,7 +43,7 @@ def analyse( symbolTable, node ):
         else:
             print "Oh No Silly you!"
             #print "Error can't use binop on things that aren't numbers"
-            print "Paragraph %d" %Node.lineno
+            print "Paragraph %d" %node.lineno
             exit(1)
 
     elif node.tokType == "factor":
@@ -54,7 +54,7 @@ def analyse( symbolTable, node ):
             else:
                 print "Oh No Silly you!"
                 #print "Error you haven't assigned your identifier"
-                print "Paragraph %d" %Node.lineno
+                print "Paragraph %d" %node.lineno
                 exit(1)
         return node.children[0]
         

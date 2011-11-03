@@ -7,8 +7,6 @@ tokens = [
         'MINUS',
         'MULTIPLY',
         'DIVIDE',
-        'LPAREN',
-        'RPAREN',
         'SEP_COMMA',
         'SEP_PERIOD',
         'B_AND',
@@ -39,8 +37,6 @@ t_PLUS = r'\+'
 t_MINUS = r'-'
 t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
 t_SEP_COMMA = r'\,'
 t_SEP_PERIOD = r'\.'
 t_B_AND = r'\&'
