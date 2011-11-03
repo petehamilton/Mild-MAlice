@@ -63,7 +63,7 @@ def p_statement_became(p):
 # Have to implement for drank and ate
 def p_statement_expression(p):
     'statement : expression'
-    p[0] = Node('statement', [p[1]])
+    p[0] = p[1]
 
 def p_type_number(p):
     'type : TYPE_NUMBER'
@@ -99,7 +99,7 @@ def p_expression_and(p):
     
 def p_expression_term1(p):
     'expression : term1'
-    p[0] = Node('expression', [p[1]])
+    p[0] = p[1]
 
 def p_term1_plus(p):
     'term1 : term1 PLUS term2'
@@ -111,7 +111,7 @@ def p_term1_minus(p):
 
 def p_term1_term2(p):
     'term1 : term2'
-    p[0] = Node('term1', [p[1]])
+    p[0] = p[1]
 
 def p_term2_multiply(p):
     'term2 : term2 MULTIPLY factor'
@@ -131,7 +131,7 @@ def p_term2_mod(p):
 
 def p_term2_factor(p):
     'term2 : factor'
-    p[0] = Node('term2', [p[1]])
+    p[0] = p[1]
 
 def p_factor_parentheses(p):
     'factor : LPAREN expression RPAREN'

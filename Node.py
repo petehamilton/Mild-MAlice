@@ -5,7 +5,7 @@ class Node:
     
     def display(self, depth = 0):
         print ("   " * (depth-1)) + \
-              ("|> *" if (depth > 0) else "**") + \
+              ("|> " if (depth > 0) else "") + \
               self.tokType
         
         for child in self.children:
