@@ -37,8 +37,8 @@ t_PLUS = r'\+'
 t_MINUS = r'-'
 t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
-t_SEP_COMMA = r'\,'
-t_SEP_PERIOD = r'\.'
+#t_SEP_COMMA = r'\,'
+#t_SEP_PERIOD = r'\.'
 t_B_AND = r'\&'
 t_B_OR = r'\|'
 t_B_XOR = r'\^'
@@ -57,10 +57,37 @@ def t_NUMBER(t):
     t.value = int(t.value)    
     return t
 
+def t_SEP_COMMA(t):
+    r','
+    t.lexer.clauseno += 1
+    return t
+    
+def t_SEP_PERIOD(t):
+    r'\.'
+    t.lexer.clauseno += 1
+    return t    
+
+    
+def t_SEP_AND(t):
+    r'and'
+    t.lexer.clauseno += 1
+    return t  
+    
+def t_SEP_BUT(t):
+    r'but'
+    t.lexer.clauseno += 1
+    return t  
+    
+def t_SEP_THEN(t):
+    r'then'
+    t.lexer.clauseno += 1
+    return t  
+    
 # Define a rule so we can track line numbers
 def t_newline(t):
     r'\n'
     t.lexer.lineno += len(t.value)
+    t.lexer.clauseno = 0
 
 # Error handling rule
 def t_error(t):

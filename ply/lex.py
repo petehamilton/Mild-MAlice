@@ -136,6 +136,7 @@ class Lexer:
         self.lexliterals = ""         # Literal characters that can be passed through
         self.lexmodule = None         # Module
         self.lineno = 1               # Current line number
+        self.clauseno = 1
         self.lexoptimize = 0          # Optimized mode
 
     def clone(self,object=None):
@@ -323,6 +324,7 @@ class Lexer:
                 tok = LexToken()
                 tok.value = m.group()
                 tok.lineno = self.lineno
+                tok.clauseno = self.clauseno
                 tok.lexpos = lexpos
 
                 i = m.lastindex
@@ -367,6 +369,7 @@ class Lexer:
                     tok = LexToken()
                     tok.value = lexdata[lexpos]
                     tok.lineno = self.lineno
+                    tok.clauseno = self.clauseno
                     tok.type = tok.value
                     tok.lexpos = lexpos
                     self.lexpos = lexpos + 1
@@ -377,6 +380,7 @@ class Lexer:
                     tok = LexToken()
                     tok.value = self.lexdata[lexpos:]
                     tok.lineno = self.lineno
+                    tok.clauseno = self.clauseno
                     tok.type = "error"
                     tok.lexer = self
                     tok.lexpos = lexpos
