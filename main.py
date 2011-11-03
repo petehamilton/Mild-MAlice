@@ -3,6 +3,8 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 import tokrules
+from tokrules import LexicalException
+
 from yacc_config import *
 from exceptions import *
 
@@ -35,17 +37,20 @@ def run():
     """
 
 def parse_code(code):
-    lexer = lex.lex(module=tokrules)
-    parser = yacc.yacc()
     try:
-        result = parser.parse(code)
-        if result:
-            #result.display()
-            try:
-                analyse(symbolTable, result)
-            except SemanticException:
-                pass
-    except SyntaxException:
+        lexer = lex.lex(module=tokrules)
+        parser = yacc.yacc()
+        try:
+            result = parser.parse(code)
+            if result:
+                #result.display()
+                try:
+                    analyse(symbolTable, result)
+                except SemanticException:
+                    pass
+        except SyntaxException:
+            pass
+    except LexicalException:
         pass
 
 def tests():

@@ -64,7 +64,7 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    raise LexicalException
     t.lexer.skip(1)
 
 def t_ID(t):
@@ -74,4 +74,7 @@ def t_ID(t):
 
 def t_TOO(t):
     r'\too'
+    pass
+
+class LexicalException(Exception):
     pass
