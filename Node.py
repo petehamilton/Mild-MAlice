@@ -1,8 +1,12 @@
 class Node:
-    def __init__(self, tokType, lineno, children=None):
+    def __init__(self, tokType, lineno, clauseno, children=None):
         self.tokType = tokType
         self.lineno = lineno
+        self.clauseno = clauseno
         self.children = children or []
+        
+    def __str__(self):
+        return "Node(%s,%r,%s,%s)" % (self.tokType,self.lineno,self.clauseno,self.children)
     
     def display(self, depth = 0):
         print ("   " * (depth-1)) + \
