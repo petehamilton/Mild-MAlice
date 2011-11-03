@@ -21,7 +21,8 @@ def analyse( symbolTable, node ):
         if type1 == symbolTable[identifier][0]:
             symbolTable[identifier][2] = True
         else:
-            print "Error can't assign wrong type idiot!"
+            print "Oh No Silly you!"
+            #print "Error can't assign wrong type idiot!"
             print "Paragraph %d" %node.lineno
             raise SemanticException
 
@@ -39,7 +40,6 @@ def analyse( symbolTable, node ):
             raise SemanticException
     
     elif node.tokType == "binary_op":
-        print node.tokType
         type1 = analyse( symbolTable, node.children[1])
         type2 = analyse( symbolTable, node.children[2])
         if type1 == type2 == "number":
