@@ -78,8 +78,6 @@ def p_expression_not(p):
     'expression : B_NOT expression'
     p[0] = Node('unary_op', p.lineno(2), p.clauseno(2), [p[1], p[2]])
 
-#TODO: CHECK IF ITS SEMANTIC OR SYNTACTIC USING MAlice IE 
-# expression: factor DECREMENT
 def p_expression_drank(p):
     'expression : ID DECREMENT'
     p[0] = Node('unary_op', p.lineno(1), p.clauseno(1), [p[2], Node('factor', p.lineno(1), p.clauseno(1), ["ID", p[1]])])
