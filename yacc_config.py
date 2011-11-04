@@ -150,16 +150,8 @@ def p_factor_id(p):
     p[0] = Node('factor', p.lineno(1), p.clauseno(1), ["ID", p[1]])
 
     
-# "Oh No! You were writing such silly things at the start of the story." means could
-# not match to statement-list so can't start.
 def p_error(p):
     if p == None:
         raise e.NoMatchException()
     else:
         raise e.SyntaxException(p.lineno, p.clauseno)
-
-    
-    
-class SyntaxException(Exception):
-    pass
-   
