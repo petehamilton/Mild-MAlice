@@ -18,6 +18,7 @@ def run():
     Dog was a number.
     Cat became 7 then Dog became 6 and Cat drank and Dog ate.
     Armagedon was a number and Armagedon became Cat * Dog.
+    5 ate.
     Armagedon spoke.
     ''')
     return 0
@@ -44,7 +45,8 @@ def parse_code(code):
      #       try:
             analyse(symbolTable, result)
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
-        print exception.value
+        print exception.value 
+        print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
 def tests():
     import fnmatch
     import os
