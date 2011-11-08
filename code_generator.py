@@ -1,15 +1,59 @@
+# toktype consts
+UNARY_OP = "unary_op"
+BINARY_OP = "binary_op"
+FACTOR = "factor"
+ASSIGNMENT = "assignment"
+DECLARATION = "declaration"
+SPOKE = "spoke"
+STATEMENT_LIST = "statement_list"
+TYPE = "type"
+
+
 def generate( node ):
+    pass
 
-
+# Swaps first two elements of a list around
+def swap( registers )
+    tmp = registers[0]
+    registers[0] = registers[1]
+    registers[1] =  registers[0]
+    return registers
 
 def transExp( node, registers ):
-    if node.tokType == "binary_op":
+    # cast to string incase number? 
+    if node.tokType == FACTOR:
+        return [ "mov %s %s" ] %( registers[0], str(node.children[1]) )
+
+    if node.tokType == STATEMENT_LIST:
+        return ( transExp( node.children[1], registers ) +
+        transExp( node.children[2], registers[1:] ) )
+
+    # Translate expression and put in dst then put dst in eax and return
+    if node.tokType == SPOKE:
+        return ( transExp( node.children[0], registers ) + ["mov eax %s" registers[0] , "ret" ] )    
+
+    if node.tokType == BINARY_OP:
         if weight( node.children[1] ) > weight( node.children[2] ):
-            transExp( node.children[1], registers )
-            transExp( node.children[2], registers[1:]
-            transBinop( node.)
+            return ( transExp( node.children[1], registers ) +
+            transExp( node.children[2], registers[1:] +
+            transBinop( node.children[0], registers[0], registers[1] ) )
         else:
-            transExp(
+            registers = swap(registers)
+            return ( transExp( node.children[2], registers ) ) +
+            transExp( node.children[1], registers[1:] ) + 
+            transBinop( node.children[0], registers[1], registers[0] ) )
+    
+    if node.tokType == UNARY_OP:
+        transExp( node.children[1], registers )
+        transUnop( node.children[0], registers[0] )
+
+    if node.tokType == ASSIGNMENT:
+        pass
+    #unfinished
+    if node.tokType == DECLARATION:
+        pass
+
+
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
@@ -34,7 +78,8 @@ def transBinOp(op, dest_reg, next_reg):
         return ["xor %s %s"] % (dest_reg, next_reg)
     elif op.tokType == "B_AND"
         return ["and %s %s"] % (dest_reg, next_reg)
-
+    
+            
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
 def transUnOp(op, dest_reg):
@@ -48,32 +93,29 @@ def transUnOp(op, dest_reg):
 # Node types are:
 # statement_list, spoke, assignment, declaration, 
 # binary_op, unary_op, type, factor
-#
-#
-#
-#
 def weight( node ):
-    if node.tokType == "factor":
+    if node.tokType == FACTOR:
         return 1
 
-    elif node.tokType == "binary_op":
+    elif node.tokType == BINARY_OP:
         cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
         cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
         return min( cost1, cost2 )
 
-    elif node.tokType == "unary_op":
+    elif node.tokType == UNARY_OP:
         return weight(node.children[1])
 
-    elif node.tokType == "spoke":
+    elif node.tokType == SPOKE:
         return weight(node.children[1])
 
-    elif node.tokType == "assignment":
+    elif node.tokType == ASSIGNMENT:
+        return 1
 
-    elif node.tokType == "statement_list":
+    elif node.tokType == STATEMENT_LIST:
         return max( weight(node.children[0]), weight(node.children[1]) )
 
     #is this right? Dont need to store anything in register yet
-    elif node.tokType == "declaration" or node.tokType == "type":
+    elif node.tokType == DECLARATION or node.tokType == TYPE:
         pass
 
 
