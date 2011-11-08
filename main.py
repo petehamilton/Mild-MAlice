@@ -8,18 +8,16 @@ from yacc_config import *
 import Node
 
 from semantic_analysis import analyse
+from code_generator import generate
 import grammar_exceptions as e
 
 def run():
-    tests()
-    return 0
+    #tests()
+    #return 0
     parse_code('''
     Cat was a number.
-    Dog was a number.
-    Cat became 7 then Dog became 6 and Cat drank and Dog ate.
-    Armagedon was a number and Armagedon became Cat * Dog.
-    5 ate.
-    Armagedon spoke.
+    Cat became 5.
+    Cat spoke.
     ''')
     return 0
 
@@ -38,15 +36,15 @@ def parse_code(code):
     try:
         lexer = lex.lex(module=tokrules)
         parser = yacc.yacc()
-        #try:
         result = parser.parse(code)
         if result:
-            #result.display()
-     #       try:
             analyse(symbolTable, result)
+            generate( result )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+
+
 def tests():
     import fnmatch
     import os

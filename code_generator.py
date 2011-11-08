@@ -25,8 +25,8 @@ def transExp( node, registers ):
         return [ "mov %s %s" %( registers[0], str(node.children[1]))] 
 
     if node.tokType == STATEMENT_LIST:
-        return ( transExp( node.children[1], registers ) +
-        transExp( node.children[2], registers[1:] ) )
+        return ( transExp( node.children[0], registers ) +
+        transExp( node.children[1], registers[1:] ) )
 
     # Translate expression and put in dst then put dst in eax and return
     if node.tokType == SPOKE:
@@ -48,7 +48,7 @@ def transExp( node, registers ):
         transUnop( node.children[0], registers[0] )
 
     if node.tokType == ASSIGNMENT:
-        return transExp( node.children[3], registers )
+        return transExp( node.children[1], registers )
         
     if node.tokType == DECLARATION:
         pass
