@@ -2,8 +2,7 @@ class GrammarException(Exception):
     def __init__( self, lineno, clauseno ):
         self.lineno = lineno
         self.clauseno = clauseno
-
-
+        
 class SemanticException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(SemanticException, self).__init__(lineno, clauseno)       
