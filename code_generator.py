@@ -5,9 +5,11 @@ def generate( node ):
 def transExp( node, registers ):
     if node.tokType == "binary_op":
         if weight( node.children[1] ) > weight( node.children[2] ):
-            transExp( node.children[1], 
+            transExp( node.children[1], registers )
+            transExp( node.children[2], registers[1:]
+            transBinop( node.)
         else:
-        
+            transExp(
 
 
 
@@ -39,7 +41,7 @@ def weight( node ):
         return max( weight(node.children[0]), weight(node.children[1]) )
 
     #is this right? Dont need to store anything in register yet
-    elif node.tokType == "declaration" or node.tokType == "type:
+    elif node.tokType == "declaration" or node.tokType == "type":
         pass
 
 
