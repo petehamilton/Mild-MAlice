@@ -22,6 +22,8 @@ def swap( registers ):
 def transExp( node, registers ):
     # cast to string incase number? 
     if node.tokType == FACTOR:
+        if node.children[0] == "ID":
+            return []
         return [ "mov %s %s" %( registers[0], str(node.children[1]))] 
 
     if node.tokType == STATEMENT_LIST:
@@ -44,14 +46,14 @@ def transExp( node, registers ):
             transBinop( node.children[0], registers[1], registers[0] ) )
     
     if node.tokType == UNARY_OP:
-        transExp( node.children[1], registers )
-        transUnop( node.children[0], registers[0] )
+        return ( transExp( node.children[1], registers ) + 
+        transUnop( node.children[0], registers[0] ) )
 
     if node.tokType == ASSIGNMENT:
         return transExp( node.children[1], registers )
         
     if node.tokType == DECLARATION:
-        pass
+        return []
 
 
 
@@ -66,7 +68,7 @@ def transBinOp(op, dest_reg, next_reg):
         return ["mul %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "DIVIDE":
         return  ((["mov eax %s" % dest_reg]) +
-                (["div %s" % next_reg) +
+                (["div %s" % next_reg]) +
                 (["mov %s eax" % dest_reg]))
     elif op.tokType == "MOD":
         return  ((["mov eax %s" % dest_reg]) +
