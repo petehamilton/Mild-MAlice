@@ -59,36 +59,36 @@ def transExp( node, registers ):
 # the two provided registers
 def transBinOp(op, dest_reg, next_reg):
     if   op.tokType == "PLUS":
-        return ["add %s %s"] % (dest_reg, next_reg)
+        return ["add %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "MINUS":
-        return ["sub %s %s"] % (dest_reg, next_reg)
+        return ["sub %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "MULTIPLY":
-        return ["mul %s %s"] % (dest_reg, next_reg)
+        return ["mul %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "DIVIDE":
-        return  ((["mov eax %s"] % dest_reg) +
-                (["div %s"] % next_reg) +
-                (["mov %s eax"] % dest_reg))
+        return  ((["mov eax %s" % dest_reg]) +
+                (["div %s" % next_reg) +
+                (["mov %s eax" % dest_reg]))
     elif op.tokType == "MOD":
-        return  ((["mov eax %s"] % dest_reg) +
-                (["div %s"] % next_reg) +
-                (["mov %s edx"] % dest_reg))
+        return  ((["mov eax %s" % dest_reg]) +
+                (["div %s" % next_reg]) +
+                (["mov %s edx" % dest_reg]))
     elif op.tokType == "B_OR":
-        return ["or %s %s"] % (dest_reg, next_reg)
+        return ["or %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "B_XOR":
-        return ["xor %s %s"] % (dest_reg, next_reg)
+        return ["xor %s %s" % (dest_reg, next_reg)]
     elif op.tokType == "B_AND":
-        return ["and %s %s"] % (dest_reg, next_reg)
+        return ["and %s %s" % (dest_reg, next_reg)]
     
             
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
 def transUnOp(op, dest_reg):
     if   op.tokType == "INCREMENT":
-        return ["inc %s"] % dest_reg
+        return ["inc %s" % dest_reg]
     elif op.tokType == "DECREMENT":
-        return ["dec %s"] % dest_reg
+        return ["dec %s" % dest_reg]
     elif op.tokType == "B_NOT":
-        return ["not %s"] % dest_reg
+        return ["not %s" % dest_reg]
 
 # Node types are:
 # statement_list, spoke, assignment, declaration, 
