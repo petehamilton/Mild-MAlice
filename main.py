@@ -16,7 +16,7 @@ def run():
     #return 0
     parse_code('''
     Cat was a number.
-    Cat became 5.
+    Cat became 5 + 10.
     Cat spoke.
     ''')
     return 0
@@ -39,11 +39,18 @@ def parse_code(code):
         result = parser.parse(code)
         if result:
             analyse(symbolTable, result)
-            print generate( result )
+            code = generate( result, symbolTable.keys() )
+            writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
 
+
+def writeASM( result ):
+    asmFile = open('output.asm', 'w')
+    for line in result:
+        asmFile.write(line + "\n")
+    asmFile.close()
 
 def tests():
     import fnmatch
