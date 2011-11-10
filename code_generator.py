@@ -95,11 +95,11 @@ def transBinOp(op, dest_reg, next_reg):
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
 def transUnOp(op, dest_reg):
-    if op.tokType == "INCREMENT":
+    if op == "ate":
         return ["inc %s" % dest_reg]
-    elif op.tokType == "DECREMENT":
+    elif op == "drank":
         return ["dec %s" % dest_reg]
-    elif op.tokType == "B_NOT":
+    elif re.match( tokrules.t_B_NOT, op ):
         return ["not %s" % dest_reg]
 
 # Node types are:
