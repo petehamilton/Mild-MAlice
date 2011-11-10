@@ -16,6 +16,7 @@ def generate( node, variables ):
 
 # Swaps first two elements of a list around
 def swap( registers ):
+    print registers
     tmp = registers[0]
     registers[0] = registers[1]
     registers[1] =  tmp
@@ -30,7 +31,7 @@ def transExp( node, registers ):
 
     if node.tokType == Node.STATEMENT_LIST:
         return ( transExp( node.children[0], registers ) +
-        transExp( node.children[1], registers[1:] ) )
+        transExp( node.children[1], registers ) )
 
     # Translate expression and put in dst then put dst in eax and return
     # TODO: Maybe move this to function? push/pop rsi/rdi
@@ -159,7 +160,7 @@ def finish():
             "os_return:",
 	        indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()"),
 	        indent("mov  rbx, 0		; Error code 0 i.e. no errors"),
-	        indent("int  LINUX		; Interrupt Linux kernel")
+	        indent("int  LINUX		; Interrupt Linux kernel"),
             ]
 
 
