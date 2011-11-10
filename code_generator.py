@@ -35,6 +35,7 @@ def transExp( node, registers ):
         transExp( node.children[1], registers[1:] ) )
 
     # Translate expression and put in dst then put dst in eax and return
+    # TODO: Maybe move this to function? push/pop rsi/rdi
     if node.tokType == SPOKE:
         translated = transExp( node.children[0], registers )
         instr = ["mov rsi, %s" %registers[0],
@@ -48,16 +49,16 @@ def transExp( node, registers ):
         if weight( node.children[1] ) > weight( node.children[2] ):
             return ( transExp( node.children[1], registers ) +
             transExp( node.children[2], registers[1:] ) +
-            transBinop( node.children[0], registers[0], registers[1] ) )
+            transBinOp( node.children[0], registers[0], registers[1] ) )
         else:
             registers = swap(registers)
             return ( transExp( node.children[2], registers )  +
             transExp( node.children[1], registers[1:] ) + 
-            transBinop( node.children[0], registers[1], registers[0] ) )
+            transBinOp( node.children[0], registers[1], registers[0] ) )
     
     if node.tokType == UNARY_OP:
         return ( transExp( node.children[1], registers ) + 
-        transUnop( node.children[0], registers[0] ) )
+        transUnOp( node.children[0], registers[0] ) )
 
     if node.tokType == ASSIGNMENT:
         return ( transExp( node.children[1], registers ) + 
@@ -71,6 +72,7 @@ def transExp( node, registers ):
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
 def transBinOp(op, dest_reg, next_reg):
+    print op
     if   op.tokType == "PLUS":
         return ["add %s, %s" % (dest_reg, next_reg)]
     elif op.tokType == "MINUS":

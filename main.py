@@ -16,7 +16,7 @@ def run():
     #return 0
     parse_code('''
     Cat was a number.
-    Cat became 5.
+    Cat became 5 + 10.
     Cat spoke.
     ''')
     return 0
