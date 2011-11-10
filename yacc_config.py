@@ -15,7 +15,6 @@ TYPE = "type"
 
 
 start = 'statement_list' # Optional as uses first rule
-symbolTable = {}
 class ParseError(Exception): 
     pass
 
@@ -62,11 +61,6 @@ def p_statement_too(p):
 
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
-    if p[1] in symbolTable:
-        raise e.SemanticException( p.lineno(1), p.clauseno(1), "You already told me what '%s' was on line %d" %(p[1],  symbolTable[p[1]][1]) )
-        
-    else:    
-        symbolTable[p[1]] = [p[4].children[0], p.lineno(1), False]
     p[0] = Node('declaration', p.lineno(1), p.clauseno(1), [p[1], p[4]])
 
 def p_statement_became(p):
@@ -134,7 +128,6 @@ def p_term2_multiply(p):
 def p_term2_divide(p):
     'term2 : term2 DIVIDE factor'
     if p[3].children[1] == 0:
-        print "Oops!"
         raise e.DivisionByZeroException(p.lineno(1), p.clauseno(1))
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 

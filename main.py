@@ -38,6 +38,7 @@ def parse_code(code):
         parser = yacc.yacc()
         result = parser.parse(code)
         if result:
+            symbolTable = {}
             analyse(symbolTable, result)
             code = generate( result, symbolTable.keys() )
             writeASM( code )
