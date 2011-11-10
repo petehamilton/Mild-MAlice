@@ -1,9 +1,14 @@
-# toktype consts
+import re
+import tokrules
 import Node
 
 
 intfmt = 'db "%ld", 10, 0'
 charfmt = 'db "%c", 10, 0'
+
+
+def indent( string, indentation = "    "):
+    return indentation + string
 
 #change list of registers later
 def generate( node, variables ):
@@ -20,8 +25,8 @@ def transExp( node, registers ):
     # cast to string incase number? 
     if node.tokType == Node.FACTOR:
         if node.children[0] == "ID":
-            return [ "mov %s, [%s]" %( registers[0], str(node.children[1]))] 
-        return [ "mov %s, %s" %( registers[0], str(node.children[1]))] 
+            return [ indent("mov %s, [%s]" %( registers[0], str(node.children[1])))] 
+        return [ indent("mov %s, %s" %( registers[0], str(node.children[1])))] 
 
     if node.tokType == Node.STATEMENT_LIST:
         return ( transExp( node.children[0], registers ) +
@@ -29,12 +34,12 @@ def transExp( node, registers ):
 
     # Translate expression and put in dst then put dst in eax and return
     # TODO: Maybe move this to function? push/pop rsi/rdi
-    if node.tokType == SPOKE:
+    if node.tokType == Node.SPOKE:
         translated = transExp( node.children[0], registers )
-        instr = ["mov rsi, %s" %registers[0],
-                 "mov rdi, intfmt",
-                 "xor rax, rax",
-                 "call printf",
+        instr = [indent("mov rsi, %s" %registers[0]),
+                 indent("mov rdi, intfmt"),
+                 indent("xor rax, rax"),
+                 indent("call printf"),
                 ]
         return ( translated + instr )    
 
@@ -53,11 +58,11 @@ def transExp( node, registers ):
         return ( transExp( node.children[1], registers ) + 
         transUnOp( node.children[0], registers[0] ) )
 
-    if node.tokType == ASSIGNMENT:
+    if node.tokType == Node.ASSIGNMENT:
         return ( transExp( node.children[1], registers ) + 
-                 ["mov [%s], %s" %(node.children[0], registers[0])])
+                 [indent("mov [%s], %s" %(node.children[0], registers[0]))])
 
-    if node.tokType == DECLARATION:
+    if node.tokType == Node.DECLARATION:
         return []
 
 
@@ -65,33 +70,32 @@ def transExp( node, registers ):
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
 def transBinOp(op, dest_reg, next_reg):
-    print op
-    if   op.tokType == "PLUS":
-        return ["add %s, %s" % (dest_reg, next_reg)]
-    elif op.tokType == "MINUS":
-        return ["sub %s, %s" % (dest_reg, next_reg)]
-    elif op.tokType == "MULTIPLY":
-        return ["mul %s, %s" % (dest_reg, next_reg)]
-    elif op.tokType == "DIVIDE":
-        return  ((["mov rax, %s" % dest_reg]) +
-                (["div %s" % next_reg]) +
-                (["mov %s, rax" % dest_reg]))
-    elif op.tokType == "MOD":
-        return  ((["mov rax, %s" % dest_reg]) +
-                (["div %s" % next_reg]) +
-                (["mov %s, rdx" % dest_reg]))
-    elif op.tokType == "B_OR":
-        return ["or %s, %s" % (dest_reg, next_reg)]
-    elif op.tokType == "B_XOR":
-        return ["xor %s, %s" % (dest_reg, next_reg)]
-    elif op.tokType == "B_AND":
-        return ["and %s, %s" % (dest_reg, next_reg)]
+    if re.match( tokrules.t_PLUS, op ):
+        return [indent("add %s, %s" % (dest_reg, next_reg))]
+    elif re.match( tokrules.t_MINUS, op ):
+        return [indent("sub %s, %s" % (dest_reg, next_reg))]
+    elif re.match( tokrules.t_MULTIPLY, op ):
+        return [indent("mul %s, %s" % (dest_reg, next_reg))]
+    elif re.match( tokrules.t_DIVIDE, op ):
+        return  map(indent, (["mov rax, %s" % dest_reg] +
+                ["div %s" % next_reg] +
+                ["mov %s, rax" % dest_reg]))
+    elif re.match( tokrules.t_MOD, op ):
+        return  map(indent, (["mov rax, %s" % dest_reg] +
+                ["div %s" % next_reg] +
+                ["mov %s, rdx" % dest_reg]))
+    elif re.match( tokrules.t_B_OR, op ):
+        return [indent("or %s, %s" % (dest_reg, next_reg))]
+    elif re.match( tokrules.t_B_XOR, op.tokType ):
+        return [indent("xor %s, %s" % (dest_reg, next_reg))]
+    elif re.match( tokrules.t_B_AND, op ):
+        return [indent("and %s, %s" % (dest_reg, next_reg))]
     
             
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
 def transUnOp(op, dest_reg):
-    if   op.tokType == "INCREMENT":
+    if op.tokType == "INCREMENT":
         return ["inc %s" % dest_reg]
     elif op.tokType == "DECREMENT":
         return ["dec %s" % dest_reg]
@@ -102,33 +106,33 @@ def transUnOp(op, dest_reg):
 # statement_list, spoke, assignment, declaration, 
 # binary_op, unary_op, type, factor
 def weight( node ):
-    if node.tokType == FACTOR:
+    if node.tokType == Node.FACTOR:
         return 1
 
-    elif node.tokType == BINARY_OP:
+    elif node.tokType == Node.BINARY_OP:
         cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
         cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
         return min( cost1, cost2 )
 
-    elif node.tokType == UNARY_OP:
+    elif node.tokType == Node.UNARY_OP:
         return weight(node.children[1])
 
-    elif node.tokType == SPOKE:
+    elif node.tokType == Node.SPOKE:
         return weight(node.children[1])
 
-    elif node.tokType == ASSIGNMENT:
+    elif node.tokType == Node.ASSIGNMENT:
         return 1
 
-    elif node.tokType == STATEMENT_LIST:
+    elif node.tokType == Node.STATEMENT_LIST:
         return max( weight(node.children[0]), weight(node.children[1]) )
 
     #is this right? Dont need to store anything in register yet
-    elif node.tokType == DECLARATION or node.tokType == TYPE:
+    elif node.tokType == Node.DECLARATION or node.tokType == Node.TYPE:
         pass
 
 def setup(variables):
     data = ["section .bss"]
-    data.extend( [ "\t%s: resq 1" %x for x in variables])
+    data.extend( [ indent("%s: resq 1" %x) for x in variables])
     data.append("\n")
     return (["extern printf", #potentially move this out if don't use spoke?
             "LINUX  	equ     80H		; interupt number for entering Linux kernel",
@@ -140,22 +144,22 @@ def setup(variables):
             data +
             [
             "section .data",
-            "\tintfmt: " + intfmt,
-            "\tcharfmt: " + charfmt,
+            indent("intfmt: ") + intfmt,
+            indent("charfmt: ") + charfmt,
             "\n",
             "segment .text",
-	        "\tglobal	main",
+	        indent("global	main"),
             "\n",
             "main:"
             ])
 
 def finish():
-    return ["call os_return		; return to operating system",
+    return [indent("call os_return		; return to operating system"),
             "\n",
             "os_return:",
-	        "\tmov  rax, EXIT		; Linux system call 1 i.e. exit ()",
-	        "\tmov  rbx, 0		; Error code 0 i.e. no errors",
-	        "\tint  LINUX		; Interrupt Linux kernel"
+	        indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()"),
+	        indent("mov  rbx, 0		; Error code 0 i.e. no errors"),
+	        indent("int  LINUX		; Interrupt Linux kernel")
             ]
 
 
