@@ -1,3 +1,12 @@
+UNARY_OP = "unary_op"
+BINARY_OP = "binary_op"
+FACTOR = "factor"
+ASSIGNMENT = "assignment"
+DECLARATION = "declaration"
+SPOKE = "spoke"
+STATEMENT_LIST = "statement_list"
+TYPE = "type"
+
 class Node:
     def __init__(self, tokType, lineno, clauseno, children=None):
         self.tokType = tokType

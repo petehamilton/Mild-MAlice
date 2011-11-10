@@ -1,12 +1,5 @@
 # toktype consts
-UNARY_OP = "unary_op"
-BINARY_OP = "binary_op"
-FACTOR = "factor"
-ASSIGNMENT = "assignment"
-DECLARATION = "declaration"
-SPOKE = "spoke"
-STATEMENT_LIST = "statement_list"
-TYPE = "type"
+import Node
 
 #change list of registers later
 def generate( node ):
@@ -21,20 +14,20 @@ def swap( registers ):
 
 def transExp( node, registers ):
     # cast to string incase number? 
-    if node.tokType == FACTOR:
+    if node.tokType == Node.FACTOR:
         if node.children[0] == "ID":
             return []
         return [ "mov %s %s" %( registers[0], str(node.children[1]))] 
 
-    if node.tokType == STATEMENT_LIST:
+    if node.tokType == Node.STATEMENT_LIST:
         return ( transExp( node.children[0], registers ) +
         transExp( node.children[1], registers[1:] ) )
 
     # Translate expression and put in dst then put dst in eax and return
-    if node.tokType == SPOKE:
+    if node.tokType == Node.SPOKE:
         return ( transExp( node.children[0], registers ) + ["mov eax %s" %registers[0] , "ret" ] )    
 
-    if node.tokType == BINARY_OP:
+    if node.tokType == Node.BINARY_OP:
         if weight( node.children[1] ) > weight( node.children[2] ):
             return ( transExp( node.children[1], registers ) +
             transExp( node.children[2], registers[1:] ) +
@@ -45,14 +38,14 @@ def transExp( node, registers ):
             transExp( node.children[1], registers[1:] ) + 
             transBinop( node.children[0], registers[1], registers[0] ) )
     
-    if node.tokType == UNARY_OP:
+    if node.tokType == Node.UNARY_OP:
         return ( transExp( node.children[1], registers ) + 
         transUnop( node.children[0], registers[0] ) )
 
-    if node.tokType == ASSIGNMENT:
+    if node.tokType == Node.ASSIGNMENT:
         return transExp( node.children[1], registers )
         
-    if node.tokType == DECLARATION:
+    if node.tokType == Node.DECLARATION:
         return []
 
 
