@@ -1,0 +1,1 @@
+nasm -f elf64 trial.asm ; gcc -m64 -o trial trial.o ; ./trial
