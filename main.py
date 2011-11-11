@@ -20,7 +20,6 @@ def run():
     b became 10 - 7.
     b spoke.
     '''
-    print maliceprogram
     parse_code(maliceprogram)
     return 0
 
