@@ -15,9 +15,10 @@ def run():
     #tests()
     #return 0
     parse_code('''
-    Cat was a number.
-    Cat became 5 + 10.
-    Cat spoke.
+    i was a number and i became 10.
+    j was a number and j became 15.
+    z was a number and z became i*j.
+    z spoke.
     ''')
     return 0
 

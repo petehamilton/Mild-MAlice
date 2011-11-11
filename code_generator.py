@@ -30,7 +30,7 @@ def transExp( node, registers ):
 
     if node.tokType == Node.STATEMENT_LIST:
         return ( transExp( node.children[0], registers ) +
-        transExp( node.children[1], registers[1:] ) )
+        transExp( node.children[1], registers ) )
 
     # Translate expression and put in dst then put dst in eax and return
     # TODO: Maybe move this to function? push/pop rsi/rdi
@@ -75,7 +75,7 @@ def transBinOp(op, dest_reg, next_reg):
     elif re.match( tokrules.t_MINUS, op ):
         return [indent("sub %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_MULTIPLY, op ):
-        return [indent("mul %s, %s" % (dest_reg, next_reg))]
+        return [indent("imul %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_DIVIDE, op ):
         return  map(indent, (["mov rax, %s" % dest_reg] +
                 ["div %s" % next_reg] +
