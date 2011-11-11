@@ -44,7 +44,7 @@ def transExp( node, registers ):
         return ( translated + instr )    
 
     if node.tokType == Node.BINARY_OP:
-        if weight( node.children[1] ) > weight( node.children[2] ):
+        if weight( node.children[1] ) <= weight( node.children[2] ):
             return ( transExp( node.children[1], registers ) +
             transExp( node.children[2], registers[1:] ) +
             transBinOp( node.children[0], registers[0], registers[1] ) )
