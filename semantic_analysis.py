@@ -53,4 +53,5 @@ def analyse( symbolTable, node ):
         if node.children[0] in symbolTable:
             raise SemanticException( node.lineno, node.clauseno, "You already told me what '%s' was on line %d" %(node.children[0],  symbolTable[node.children[0]][1]) )
         else:    
+            symbolTable[node.children[0]] = [node.children[1].children[0], node.lineno, True]  
 
