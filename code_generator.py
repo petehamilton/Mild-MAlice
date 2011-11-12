@@ -16,7 +16,6 @@ def generate( node, variables ):
 
 # Swaps first two elements of a list around
 def swap( registers ):
-    print registers
     tmp = registers[0]
     registers[0] = registers[1]
     registers[1] =  tmp
