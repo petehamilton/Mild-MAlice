@@ -19,9 +19,12 @@ class ParseError(Exception):
     pass
 
 precedence = (
+    ('left', 'B_OR'),
+    ('left', 'B_XOR'),
+    ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('right', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
+    ('right','INCREMENT', 'DECREMENT', 'B_NOT'),
 )
 
 def _parse_error(msg, coord):
