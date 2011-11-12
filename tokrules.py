@@ -72,17 +72,17 @@ def t_SEP_PERIOD(t):
 
     
 def t_SEP_AND(t):
-    r'and'
+    r'and$'
     t.lexer.clauseno += 1
     return t  
     
 def t_SEP_BUT(t):
-    r'but'
+    r'but$'
     t.lexer.clauseno += 1
     return t  
     
 def t_SEP_THEN(t):
-    r'then'
+    r'then$'
     t.lexer.clauseno += 1
     return t  
     
