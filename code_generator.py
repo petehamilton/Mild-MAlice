@@ -149,7 +149,7 @@ def setup(variables):
     data.append("\n")
     return (["extern printf", #potentially move this out if don't use spoke?
             "LINUX  	equ     80H		; interupt number for entering Linux kernel",
-            "EXIT   	equ     1		; Linux system call 1 i.e. exit ()",
+            "EXIT   	equ     60		; Linux system call 1 i.e. exit ()",
             "WRITE	equ	4		; Linux system call 4 i.e. write ()",
             "STDOUT	equ	1		; File descriptor 1 i.e. standard output",
             "\n"
@@ -171,7 +171,7 @@ def finish():
             "\n",
             "os_return:",
 	        indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()"),
-	        indent("mov  rbx, 0		; Error code 0 i.e. no errors"),
+	        indent("mov  rdi, 0		; Error code 0 i.e. no errors"),
 	        indent("int  LINUX		; Interrupt Linux kernel"),
             ]
 
