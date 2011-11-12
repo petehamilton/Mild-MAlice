@@ -21,7 +21,7 @@ class ParseError(Exception):
 precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('left', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
+    ('right', 'B_AND', 'B_OR', 'B_XOR', 'B_NOT'),
 )
 
 def _parse_error(msg, coord):
@@ -93,50 +93,42 @@ def p_expression_ate(p):
     p[0] = Node(n.UNARY_OP, p.lineno(1), p.clauseno(1), [p[2], Node('factor', p.lineno(1), p.clauseno(1), ["ID", p[1]])])
 
 def p_expression_or(p):
-    'expression : expression B_OR term1'
+    'expression : expression B_OR expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
 def p_expression_xor(p):
-    'expression : expression B_XOR term1'
+    'expression : expression B_XOR expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
 def p_expression_and(p):
-    'expression : expression B_AND term1'
+    'expression : expression B_AND expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
     
-def p_expression_term1(p):
-    'expression : term1'
-    p[0] = p[1]
-
-def p_term1_plus(p):
-    'term1 : term1 PLUS term2'
+def p_expression_plus(p):
+    'expression : expression PLUS expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
-def p_term1_minus(p):
-    'term1 : term1 MINUS term2'
+def p_expression_minus(p):
+    'expression : expression MINUS expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
-def p_term1_term2(p):
-    'term1 : term2'
-    p[0] = p[1]
-
-def p_term2_multiply(p):
-    'term2 : term2 MULTIPLY factor'
+def p_expression_multiply(p):
+    'expression : expression MULTIPLY expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
 #Handles division by 0 constant
-def p_term2_divide(p):
-    'term2 : term2 DIVIDE factor'
+def p_expression_divide(p):
+    'expression : expression DIVIDE expression'
     if p[3].children[1] == 0:
         raise e.DivisionByZeroException(p.lineno(1), p.clauseno(1))
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
-def p_term2_mod(p):
-    'term2 : term2 MOD factor'
+def p_expression_mod(p):
+    'expression : expression MOD expression'
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
-def p_term2_factor(p):
-    'term2 : factor'
+def p_expression_factor(p):
+    'expression : factor'
     p[0] = p[1]
 
 
