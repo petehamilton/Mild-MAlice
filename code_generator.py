@@ -49,9 +49,9 @@ def transExp( node, registers ):
             transExp( node.children[2], registers[1:] ) +
             transBinOp( node.children[0], registers[0], registers[1] ) )
         else:
-            registers = swap(registers)
-            return ( transExp( node.children[2], registers )  +
-            transExp( node.children[1], registers[1:] ) + 
+            #registers = swap(registers)
+            return ( transExp( node.children[2], [registers[1]]+[registers[0]]+registers[2:] )  +
+            transExp( node.children[1], [registers[0]] + registers[2:] ) + 
             transBinOp( node.children[0], registers[0], registers[1] ) )
     
     if node.tokType == Node.UNARY_OP:
