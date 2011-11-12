@@ -4,7 +4,7 @@ main:
 	echo "if [ -f output.asm ]" >> compile;
 	echo "then " >> compile;
 	echo "nasm -f elf64 output.asm ; gcc -m64 -o output output.o ; ./output" >> compile
-	echo "rm output.asm, output.o"
+	echo "rm output.asm output.o" >> compile
 	echo "fi" >> compile;
 		
 
