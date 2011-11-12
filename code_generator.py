@@ -99,7 +99,7 @@ def transBinOp(op, dest_reg, next_reg):
         return iDiv( dest_reg, next_reg, "rdx" )
     elif re.match( tokrules.t_B_OR, op ):
         return [indent("or %s, %s" % (dest_reg, next_reg))]
-    elif re.match( tokrules.t_B_XOR, op.tokType ):
+    elif re.match( tokrules.t_B_XOR, op ):
         return [indent("xor %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_B_AND, op ):
         return [indent("and %s, %s" % (dest_reg, next_reg))]
