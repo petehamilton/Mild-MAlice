@@ -5,7 +5,7 @@ import Node
 
 intfmt = 'db "%ld", 10, 0'
 charfmt = 'db "%c", 10, 0'
-
+idivRegisters = ["rax", "rdx", "rcx" ]
 
 def indent( string, indentation = "    "):
     return indentation + string
@@ -45,7 +45,7 @@ def transExp( node, registers ):
         return ( translated + instr )    
 
     if node.tokType == Node.BINARY_OP:
-        if weight( node.children[1] ) > weight( node.children[2] ):
+        if weight( node.children[1] ) <= weight( node.children[2] ):
             return ( transExp( node.children[1], registers ) +
             transExp( node.children[2], registers[1:] ) +
             transBinOp( node.children[0], registers[0], registers[1] ) )
@@ -68,6 +68,23 @@ def transExp( node, registers ):
 
 
 
+def preserveRegisters( registers, dest, next ):
+    preserved = []
+    for register in registers:
+        if register not in [dest, next]:
+            preserved.append(register)
+    return preserved
+
+def iDiv( destReg, nextReg, resultReg ):
+    registers = preserveRegisters( idivRegisters, destReg, nextReg )
+    return  map(indent, (["push %s" %x for x in registers] + 
+                ["mov rax, %s" % destReg,
+                "mov rcx, %s" % nextReg,
+                "mov rdx, 0",
+                "idiv rcx",
+                "mov %s, %s" %(destReg, resultReg)] 
+                + ["pop %s" %x for x in registers]))
+
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
 def transBinOp(op, dest_reg, next_reg):
@@ -76,15 +93,11 @@ def transBinOp(op, dest_reg, next_reg):
     elif re.match( tokrules.t_MINUS, op ):
         return [indent("sub %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_MULTIPLY, op ):
-        return [indent("mul %s, %s" % (dest_reg, next_reg))]
+        return [indent("imul %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_DIVIDE, op ):
-        return  map(indent, (["mov rax, %s" % dest_reg] +
-                ["div %s" % next_reg] +
-                ["mov %s, rax" % dest_reg]))
+        return iDiv( dest_reg, next_reg, "rax" )
     elif re.match( tokrules.t_MOD, op ):
-        return  map(indent, (["mov rax, %s" % dest_reg] +
-                ["div %s" % next_reg] +
-                ["mov %s, rdx" % dest_reg]))
+        return iDiv( dest_reg, next_reg, "rdx" )
     elif re.match( tokrules.t_B_OR, op ):
         return [indent("or %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_B_XOR, op.tokType ):

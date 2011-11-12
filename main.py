@@ -10,15 +10,17 @@ import Node
 from semantic_analysis import analyse
 from code_generator import generate
 import grammar_exceptions as e
-
+import sys
 def run():
-    #tests()
-    #return 0
-    parse_code('''
-    Cat was a number.
-    Cat became 5 + 10.
-    Cat spoke.
-    ''')
+    if len(sys.argv) > 1:
+        maliceprogram = open(sys.argv[1], 'r').read()
+    else:
+        maliceprogram = '''
+    b was a number.
+    b became 10 - 7.
+    b spoke.
+    '''
+    parse_code(maliceprogram)
     return 0
 
     """   
