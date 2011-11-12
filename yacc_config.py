@@ -29,6 +29,7 @@ precedence = (
 
 def _parse_error(msg, coord):
     raise ParseError("%s: %s" % (coord, msg))  
+    
 
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'

@@ -6,7 +6,7 @@ class GrammarException(Exception):
 class SemanticException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(SemanticException, self).__init__(lineno, clauseno)       
-        self.value = "Oh No Silly You!" + value
+        self.value = "Oh No! Silly you!"# + value
         
 class SyntaxException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
@@ -21,7 +21,7 @@ class DivisionByZeroException(GrammarException):
 class LexicalException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(LexicalException, self).__init__(lineno, clauseno)       
-        self.value = "Oh No Silly You!" + value
+        self.value = "Oh No! Silly you!"# + value
        
 class NoMatchException(GrammarException):
     def __init__( self, value = "" ):

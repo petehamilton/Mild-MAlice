@@ -1,6 +1,8 @@
 #from malice_lexer import MAliceLexer
 import ply.lex as lex
 import ply.yacc as yacc
+import sys
+import os
 
 import tokrules
 from yacc_config import *
@@ -13,7 +15,11 @@ import grammar_exceptions as e
 import sys
 def run():
     if len(sys.argv) > 1:
-        maliceprogram = open(sys.argv[1], 'r').read()
+        fName = sys.argv[1]
+        if os.path.getsize(fName):
+            maliceprogram = open(fName, 'r').read()
+        else:
+            return 0
     else:
         maliceprogram = '''
     b was a number.
@@ -22,17 +28,6 @@ def run():
     '''
     parse_code(maliceprogram)
     return 0
-
-    """   
-    while True:
-       try:
-           s = raw_input('Enter statement: ')
-       except EOFError:
-           break
-       if not s: continue
-       result = parser.parse(s)
-       print result
-    """
 
 def parse_code(code):
     try:
@@ -45,8 +40,9 @@ def parse_code(code):
             code = generate( result, symbolTable.keys() )
             writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
+        print "----------------"
         print exception.value 
-        print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+        #print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
 
 
 def writeASM( result ):
@@ -70,6 +66,7 @@ def tests():
                 # print code
                 parse_code(code)
                 print
+                
 
 if __name__ == '__main__':
     run()
