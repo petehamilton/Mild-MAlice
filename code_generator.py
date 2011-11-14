@@ -70,11 +70,7 @@ def outputInAssembly(register):
 # Return a list of all registers which need to be preserved from the given list
 # 'registers', excludes dest and next since these need to be accessible later
 def preserveRegisters( registers, dest, next ):
-    preserved = []
-    for register in registers:
-        if register not in [dest, next]:
-            preserved.append(register)
-    return preserved
+    return list( set(registers) - set([dest, next]) )
 
 def iDiv( destReg, nextReg, resultReg ):
     registers = preserveRegisters( idivRegisters, destReg, nextReg )
