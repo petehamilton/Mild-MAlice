@@ -51,7 +51,7 @@ if __name__ == "__main__":
         resultsName = 'milestone2/output.txt'
         testName = 'output.txt'
     
-    subprocess.call("./test.sh > %s" %testName, stderr=subprocess.stdout)
+    subprocess.call("./test.sh > %s" %testName, shell = True)
     expectedResults = processResults(resultsName)
     actualResults = processResults(testName)
     assert( len(actualResults) == len(expectedResults) )
