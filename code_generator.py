@@ -35,7 +35,7 @@ def transExp( node, registers ):
 
     if node.tokType == Node.SPOKE:
         translated = transExp( node.children[0], registers )
-        return ( translated + output_in_assembly(registers[0]) )    
+        return ( translated + outputInAssembly(registers[0]) )    
 
     if node.tokType == Node.BINARY_OP:
         if weight( node.children[1] ) <= weight( node.children[2] ):
@@ -61,11 +61,12 @@ def transExp( node, registers ):
         
 # Return the assembly code needed to print the value in the given register to 
 # the console.
-def output_in_assembly(register):
+def outputInAssembly(register):
     return [ indent("mov rsi, %s" % register),
              indent("mov rdi, intfmt"),
              indent("xor rax, rax"),
              indent("call printf")]
+
 
 def preserveRegisters( registers, dest, next ):
     preserved = []
