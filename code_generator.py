@@ -154,36 +154,31 @@ def weight( node ):
         pass
 
 def setup(variables):
-    data = ["section .bss"]
-    data.extend( [ indent("%s: resq 1" %x) for x in variables])
-    data.append("\n")
-    return (["extern printf", #potentially move this out if don't use spoke?
-            "LINUX  	equ     80H		; interupt number for entering Linux kernel",
-            "EXIT   	equ     60		; Linux system call 1 i.e. exit ()",
-            "WRITE	equ	4		; Linux system call 4 i.e. write ()",
-            "STDOUT	equ	1		; File descriptor 1 i.e. standard output",
-            "\n"
-            ] +
-            data +
-            [
-            "section .data",
-            indent("intfmt: ") + intfmt,
-            indent("charfmt: ") + charfmt,
-            "\n",
-            "segment .text",
-	        indent("global	main"),
-            "\n",
-            "main:"
-            ])
+    return (["extern printf"] + #TODO: potentially move this out if don't use spoke?
+            ["LINUX        equ     80H      ; interupt number for entering Linux kernel"] +
+            ["EXIT         equ     60       ; Linux system call 1 i.e. exit ()"] +
+            ["WRITE        equ     4        ; Linux system call 4 i.e. write ()"] +
+            ["STDOUT       equ     1        ; File descriptor 1 i.e. standard output"] +
+            ["\n"] +
+            ["section .bss"] +
+            [ indent("%s: resq 1" % x) for x in variables] +
+            ["\n"] +
+            ["section .data"] +
+            [indent("intfmt: ") + intfmt] +
+            [indent("charfmt: ") + charfmt] +
+            ["\n"] +
+            ["segment .text"] +
+            [indent("global	main")] +
+            ["\n"] +
+            ["main:"])
 
 def finish():
-    return [indent("call os_return		; return to operating system"),
-            "\n",
-            "os_return:",
-	        indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()"),
-	        indent("mov  rdi, 0		; Error code 0 i.e. no errors"),
-	        indent("int  LINUX		; Interrupt Linux kernel"),
-            ]
+    return ([indent("call os_return		; return to operating system")] +
+            ["\n"] +
+            ["os_return:"] +
+            [indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
+            [indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
+            [indent("int  LINUX		; Interrupt Linux kernel")])
 
 
 
