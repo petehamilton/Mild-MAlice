@@ -17,11 +17,16 @@ class DivisionByZeroException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(DivisionByZeroException, self).__init__(lineno, clauseno)       
         self.value = "Oops!" + value
+
+class ArithmeticOverflowException(GrammarException):
+   def __init__( self, lineno, clauseno, value = "" ):
+       super(ArithmeticOverflowException, self).__init__(lineno, clauseno)       
+       self.value = "Oh No!"
     
 class LexicalException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(LexicalException, self).__init__(lineno, clauseno)       
-        self.value = "Oh No! Silly you!"# + value
+        self.value = "Oh No! Silly you!"
        
 class NoMatchException(GrammarException):
     def __init__( self, value = "" ):

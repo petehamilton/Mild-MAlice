@@ -3,6 +3,14 @@ from Node import Node
 from tokrules import tokens
 import grammar_exceptions as e
 
+
+# Set architecture for compiler checks
+architecture = 32
+MAX_INT = pow(2, architecture - 1) # - 1 # in reality its an extra (-1)
+
+def atArithmeticBounds(i):
+    return (i == MAX_INT or i == -MIN_INT)
+
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
 FACTOR = "factor"
@@ -110,6 +118,9 @@ def p_expression_and(p):
     
 def p_expression_plus(p):
     'expression : expression PLUS expression'
+    # Should it error if one is max and other is 0?
+    if (atArithmeticBounds(p[1].children[1]) or atArithmeticBounds(p[3].children[1])):
+        raise e.ArithmeticOverflowException(p.lineno(1), p.clauseno(1))
     p[0] = Node(n.BINARY_OP, p.lineno(1), p.clauseno(1), [p[2], p[1],p[3]])
 
 def p_expression_minus(p):
