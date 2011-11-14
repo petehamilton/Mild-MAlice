@@ -71,7 +71,9 @@ def assemblyForOutput(register):
 # Leaves the integer division in rax and the modulus in rcx
 def iDiv( destReg, nextReg, resultReg ):
     registersToPreserve = list( set(idivRegisters) - set([destReg, nextReg]) )
-    return  map(indent, (["push %s" % x for x in registersToPreserve] + 
+    return  map(indent, (["cmp %s, 0" % nextReg] +
+                         ["jz os_return"] + 
+                         ["push %s" % x for x in registersToPreserve] + 
                          ["mov rax, %s" % destReg] +
                          ["mov rcx, %s" % nextReg] +
                          ["mov rdx, 0"] +
