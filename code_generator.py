@@ -67,20 +67,15 @@ def outputInAssembly(register):
              indent("xor rax, rax"),
              indent("call printf")]
 
-# Return a list of all registers which need to be preserved from the given list
-# 'registers', excludes dest and next since these need to be accessible later
-def preserveRegisters( registers, dest, next ):
-    return list( set(registers) - set([dest, next]) )
-
 def iDiv( destReg, nextReg, resultReg ):
-    registers = preserveRegisters( idivRegisters, destReg, nextReg )
-    return  map(indent, (["push %s" %x for x in registers] + 
-                ["mov rax, %s" % destReg,
-                "mov rcx, %s" % nextReg,
-                "mov rdx, 0",
-                "idiv rcx",
-                "mov %s, %s" %(destReg, resultReg)] 
-                + ["pop %s" %x for x in registers]))
+    registersToPreserve = list( set(idivRegisters) - set([destReg, nextReg]) )
+    return  map(indent, (["push %s" % x for x in registersToPreserve] + 
+                         ["mov rax, %s" % destReg] +
+                         ["mov rcx, %s" % nextReg] +
+                         ["mov rdx, 0"] +
+                         ["idiv rcx"] +
+                         ["mov %s, %s" % (destReg, resultReg)] + 
+                         ["pop %s" % x for x in registersToPreserve]))
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
