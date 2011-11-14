@@ -11,8 +11,8 @@ def indent( string, indentation = "    "):
     return indentation + string
 
 #change list of registers later
-def generate( node, variables ):
-    return setup(variables) + transExp( node, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi"] ) + finish()
+def generate( node, variables, registers ):
+    return setup(variables) + transExp( node, registers ) + finish()
 
 # Swaps first two elements of a list around
 def swap( registers ):
@@ -31,26 +31,26 @@ def transExp( node, registers ):
 
     if node.tokType == Node.STATEMENT_LIST:
         return ( transExp( node.children[0], registers ) +
-        transExp( node.children[1], registers ) )
+                 transExp( node.children[1], registers ) )
 
     if node.tokType == Node.SPOKE:
-        translated = transExp( node.children[0], registers )
-        return ( translated + outputInAssembly(registers[0]) )    
+        return ( transExp( node.children[0], registers ) + 
+                 assemblyForOutput(registers[0]) )    
 
     if node.tokType == Node.BINARY_OP:
         if weight( node.children[1] ) <= weight( node.children[2] ):
             return ( transExp( node.children[1], registers ) +
-            transExp( node.children[2], registers[1:] ) +
-            transBinOp( node.children[0], registers[0], registers[1] ) )
+                     transExp( node.children[2], registers[1:] ) +
+                     transBinOp( node.children[0], registers[0], registers[1] ) )
         else:
             #registers = swap(registers)
             return ( transExp( node.children[2], [registers[1]]+[registers[0]]+registers[2:] )  +
-            transExp( node.children[1], [registers[0]] + registers[2:] ) + 
-            transBinOp( node.children[0], registers[0], registers[1] ) )
+                     transExp( node.children[1], [registers[0]] + registers[2:] ) + 
+                     transBinOp( node.children[0], registers[0], registers[1] ) )
     
     if node.tokType == Node.UNARY_OP:
         return ( transExp( node.children[1], registers ) + 
-        transUnOp( node.children[0], registers[0] ) )
+                 transUnOp( node.children[0], registers[0] ) )
 
     if node.tokType == Node.ASSIGNMENT:
         return ( transExp( node.children[1], registers ) + 
@@ -61,7 +61,7 @@ def transExp( node, registers ):
         
 # Return the assembly code needed to print the value in the given register to 
 # the console.
-def outputInAssembly(register):
+def assemblyForOutput(register):
     return [ indent("mov rsi, %s" % register),
              indent("mov rdi, intfmt"),
              indent("xor rax, rax"),
