@@ -33,8 +33,6 @@ def transExp( node, registers ):
         return ( transExp( node.children[0], registers ) +
         transExp( node.children[1], registers ) )
 
-    # Translate expression and put in dst then put dst in eax and return
-    # TODO: Maybe move this to function? push/pop rsi/rdi
     if node.tokType == Node.SPOKE:
         translated = transExp( node.children[0], registers )
         return ( translated + output_in_assembly(registers[0]) )    
@@ -60,13 +58,14 @@ def transExp( node, registers ):
 
     if node.tokType == Node.DECLARATION:
         return []
-
+        
+# Return the assembly code needed to print the value in the given register to 
+# the console.
 def output_in_assembly(register):
     return [ indent("mov rsi, %s" % register),
              indent("mov rdi, intfmt"),
              indent("xor rax, rax"),
              indent("call printf")]
-
 
 def preserveRegisters( registers, dest, next ):
     preserved = []
