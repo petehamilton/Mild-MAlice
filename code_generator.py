@@ -21,6 +21,7 @@ def swap( registers ):
     registers[1] =  tmp
     return registers
 
+# Translate the given node to assembly code
 def transExp( node, registers ):
     # cast to string incase number? 
     if node.tokType == Node.FACTOR:
@@ -36,12 +37,7 @@ def transExp( node, registers ):
     # TODO: Maybe move this to function? push/pop rsi/rdi
     if node.tokType == Node.SPOKE:
         translated = transExp( node.children[0], registers )
-        instr = [indent("mov rsi, %s" %registers[0]),
-                 indent("mov rdi, intfmt"),
-                 indent("xor rax, rax"),
-                 indent("call printf"),
-                ]
-        return ( translated + instr )    
+        return ( translated + output_in_assembly(registers[0]) )    
 
     if node.tokType == Node.BINARY_OP:
         if weight( node.children[1] ) <= weight( node.children[2] ):
@@ -65,6 +61,11 @@ def transExp( node, registers ):
     if node.tokType == Node.DECLARATION:
         return []
 
+def output_in_assembly(register):
+    return [ indent("mov rsi, %s" % register),
+             indent("mov rdi, intfmt"),
+             indent("xor rax, rax"),
+             indent("call printf")]
 
 
 def preserveRegisters( registers, dest, next ):
