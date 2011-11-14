@@ -92,18 +92,25 @@ def mod( destReg, nextReg ):
 def transBinOp(op, dest_reg, next_reg):
     if re.match( tokrules.t_PLUS, op ):
         return [indent("add %s, %s" % (dest_reg, next_reg))]
+        
     elif re.match( tokrules.t_MINUS, op ):
         return [indent("sub %s, %s" % (dest_reg, next_reg))]
+        
     elif re.match( tokrules.t_MULTIPLY, op ):
         return [indent("imul %s, %s" % (dest_reg, next_reg))]
+        
     elif re.match( tokrules.t_DIVIDE, op ):
         return div( dest_reg, next_reg )
+        
     elif re.match( tokrules.t_MOD, op ):
         return mod( dest_reg, next_reg )
+        
     elif re.match( tokrules.t_B_OR, op ):
         return [indent("or %s, %s" % (dest_reg, next_reg))]
+        
     elif re.match( tokrules.t_B_XOR, op ):
         return [indent("xor %s, %s" % (dest_reg, next_reg))]
+        
     elif re.match( tokrules.t_B_AND, op ):
         return [indent("and %s, %s" % (dest_reg, next_reg))]
     
