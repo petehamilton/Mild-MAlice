@@ -67,6 +67,8 @@ def outputInAssembly(register):
              indent("xor rax, rax"),
              indent("call printf")]
 
+# Returns the assembly code for dividing the destReg register by the nextReg one.
+# Leaves the integer division in rax and the modulus in rcx
 def iDiv( destReg, nextReg, resultReg ):
     registersToPreserve = list( set(idivRegisters) - set([destReg, nextReg]) )
     return  map(indent, (["push %s" % x for x in registersToPreserve] + 
@@ -76,6 +78,14 @@ def iDiv( destReg, nextReg, resultReg ):
                          ["idiv rcx"] +
                          ["mov %s, %s" % (destReg, resultReg)] + 
                          ["pop %s" % x for x in registersToPreserve]))
+
+# Return assembly code for destReg / nextReg
+def div( destReg, nextReg ):
+    return iDiv( destReg, nextReg, "rax" )
+
+# Return assembly code for destReg % nextReg
+def mod( destReg, nextReg ):
+    return iDiv( destReg, nextReg, "rdx" )
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
@@ -87,9 +97,9 @@ def transBinOp(op, dest_reg, next_reg):
     elif re.match( tokrules.t_MULTIPLY, op ):
         return [indent("imul %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_DIVIDE, op ):
-        return iDiv( dest_reg, next_reg, "rax" )
+        return div( dest_reg, next_reg )
     elif re.match( tokrules.t_MOD, op ):
-        return iDiv( dest_reg, next_reg, "rdx" )
+        return mod( dest_reg, next_reg )
     elif re.match( tokrules.t_B_OR, op ):
         return [indent("or %s, %s" % (dest_reg, next_reg))]
     elif re.match( tokrules.t_B_XOR, op ):
