@@ -67,7 +67,8 @@ def outputInAssembly(register):
              indent("xor rax, rax"),
              indent("call printf")]
 
-
+# Return a list of all registers which need to be preserved from the given list
+# 'registers', excludes dest and next since these need to be accessible later
 def preserveRegisters( registers, dest, next ):
     preserved = []
     for register in registers:
