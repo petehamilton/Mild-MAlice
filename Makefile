@@ -8,4 +8,4 @@ main:
 	echo "fi" >> compile;
 
 clean:
-	rm -rf *pyc compile parsetab.py parser.out output.*
+	rm -rf *pyc compile parsetab.py parser.out output.* output
