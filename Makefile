@@ -6,7 +6,6 @@ main:
 	echo "nasm -f elf64 output.asm ; gcc -m64 -o output output.o ; ./output" >> compile
 	echo "rm output.asm output.o" >> compile
 	echo "fi" >> compile;
-		
 
 clean:
 	rm -rf *pyc compile parsetab.py parser.out output.*
