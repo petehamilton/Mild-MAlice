@@ -18,16 +18,12 @@ def run():
         fName = sys.argv[1]
         if os.path.getsize(fName):
             maliceprogram = open(fName, 'r').read()
-        else:
-            return 0
+            parse_code(maliceprogram)
+        return 0
     else:
-        maliceprogram = '''
-    b was a number.
-    b became 10 - 7.
-    b spoke.
-    '''
-    parse_code(maliceprogram)
-    return 0
+        print "Error! No given files."
+        return 1
+
 
 def parse_code(code):
     try:
