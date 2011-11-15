@@ -6,6 +6,8 @@ DECLARATION = "declaration"
 SPOKE = "spoke"
 STATEMENT_LIST = "statement_list"
 TYPE = "type"
+NUMBER = "number"
+LETTER = "letter"
 
 class Node:
     def __init__(self, tokType, lineno, clauseno, children=None):
