@@ -9,7 +9,7 @@ architecture = 32
 MAX_INT = pow(2, architecture - 1) # - 1 # in reality its an extra (-1)
 
 def atArithmeticBounds(i):
-    return (i == MAX_INT or i == -MIN_INT)
+    return (i == MAX_INT or i == -MAX_INT)
 
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
