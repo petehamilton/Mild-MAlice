@@ -12,6 +12,7 @@ In the examples, there are some issues with the 32 bit architecture when you han
 When running MAlice for a 64 bit architecture, these issues only occur at much higher numbers and we have decided to handle those cases rather than write workarounds to simulate errors for a 32 bit architecture.
 
 Handling Variables
+##########################################
 
 Optimisations
 ##########################################
