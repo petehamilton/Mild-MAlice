@@ -1,0 +1,21 @@
+##########################################
+##                                      ##
+##        Mild MAlice Compiler          ##
+##            st809 & peh10             ##
+##                                      ##
+##########################################
+
+
+Handling Arithmetic Overflow
+##########################################
+In the examples, there are some issues with the 32 bit architecture when you handle arithmetic operations involving the MAX and MIN integers for the architecture. These appear to be caught at compile time in order to output error messages.
+When running MAlice for a 64 bit architecture, these issues only occur at much higher numbers and we have decided to handle those cases rather than write workarounds to simulate errors for a 32 bit architecture.
+
+Handling Variables
+
+Optimisations
+##########################################
+
+Removing un-necessary includes
+------------------------------------------
+To reduce the size of the assembly file where possible, we used some logical statements to decide whether to include certain sections of code. These include 'extern printf' variable definitions
