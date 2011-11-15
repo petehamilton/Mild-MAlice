@@ -39,7 +39,7 @@ def parse_code(code):
             analyse(symbolTable, result)
             code = generate( result, symbolTable.keys(), ["rax", "rdx", "rcx", "rbx", "rsi", "rdi"])
             writeASM( code )
-    except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException, e.ArithmeticOverflowException) as exception:
+    except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print "----------------"
         print exception.value 
         #print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
