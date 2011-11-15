@@ -6,13 +6,14 @@ import Node
 intfmt = 'db "%ld", 10, 0'
 charfmt = 'db "%c", 10, 0'
 idivRegisters = ["rax", "rdx", "rcx" ]
+newline = "\n"
 
 def indent( string, indentation = "    "):
     return indentation + string
 
 #change list of registers later
-def generate( node, variables, registers ):
-    return setup(variables) + transExp( node, registers ) + finish()
+def generate( node, variables, registers, flags ):
+    return setup(variables, flags) + transExp( node, registers ) + finish()
 
 # Swaps first two elements of a list around
 def swap( registers ):
@@ -155,24 +156,47 @@ def weight( node ):
     elif node.tokType == Node.DECLARATION or node.tokType == Node.TYPE:
         pass
 
-def setup(variables):
-    return (["extern printf"] + #TODO: potentially move this out if don't use spoke?
-            ["LINUX        equ     80H      ; interupt number for entering Linux kernel"] +
-            ["EXIT         equ     60       ; Linux system call 1 i.e. exit ()"] +
-            ["WRITE        equ     4        ; Linux system call 4 i.e. write ()"] +
-            ["STDOUT       equ     1        ; File descriptor 1 i.e. standard output"] +
-            ["\n"] +
-            ["section .bss"] +
-            [ indent("%s: resq 1" % x) for x in variables] +
-            ["\n"] +
-            ["section .data"] +
-            [indent("intfmt: ") + intfmt] +
-            [indent("charfmt: ") + charfmt] +
-            ["\n"] +
-            ["segment .text"] +
-            [indent("global	main")] +
-            ["\n"] +
-            ["main:"])
+def setup(variables, flags):
+    externSection = []
+    dataSection = []
+    variableSection = []
+    globalSection = []
+    textSection = []
+
+    if Node.SPOKE in flags:
+        externSection.append("extern printf")
+        dataSection.append("section .data")
+        for printType in flags[Node.SPOKE]:
+            if printType == Node.LETTER:     
+                dataSection.append(ident("charfmt: ") + charfmt)
+            elif printType == Node.NUMBER:
+                dataSection.append(indent("intfmt: ") + intfmt)
+
+    globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
+                          "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
+    
+    textSection.extend(["segment .text", 
+                        indent("global	main"),
+                        newline,
+                        "main:"])
+    
+    if len(variables) != 0:
+        variableSection.append("section .bss")
+        variableSection.extend([ indent("%s: resq 1" % x) for x in variables])
+        
+
+    return ( externSection   +
+             [newline]       +
+             globalSection   +
+             [newline]       +
+             dataSection     +
+             [newline]       +
+             variableSection +
+             [newline]       +
+             textSection
+           )
+
+         
 
 def finish():
     return ([indent("call os_return		; return to operating system")] +

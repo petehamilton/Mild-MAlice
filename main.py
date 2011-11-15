@@ -3,6 +3,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import sys
 import os
+from collections import defaultdict
 
 import tokrules
 from yacc_config import *
@@ -32,8 +33,9 @@ def parse_code(code):
         result = parser.parse(code)
         if result:
             symbolTable = {}
-            analyse(symbolTable, result)
-            code = generate( result, symbolTable.keys(), ["rax", "rdx", "rcx", "rbx", "rsi", "rdi"])
+            flags = defaultdict(set)
+            analyse(symbolTable, result, flags)
+            code = generate( result, symbolTable.keys(), ["rax", "rdx", "rcx", "rbx", "rsi", "rdi"], flags )
             writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print "----------------"
