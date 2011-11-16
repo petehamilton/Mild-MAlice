@@ -1,7 +1,7 @@
 import re
 import tokrules
 import Node as ASTNode
-import ImmediateNodes as INodes
+import IntermediateNodes as INodes
 
 
 intfmt = 'db "%ld", 10, 0'
@@ -37,20 +37,19 @@ def intTransExp( node, registersDict, reg ):
 
     if node.tokType == ASTNode.SPOKE:
         reg1, exp = intTransExp( node.children[0], registersDict, reg )
-        reg, exp1 = intAssemblyForOutput(reg)
-        return reg, exp1
+        return reg1, exp + [INodes.SpokeNode(reg)]
 
     #TODO MAKE SURE YOU GET REGISTERS RIGHT!
     if node.tokType == ASTNode.BINARY_OP:
         reg1, exp1 = intTransExp( node.children[1], registersDict, reg )
         reg2, exp2 = intTransExp( node.children[2], registersDict, reg1 )
         reg, exp3 = intTransBinOp( node.children[0], reg, reg1 )
-        return reg, [exp1, exp2, exp3]
+        return reg, (exp1 + exp2 + exp3)
 
     if node.tokType == ASTNode.UNARY_OP:
         reg, exp1 = intTransExp( node.children[1], registersDict, reg )
         reg, exp2 = intTransUnOp( node.children[0], reg )
-        return reg + 1, [exp1, exp2]
+        return reg + 1, (exp1 + exp2)
 
     if node.tokType == ASTNode.ASSIGNMENT:
         registersDict[node.children[0]] = reg
@@ -95,39 +94,39 @@ def mod( destReg, reg ):
 # the two provided registers
 def intTransBinOp(op, dest_reg, next_reg):
     if re.match( tokrules.t_PLUS, op ):
-        return dest_reg, ["add", dest_reg, next_reg]
+        return dest_reg, [INodes.AddNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_MINUS, op ):
-        return dest_reg, ["sub", dest_reg, next_reg]
+        return dest_reg, [INodes.SubNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_MULTIPLY, op ):
-        return dest_reg, ["imul", dest_reg, next_reg]
+        return dest_reg, [INodes.MulNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_DIVIDE, op ):
-        return dest_reg, div( dest_reg, next_reg )
+        return dest_reg, [INodes.DivNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_MOD, op ):
-        return dest_reg, mod( dest_reg, next_reg )
+        return dest_reg, [INodes.ModNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_B_OR, op ):
-        return dest_reg, ["or", dest_reg, next_reg]
+        return dest_reg, [INodes.OrNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_B_XOR, op ):
-        return dest_reg, ["xor", dest_reg, next_reg]
+        return dest_reg, [INodes.XORNode(dest_reg, next_reg)]
         
     elif re.match( tokrules.t_B_AND, op ):
-        return dest_reg, ["and", dest_reg, next_reg]
+        return dest_reg, [INodes.AndNode(dest_reg, next_reg)]
      
 
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
 def intTransUnOp(op, dest_reg):
     if op == "ate":
-        return dest_reg, ["inc %s" % dest_reg]
+        return dest_reg, [INodes.IncNode(dest_reg)]
     elif op == "drank":
-        return dest_reg, ["dec %s" % dest_reg]
+        return dest_reg, [INodes.DecNode(dest_reg)]
     elif re.match( tokrules.t_B_NOT, op ):
-        return dest_reg, ["not %s" % dest_reg]
+        return dest_reg, [INodes.NotNode(dest_reg)]
 
 # Node types are:
 # statement_list, spoke, assignment, declaration, 

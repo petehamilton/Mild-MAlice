@@ -80,8 +80,8 @@ class NotNode(UnOpNode):
     def __init__(self, reg):
         super(NotNode, self).__init__("not", reg)
 
-class SpokeNode(ImmediateNode):
+class SpokeNode(IntermediateNode):
     def __init__(self, reg):
-        super(SpokeNode, self).__init__(reg)
+        super(SpokeNode, self).__init__()
         self.reg = reg
     
