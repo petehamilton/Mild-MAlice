@@ -1,6 +1,7 @@
 import re
 import tokrules
-import Node
+import Node as ASTNode
+import ImmediateNodes as INodes
 
 
 intfmt = 'db "%ld", 10, 0'
@@ -24,39 +25,39 @@ def solveDataFlow( tempCode ):
 
 
 def intTransExp( node, registersDict, reg ):
-    if node.tokType == Node.FACTOR:
-        if node.children[0] == Node.ID:
-            return reg + 1, ["mov", reg, registersDict[node.children[1]]]
-        return reg + 1, ["mov", reg, str(node.children[1])]
+    if node.tokType == ASTNode.FACTOR:
+        if node.children[0] == ASTNode.ID:
+            return reg + 1, [INodes.MovNode(reg, registersDict[node.children[1]])]
+        return reg + 1, [INodes.ImmMovNode(reg, str(node.children[1]))]
     
-    if node.tokType == Node.STATEMENT_LIST:
+    if node.tokType == ASTNode.STATEMENT_LIST:
         reg, exp1 = intTransExp( node.children[0], registersDict, reg )
         reg, exp2 = intTransExp( node.children[1], registersDict, reg )
-        return reg, [exp1, exp2]
+        return reg, exp1 + exp2
 
-    if node.tokType == Node.SPOKE:
+    if node.tokType == ASTNode.SPOKE:
         reg1, exp = intTransExp( node.children[0], registersDict, reg )
         reg, exp1 = intAssemblyForOutput(reg)
         return reg, exp1
 
     #TODO MAKE SURE YOU GET REGISTERS RIGHT!
-    if node.tokType == Node.BINARY_OP:
+    if node.tokType == ASTNode.BINARY_OP:
         reg1, exp1 = intTransExp( node.children[1], registersDict, reg )
         reg2, exp2 = intTransExp( node.children[2], registersDict, reg1 )
         reg, exp3 = intTransBinOp( node.children[0], reg, reg1 )
         return reg, [exp1, exp2, exp3]
 
-    if node.tokType == Node.UNARY_OP:
+    if node.tokType == ASTNode.UNARY_OP:
         reg, exp1 = intTransExp( node.children[1], registersDict, reg )
         reg, exp2 = intTransUnOp( node.children[0], reg )
         return reg + 1, [exp1, exp2]
 
-    if node.tokType == Node.ASSIGNMENT:
+    if node.tokType == ASTNode.ASSIGNMENT:
         registersDict[node.children[0]] = reg
         reg, exp = intTransExp( node.children[1], registersDict, reg )
         return reg, exp
 
-    if node.tokType == Node.DECLARATION:
+    if node.tokType == ASTNode.DECLARATION:
         return reg, []
 
 # Return the assembly code needed to print the value in the given register to 
@@ -132,28 +133,28 @@ def intTransUnOp(op, dest_reg):
 # statement_list, spoke, assignment, declaration, 
 # binary_op, unary_op, type, factor
 def weight( node ):
-    if node.tokType == Node.FACTOR:
+    if node.tokType == ASTNode.FACTOR:
         return 1
 
-    elif node.tokType == Node.BINARY_OP:
+    elif node.tokType == ASTNode.BINARY_OP:
         cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
         cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
         return min( cost1, cost2 )
 
-    elif node.tokType == Node.UNARY_OP:
+    elif node.tokType == ASTNode.UNARY_OP:
         return weight(node.children[1])
 
-    elif node.tokType == Node.SPOKE:
+    elif node.tokType == ASTNode.SPOKE:
         return weight(node.children[1])
 
-    elif node.tokType == Node.ASSIGNMENT:
+    elif node.tokType == ASTNode.ASSIGNMENT:
         return 1
 
-    elif node.tokType == Node.STATEMENT_LIST:
+    elif node.tokType == ASTNode.STATEMENT_LIST:
         return max( weight(node.children[0]), weight(node.children[1]) )
 
     #is this right? Dont need to store anything in register yet
-    elif node.tokType == Node.DECLARATION or node.tokType == Node.TYPE:
+    elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
         pass
 
 def setup(variables, flags):
@@ -163,13 +164,13 @@ def setup(variables, flags):
     globalSection = []
     textSection = []
 
-    if Node.SPOKE in flags:
+    if ASTNode.SPOKE in flags:
         externSection.append("extern printf")
         dataSection.append("section .data")
-        for printType in flags[Node.SPOKE]:
-            if printType == Node.LETTER:     
+        for printType in flags[ASTNode.SPOKE]:
+            if printType == ASTNode.LETTER:     
                 dataSection.append(ident("charfmt: ") + charfmt)
-            elif printType == Node.NUMBER:
+            elif printType == ASTNode.NUMBER:
                 dataSection.append(indent("intfmt: ") + intfmt)
 
     globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
