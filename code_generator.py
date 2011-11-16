@@ -183,7 +183,6 @@ def setup(variables, flags):
     if len(variables) != 0:
         variableSection.append("section .bss")
         variableSection.extend([ indent("%s: resq 1" % x) for x in variables])
-        
 
     return ( externSection   +
              [newline]       +
@@ -196,11 +195,9 @@ def setup(variables, flags):
              textSection
            )
 
-         
-
 def finish():
     return ([indent("call os_return		; return to operating system")] +
-            ["\n"] +
+            [newline] +
             ["os_return:"] +
             [indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
             [indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
