@@ -13,120 +13,120 @@ def indent( string, indentation = "    "):
 
 #change list of registers later
 def generate( node, variables, registers, flags ):
-    return setup(variables, flags) + transExp( node, registers ) + finish()
+    reg, exp = intTransExp( node, {}, 0 )
+    solveDataFlow(exp)
+    #return setup(variables, flags) + exp + finish()
+    return None
 
-# Swaps first two elements of a list around
-def swap( registers ):
-    tmp = registers[0]
-    registers[0] = registers[1]
-    registers[1] =  tmp
-    return registers
+def solveDataFlow( tempCode ):
+    for row in tempCode:
+        print row
 
-# Translate the given node to assembly code
-def transExp( node, registers ):
-    # cast to string incase number? 
+
+def intTransExp( node, registersDict, reg ):
     if node.tokType == Node.FACTOR:
-        if node.children[0] == "ID":
-            return [ indent("mov %s, [%s]" %( registers[0], str(node.children[1])))] 
-        return [ indent("mov %s, %s" %( registers[0], str(node.children[1])))] 
-
+        if node.children[0] == Node.ID:
+            return reg + 1, ["mov", reg, registersDict[node.children[1]]]
+        return reg + 1, ["mov", reg, str(node.children[1])]
+    
     if node.tokType == Node.STATEMENT_LIST:
-        return ( transExp( node.children[0], registers ) +
-                 transExp( node.children[1], registers ) )
+        reg, exp1 = intTransExp( node.children[0], registersDict, reg )
+        reg, exp2 = intTransExp( node.children[1], registersDict, reg )
+        return reg, [exp1, exp2]
 
     if node.tokType == Node.SPOKE:
-        return ( transExp( node.children[0], registers ) + 
-                 assemblyForOutput(registers[0]) )    
+        reg1, exp = intTransExp( node.children[0], registersDict, reg )
+        reg, exp1 = intAssemblyForOutput(reg)
+        return reg, exp1
 
+    #TODO MAKE SURE YOU GET REGISTERS RIGHT!
     if node.tokType == Node.BINARY_OP:
-        if weight( node.children[1] ) <= weight( node.children[2] ):
-            return ( transExp( node.children[1], registers ) +
-                     transExp( node.children[2], registers[1:] ) +
-                     transBinOp( node.children[0], registers[0], registers[1] ) )
-        else:
-            #registers = swap(registers)
-            return ( transExp( node.children[2], [registers[1]]+[registers[0]]+registers[2:] )  +
-                     transExp( node.children[1], [registers[0]] + registers[2:] ) + 
-                     transBinOp( node.children[0], registers[0], registers[1] ) )
-    
+        reg1, exp1 = intTransExp( node.children[1], registersDict, reg )
+        reg2, exp2 = intTransExp( node.children[2], registersDict, reg1 )
+        reg, exp3 = intTransBinOp( node.children[0], reg, reg1 )
+        return reg, [exp1, exp2, exp3]
+
     if node.tokType == Node.UNARY_OP:
-        return ( transExp( node.children[1], registers ) + 
-                 transUnOp( node.children[0], registers[0] ) )
+        reg, exp1 = intTransExp( node.children[1], registersDict, reg )
+        reg, exp2 = intTransUnOp( node.children[0], reg )
+        return reg + 1, [exp1, exp2]
 
     if node.tokType == Node.ASSIGNMENT:
-        return ( transExp( node.children[1], registers ) + 
-                 [indent("mov [%s], %s" %(node.children[0], registers[0]))])
+        registersDict[node.children[0]] = reg
+        reg, exp = intTransExp( node.children[1], registersDict, reg )
+        return reg, exp
 
     if node.tokType == Node.DECLARATION:
-        return []
-        
+        return reg, []
+
 # Return the assembly code needed to print the value in the given register to 
 # the console.
-def assemblyForOutput(register):
-    return [ indent("mov rsi, %s" % register),
-             indent("mov rdi, intfmt"),
-             indent("xor rax, rax"),
-             indent("call printf")]
+def intAssemblyForOutput(register):
+    return register + 1, [ ["mov", "rsi", register],
+                         ["mov", "rdi", intfmt ],
+                         ["xor", "rax", "rax"],
+                         ["call", "printf"]]
 
-# Returns the assembly code for dividing the destReg register by the nextReg one.
+# Returns the assembly code for dividing the destReg register by the reg one.
 # Leaves the integer division in rax and the modulus in rcx
-def iDiv( destReg, nextReg, resultReg ):
-    registersToPreserve = list( set(idivRegisters) - set([destReg, nextReg]) )
-    return  map(indent, (["cmp %s, 0" % nextReg] +
-                         ["jz os_return"] + 
-                         ["push %s" % x for x in registersToPreserve] + 
-                         ["mov rax, %s" % destReg] +
-                         ["mov rcx, %s" % nextReg] +
-                         ["mov rdx, 0"] +
-                         ["idiv rcx"] +
-                         ["mov %s, %s" % (destReg, resultReg)] + 
-                         ["pop %s" % x for x in registersToPreserve]))
+def iDiv( destReg, reg, resultReg ):
+    registersToPreserve = list( set(idivRegisters) - set([destReg, reg]) )
+    return  [["cmp", reg, 0],
+             ["jz", os_return] +
+             [["push", x] for x in registersToPreserve] +
+             ["mov", "rax", destReg],
+             ["mov", "rcx", reg],
+             ["mov", "rdx", 0],
+             ["idiv," "rcx"],
+             ["mov", destReg, resultReg] +
+             [["pop", x] for x in registersToPreserve]]
 
-# Return assembly code for destReg / nextReg
-def div( destReg, nextReg ):
-    return iDiv( destReg, nextReg, "rax" )
+# Return assembly code for destReg / reg
+def div( destReg, reg ):
+    return iDiv( destReg, reg, "rax" )
 
-# Return assembly code for destReg % nextReg
-def mod( destReg, nextReg ):
-    return iDiv( destReg, nextReg, "rdx" )
+# Return assembly code for destReg % reg
+def mod( destReg, reg ):
+    return iDiv( destReg, reg, "rdx" )
+
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
-def transBinOp(op, dest_reg, next_reg):
+def intTransBinOp(op, dest_reg, next_reg):
     if re.match( tokrules.t_PLUS, op ):
-        return [indent("add %s, %s" % (dest_reg, next_reg))]
+        return dest_reg, ["add", dest_reg, next_reg]
         
     elif re.match( tokrules.t_MINUS, op ):
-        return [indent("sub %s, %s" % (dest_reg, next_reg))]
+        return dest_reg, ["sub", dest_reg, next_reg]
         
     elif re.match( tokrules.t_MULTIPLY, op ):
-        return [indent("imul %s, %s" % (dest_reg, next_reg))]
+        return dest_reg, ["imul", dest_reg, next_reg]
         
     elif re.match( tokrules.t_DIVIDE, op ):
-        return div( dest_reg, next_reg )
+        return dest_reg, div( dest_reg, next_reg )
         
     elif re.match( tokrules.t_MOD, op ):
-        return mod( dest_reg, next_reg )
+        return dest_reg, mod( dest_reg, next_reg )
         
     elif re.match( tokrules.t_B_OR, op ):
-        return [indent("or %s, %s" % (dest_reg, next_reg))]
+        return dest_reg, ["or", dest_reg, next_reg]
         
     elif re.match( tokrules.t_B_XOR, op ):
-        return [indent("xor %s, %s" % (dest_reg, next_reg))]
+        return dest_reg, ["xor", dest_reg, next_reg]
         
     elif re.match( tokrules.t_B_AND, op ):
-        return [indent("and %s, %s" % (dest_reg, next_reg))]
-    
-            
+        return dest_reg, ["and", dest_reg, next_reg]
+     
+
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
-def transUnOp(op, dest_reg):
+def intTransUnOp(op, dest_reg):
     if op == "ate":
-        return ["inc %s" % dest_reg]
+        return dest_reg, ["inc %s" % dest_reg]
     elif op == "drank":
-        return ["dec %s" % dest_reg]
+        return dest_reg, ["dec %s" % dest_reg]
     elif re.match( tokrules.t_B_NOT, op ):
-        return ["not %s" % dest_reg]
+        return dest_reg, ["not %s" % dest_reg]
 
 # Node types are:
 # statement_list, spoke, assignment, declaration, 
