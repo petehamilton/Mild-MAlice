@@ -14,50 +14,100 @@ def indent( string, indentation = "    "):
 
 #change list of registers later
 def generate( node, variables, registers, flags ):
-    reg, exp = intTransExp( node, {}, 0 )
+    reg, exp, parents = intTransExp( node, {}, 0, [] )
     solveDataFlow(exp)
     #return setup(variables, flags) + exp + finish()
     return None
 
-def solveDataFlow( tempCode ):
-    for row in tempCode:
-        print row
+#TODO POSSIBLY MAKE THIS A FUNCTION LATER
+def uses(node):
+    return node.registers
+    
+def defs(node):
+    return node.alteredRegisters()
+    
+def succs(node):
+    return None
 
+# Reversing intermediateNodes for bottom up parsing. See slide 32 ch 6 PK Notes
+def solveDataFlow( intermediateNodes ):
+    for node in intermediateNodes:
+        print node
 
-def intTransExp( node, registersDict, reg ):
+"""
+    liveIn = {}
+    liveOut = {}
+    succs = {}
+    intermediateNodes.reverse()
+    #TODO MAP THIS
+    for node in intermediateNodes:
+        liveIn[node] = []
+        liveOut[node] = []
+        succs[node] = []
+        
+    while True:
+        
+        previousLiveIn = liveIn
+        previousLiveOut = liveOut
+        for node in intermediateNodes:
+            liveOut[node] = [ liveIn[s] for s in succs[node]]
+            liveIn[node]  = uses(node) + [ n for n in liveOut[Node] if n not in defs(node)]
+        
+            
+        if liveIn == previousLineIn and liveOut == previousLiveOut:
+            break
+"""
+        
+        
+
+#EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
+# Returns take format (nextAvailableRegister, instructions, callees children)
+def intTransExp( node, registersDict, reg, parents ):
     if node.tokType == ASTNode.FACTOR:
         if node.children[0] == ASTNode.ID:
-            return reg + 1, [INodes.MovNode(reg, registersDict[node.children[1]])]
-        return reg + 1, [INodes.ImmMovNode(reg, str(node.children[1]))]
+            intermediateNode = INodes.MovNode(reg, registersDict[node.children[1]], parents)
+        else:
+            intermediateNode = INodes.ImmMovNode(reg, str(node.children[1]), parents)    
+        return reg + 1, [intermediateNode], [intermediateNode]
     
+    #TODO DOUBLE CHECK CHILDREN
     if node.tokType == ASTNode.STATEMENT_LIST:
-        reg, exp1 = intTransExp( node.children[0], registersDict, reg )
-        reg, exp2 = intTransExp( node.children[1], registersDict, reg )
-        return reg, exp1 + exp2
+        reg, exp1, parents = intTransExp( node.children[0], registersDict, reg, parents )
+        reg, exp2, parents = intTransExp( node.children[1], registersDict, reg, parents )
+        return reg, exp1 + exp2, parents
+
+#    if node.tokType == ASTNode.IF_STATMENT:
+        #reg, exp, node = create if node
+        #reg, exp, node2 = create then node = create node ( node )
+        #reg, exp, node3 = create else node ( node )
+        # return [ node2, node3 ]
+        
 
     if node.tokType == ASTNode.SPOKE:
-        reg1, exp = intTransExp( node.children[0], registersDict, reg )
-        return reg1, exp + [INodes.SpokeNode(reg)]
+        reg1, exp, parents = intTransExp( node.children[0], registersDict, reg, parents )
+        intermediateNode = INodes.SpokeNode(reg, parents)
+        return reg1, exp + [intermediateNode], [intermediateNode]
 
     #TODO MAKE SURE YOU GET REGISTERS RIGHT!
     if node.tokType == ASTNode.BINARY_OP:
-        reg1, exp1 = intTransExp( node.children[1], registersDict, reg )
-        reg2, exp2 = intTransExp( node.children[2], registersDict, reg1 )
-        reg, exp3 = intTransBinOp( node.children[0], reg, reg1 )
-        return reg, (exp1 + exp2 + exp3)
+        reg1, exp1, parents = intTransExp( node.children[1], registersDict, reg, parents)
+        reg2, exp2, parents = intTransExp( node.children[2], registersDict, reg1, parents )
+        reg, exp3, parents = intTransBinOp( node.children[0], reg, reg1, parents )
+        reg = reg + (reg2 - reg1)
+        return reg + 1, (exp1 + exp2 + exp3), parents
 
     if node.tokType == ASTNode.UNARY_OP:
-        reg, exp1 = intTransExp( node.children[1], registersDict, reg )
-        reg, exp2 = intTransUnOp( node.children[0], reg )
-        return reg + 1, (exp1 + exp2)
+        reg, exp1, parents = intTransExp( node.children[1], registersDict, reg, parents )
+        reg, exp2, parents = intTransUnOp( node.children[0], reg, parents )
+        return reg + 1, (exp1 + exp2), parents
 
     if node.tokType == ASTNode.ASSIGNMENT:
         registersDict[node.children[0]] = reg
-        reg, exp = intTransExp( node.children[1], registersDict, reg )
-        return reg, exp
+        reg, exp, parents = intTransExp( node.children[1], registersDict, reg, parents)
+        return reg, exp, parents
 
     if node.tokType == ASTNode.DECLARATION:
-        return reg, []
+        return reg, [], parents
 
 # Return the assembly code needed to print the value in the given register to 
 # the console.
@@ -92,41 +142,46 @@ def mod( destReg, reg ):
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
-def intTransBinOp(op, dest_reg, next_reg):
+def intTransBinOp(op, dest_reg, next_reg, parents):
     if re.match( tokrules.t_PLUS, op ):
-        return dest_reg, [INodes.AddNode(dest_reg, next_reg)]
+        intermediateNode = INodes.AddNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_MINUS, op ):
-        return dest_reg, [INodes.SubNode(dest_reg, next_reg)]
+        intermediateNode = INodes.SubNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_MULTIPLY, op ):
-        return dest_reg, [INodes.MulNode(dest_reg, next_reg)]
+        intermediateNode = INodes.MulNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_DIVIDE, op ):
-        return dest_reg, [INodes.DivNode(dest_reg, next_reg)]
+        intermediateNode = INodes.DivNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_MOD, op ):
-        return dest_reg, [INodes.ModNode(dest_reg, next_reg)]
+        intermediateNode = INodes.ModNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_B_OR, op ):
-        return dest_reg, [INodes.OrNode(dest_reg, next_reg)]
+        intermediateNode = INodes.OrNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_B_XOR, op ):
-        return dest_reg, [INodes.XORNode(dest_reg, next_reg)]
+        intermediateNode = INodes.XORNode(dest_reg, next_reg, parents)
         
     elif re.match( tokrules.t_B_AND, op ):
-        return dest_reg, [INodes.AndNode(dest_reg, next_reg)]
+        intermediateNode = INodes.AndNode(dest_reg, next_reg, parents)
+    return dest_reg, [intermediateNode], [intermediateNode]
      
 
 # Returns the assembly code needed to perform the given unary 'op' operation on 
 # the provided register
-def intTransUnOp(op, dest_reg):
+def intTransUnOp(op, dest_reg, parents):
     if op == "ate":
-        return dest_reg, [INodes.IncNode(dest_reg)]
+        intermediateNode = INodes.IncNode(dest_reg, parents)
+        
     elif op == "drank":
-        return dest_reg, [INodes.DecNode(dest_reg)]
+        intermediateNode = INodes.DecNode(dest_reg, parents)
+        
     elif re.match( tokrules.t_B_NOT, op ):
-        return dest_reg, [INodes.NotNode(dest_reg)]
+        intermediateNode = INodes.NotNode(dest_reg, parents)
+        
+    return dest_reg, [intermediateNode], [intermediateNode]
 
 # Node types are:
 # statement_list, spoke, assignment, declaration, 
