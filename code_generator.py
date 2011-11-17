@@ -88,21 +88,21 @@ def solveDataFlow( intermediateNodes, maxTempReg):
     colors = {}
     for k, v in interferenceGraph.items():
         colors[k] = None
-    
+        
     for k, v in interferenceGraph.items():
-        colors[k] = gcfs(k, maxTempReg, interferenceGraph, colors)
+        colors[k] = getColorForReg(k, maxTempReg, interferenceGraph, colors)
         
     print colors
 
-def gcfs(s, m, ig, cs):
-    for c in range(m):
-        if promising(s, c, ig, cs):
-            return c
+def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
+    for color in range(maxColor):
+        if promising(tReg, color, interferenceGraph, registerColors):
+            return color
 
-def promising(s, c, ig, cs):
-    for n in ig[s]:
-        con = cs[n]
-        if con == c:
+def promising(tReg, color, interferenceGraph, registerColors):
+    for reg in interferenceGraph[tReg]:
+        colorOfNeighbourReg = registerColors[reg]
+        if colorOfNeighbourReg == color:
             return False
     return True
     
