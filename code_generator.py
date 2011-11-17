@@ -97,6 +97,9 @@ class CodeGenerator(object):
             
             
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
+        for node in intermediateNodes:
+            print node.generateIntermediateCode()
+
         registerMap = solveDataFlow(intermediateNodes, reg, registers)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(flags) + finalCode + self.finish()
@@ -143,11 +146,12 @@ class CodeGenerator(object):
             reg, exp3, parents = self.intTransBinOp( node.children[0], reg, reg1, parents )
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
-
+        
+        # return reg not reg + 1 as we know unary op won't create any new registers
         if node.tokType == ASTNode.UNARY_OP:
-            reg, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
+            reg1, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
             reg, exp2, parents = self.intTransUnOp( node.children[0], reg, parents )
-            return reg + 1, (exp1 + exp2), parents
+            return reg, (exp1 + exp2), parents
 
         if node.tokType == ASTNode.ASSIGNMENT:
             registersDict[node.children[0]] = reg
@@ -184,7 +188,7 @@ class CodeGenerator(object):
         elif re.match( tokrules.t_B_AND, op ):
             intermediateNode = INodes.AndNode(dest_reg, next_reg, parents)
         return dest_reg, [intermediateNode], [intermediateNode]
-     
+   
 
     # Returns the assembly code needed to perform the given unary 'op' operation on 
     # the provided register
