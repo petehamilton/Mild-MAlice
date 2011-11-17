@@ -30,7 +30,7 @@ class InstructionNode(IntermediateNode):
     def generateCode(self, registerMap = {}):
         if registerMap == {}:
             return self.generateIntermediateCode()
-        return "%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])
+        return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
     
     def alteredRegisters(self):
         return [self.registers[0]]
@@ -45,7 +45,7 @@ class MovNode(InstructionNode):
 
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
-        super(ImmMovNode, self).__init__("imov", parents)  
+        super(ImmMovNode, self).__init__("mov", parents)  
         self.registers = [reg]
         self.imm = imm
         
@@ -55,7 +55,7 @@ class ImmMovNode(InstructionNode):
     def generateCode(self, registerMap = {}):
         if registerMap == {}:
             return self.generateIntermediateCode()
-        return "%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)
+        return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)]
 
     def uses(self):
         return []
@@ -81,11 +81,33 @@ class MulNode(BinOpNode):
           
 class DivNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
-        super(DivNode, self).__init__("idiv", reg1, reg2, parents)  
+        super(DivNode, self).__init__("idiv", reg1, reg2, parents)
+        self.regToReturn = "rax"
+
+    def generateIntermediateCode(self):
+        return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
+
+    def generateCode(self, registerMap = {}):
+        if registerMap == {}:
+            return self.generateIntermediateCode() 
         
-class ModNode(BinOpNode):
+        idivRegisters = ["rax", "rdx", "rcx" ]
+        registersToPreserve = list( set(idivRegisters) - set(self.registers) )
+        return (["cmp %s %d" % (self.registers[1], 0),
+                 "jz os_return" ] +
+                [["push", x] for x in registersToPreserve] +
+                ["mov rax, %s"%self.registers[0],
+                 "mov rcx, %s"%self.registers[1],
+                 "mov rdx, %d"%0,
+                 "idiv rcx",
+                 "mov %s %s"%(self.registers[0], self.regToReturn)
+                ] +
+                [["pop", x] for x in registersToPreserve])
+        
+class ModNode(DivNode):
     def __init__(self, reg1, reg2, parents):
         super(ModNode, self).__init__("idiv", reg1, reg2, parents) 
+        self.regToReturn = "rdx"
          
 class OrNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
@@ -127,5 +149,9 @@ class SpokeNode(IntermediateNode):
     def generateCode(self, registerMap = {}):
         if registerMap == {}:
             return self.generateIntermediateCode()
-        return "PRINT %s" %registerMap[self.registers[0]]
+        
+        return ["mov rsi, %s" % registerMap[self.registers[0]],
+                "mov rdi, intfmt",
+                "xor rax, rax",
+                "call printf"]
     

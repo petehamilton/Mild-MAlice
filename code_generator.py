@@ -13,11 +13,11 @@ def indent( string, indentation = "    "):
     return indentation + string
 
 #change list of registers later
-def generate( node, variables, registers, flags ):
+def generate( node, registers, flags ):
     reg, exp, parents = intTransExp( node, {}, 0, [] )
-    solveDataFlow(exp, reg, registers)
-    #return setup(variables, flags) + exp + finish()
-    return None
+    instructions = solveDataFlow(exp, reg, registers)
+    return setup(flags) + instructions + finish()
+    # return None
 
 #TODO POSSIBLY MAKE THIS A FUNCTION LATER
 def uses(node):
@@ -109,9 +109,11 @@ def solveDataFlow( intermediateNodes, maxTempReg, availableRegisters):
     print "Generating Final Code"
     print "#######################################"
     intermediateNodes.reverse()
-
+    
+    code = []
     for n in intermediateNodes:
-        print n.generateCode(registerMap)
+        code += n.generateCode(registerMap)
+    return code
 
 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
     for color in range(maxColor):
@@ -173,37 +175,6 @@ def intTransExp( node, registersDict, reg, parents ):
 
     if node.tokType == ASTNode.DECLARATION:
         return reg, [], parents
-
-# Return the assembly code needed to print the value in the given register to 
-# the console.
-def intAssemblyForOutput(register):
-    return register + 1, [ ["mov", "rsi", register],
-                         ["mov", "rdi", intfmt ],
-                         ["xor", "rax", "rax"],
-                         ["call", "printf"]]
-
-# Returns the assembly code for dividing the destReg register by the reg one.
-# Leaves the integer division in rax and the modulus in rcx
-def iDiv( destReg, reg, resultReg ):
-    registersToPreserve = list( set(idivRegisters) - set([destReg, reg]) )
-    return  [["cmp", reg, 0],
-             ["jz", os_return] +
-             [["push", x] for x in registersToPreserve] +
-             ["mov", "rax", destReg],
-             ["mov", "rcx", reg],
-             ["mov", "rdx", 0],
-             ["idiv," "rcx"],
-             ["mov", destReg, resultReg] +
-             [["pop", x] for x in registersToPreserve]]
-
-# Return assembly code for destReg / reg
-def div( destReg, reg ):
-    return iDiv( destReg, reg, "rax" )
-
-# Return assembly code for destReg % reg
-def mod( destReg, reg ):
-    return iDiv( destReg, reg, "rdx" )
-
 
 # Returns the assembly code needed to perform the given binary 'op' operation on 
 # the two provided registers
@@ -276,10 +247,9 @@ def weight( node ):
     elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
         pass
 
-def setup(variables, flags):
+def setup(flags):
     externSection = []
     dataSection = []
-    variableSection = []
     globalSection = []
     textSection = []
 
@@ -299,18 +269,12 @@ def setup(variables, flags):
                         indent("global	main"),
                         newline,
                         "main:"])
-    
-    if len(variables) != 0:
-        variableSection.append("section .bss")
-        variableSection.extend([ indent("%s: resq 1" % x) for x in variables])
 
     return ( externSection   +
              [newline]       +
              globalSection   +
              [newline]       +
              dataSection     +
-             [newline]       +
-             variableSection +
              [newline]       +
              textSection
            )
