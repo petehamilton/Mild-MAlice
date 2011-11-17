@@ -25,3 +25,12 @@ Optimisations
 Removing un-necessary includes
 ------------------------------------------
 To reduce the size of the assembly file where possible, we used some logical statements to decide whether to include certain sections of code. These include the 'extern printf' statement, whether we need the statements for formatting integers and characters and the '.bss' section for variable definitions.
+
+Smart mov instruction - no point if same reg
+--------------------------------------------
+
+Storing registers in variables and graph colouring
+--------------------------------------------------
+
+Removing definitions for variables which aren't used in any other expressions
+-----------------------------------------------------------------------------
