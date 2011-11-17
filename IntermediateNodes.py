@@ -34,6 +34,13 @@ class MovNode(InstructionNode):
     
     def uses(self):
         return [self.registers[1]]
+    
+    def generateCode(self, registerMap):
+        if registerMap[self.registers[0]] == registerMap[self.registers[1]]:
+            return []
+        return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
+
+    
 
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
