@@ -102,8 +102,7 @@ class DivNode(BinOpNode):
                  "mov rcx, %s"%nextReg,
                  "mov rdx, %d"%0,
                  "idiv rcx",
-                 "mov %s, %s"%(destReg, self.regToReturn)
-                ] +
+                 "mov %s, %s"%(destReg, self.regToReturn)] +
                 ["pop %s" %x for x in registersToPreserveReverse])
         
 class ModNode(DivNode):
