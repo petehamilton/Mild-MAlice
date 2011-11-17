@@ -69,7 +69,10 @@ class CodeGenerator(object):
                         if t in liveOut[n]:
                             interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
 
-                colors = defaultdict(int)
+                colors = {}
+                for k in interferenceGraph.keys():
+                    colors[k] = None
+                    
                 for k, v in interferenceGraph.items():
                     colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
             
@@ -97,11 +100,6 @@ class CodeGenerator(object):
         registerMap = solveDataFlow(intermediateNodes, reg, registers)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(flags) + finalCode + self.finish()
-        # return None
-
-
-
-    
     
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)

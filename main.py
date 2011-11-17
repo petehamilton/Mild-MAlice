@@ -38,8 +38,6 @@ def parse_code(code):
             analyse(symbolTable, result, flags)
             cg = CodeGenerator(symbolTable)
             code = cg.generate( result, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi", "r8", "r9"], flags )
-            for i in code:
-                print i
             writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print "----------------"
