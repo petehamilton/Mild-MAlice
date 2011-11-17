@@ -12,6 +12,9 @@ class IntermediateNode(object):
         
     def alteredRegisters(self):
         return []
+
+    def uses(self):
+        return self.registers
         
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):
@@ -29,6 +32,9 @@ class MovNode(InstructionNode):
         super(MovNode, self).__init__("mov", parents)
         self.registers = [reg1, reg2]
     
+    def uses(self):
+        return [self.registers[1]]
+
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
         super(ImmMovNode, self).__init__("imov", parents)  
@@ -37,6 +43,9 @@ class ImmMovNode(InstructionNode):
         
     def generateCode(self):
         return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
+
+    def uses(self):
+        return []
     
     
 #TODO MAKE THIS ABSTRACT

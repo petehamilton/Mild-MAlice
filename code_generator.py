@@ -21,7 +21,7 @@ def generate( node, variables, registers, flags ):
 
 #TODO POSSIBLY MAKE THIS A FUNCTION LATER
 def uses(node):
-    return node.registers
+    return node.uses()
     
 def defs(node):
     return node.alteredRegisters()
