@@ -55,19 +55,6 @@ def solveDataFlow( intermediateNodes, maxTempReg, availableRegisters):
         if liveIn == previousLiveIn and liveOut == previousLiveOut:
             break
     
-    print "Live In"
-    print "#######################################"
-    for k, v in liveIn.items():
-        print k.generateCode(), "\t: ", v
-        pass
-    
-    print
-    print "Live Out"
-    print "#######################################"
-    for k, v in liveOut.items():
-        print k.generateCode(), "\t: ", v
-        pass
-    
     #Generate interference graph
     interferenceGraph = {}
     for t in range(maxTempReg):
@@ -75,41 +62,23 @@ def solveDataFlow( intermediateNodes, maxTempReg, availableRegisters):
         for n in intermediateNodes:
             if t in liveOut[n]:
                 interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
-    
-    print
-    print "Interference Graph"
-    print "#######################################"
-    for k, v in interferenceGraph.items():
-        print k, "\t:", v
 
-    colors = {}
     #TODO, MAP ME
+    colors = {}
     for k, v in interferenceGraph.items():
         colors[k] = None
+    
     for k, v in interferenceGraph.items():
         colors[k] = getColorForReg(k, maxTempReg, interferenceGraph, colors)
-    
-    print
-    print "Graph Colouring"
-    print "#######################################"
-    for k, v in colors.items():
-        print "T" + str(k), "\t:", v
     
     registerMap = {}
     for k, v in colors.items():
         registerMap[k] = availableRegisters[v]
-
-    print
-    print "Register Mapping"
-    print "#######################################"
-    for k, v in colors.items():
-        print "T" + str(k), "\t:", registerMap[v]
     
-    print
-    print "Generating Final Code"
-    print "#######################################"
+    #Put back in right order!
     intermediateNodes.reverse()
     
+    #TODO: Map me!
     code = []
     for n in intermediateNodes:
         code += n.generateCode(registerMap)
