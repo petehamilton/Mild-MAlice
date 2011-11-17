@@ -21,7 +21,7 @@ class InstructionNode(IntermediateNode):
     def generateCode(self):
         return "%s " %(self.instruction) + (', ').join(["T%d" %r for r in self.registers])
     
-    def alteredRegisters():
+    def alteredRegisters(self):
         return [self.registers[0]]
         
 class MovNode(InstructionNode):
