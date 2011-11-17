@@ -16,7 +16,7 @@ def analyse( symbolTable, node, flags ):
             if not assigned:
                 raise SemanticException( node.lineno, node.clauseno )
         else:
-            idType = toPrint.children[0]            
+            idType = spokeChild.children[0]            
         flags[n.SPOKE].add( idType )
             
 

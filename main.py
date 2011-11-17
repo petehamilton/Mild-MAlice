@@ -11,9 +11,10 @@ from yacc_config import *
 import Node
 
 from semantic_analysis import analyse
-from code_generator import generate
+from code_generator import CodeGenerator
 import grammar_exceptions as e
 import sys
+
 def run():
     if len(sys.argv) > 1:
         fName = sys.argv[1]
@@ -35,7 +36,8 @@ def parse_code(code):
             symbolTable = {}
             flags = defaultdict(set)
             analyse(symbolTable, result, flags)
-            code = generate( result, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi", "r8", "r9"], flags )
+            cg = CodeGenerator(symbolTable)
+            code = cg.generate( result, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi", "r8", "r9"], flags )
             for i in code:
                 print i
             writeASM( code )

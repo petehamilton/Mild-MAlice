@@ -127,13 +127,13 @@ class NotNode(UnOpNode):
         super(NotNode, self).__init__("not", reg, parents)
 
 class SpokeNode(IntermediateNode):
-    def __init__(self, reg, parents):
+    def __init__(self, reg, parents, format):
         super(SpokeNode, self).__init__(parents)
         self.registers = [reg]
-
+        self.format = format
     def generateCode(self, registerMap):
         return ["mov rsi, %s" % registerMap[self.registers[0]],
-                "mov rdi, intfmt",
+                "mov rdi, %s" % self.format,
                 "xor rax, rax",
                 "call printf"]
     
