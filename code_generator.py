@@ -67,17 +67,17 @@ def solveDataFlow( intermediateNodes, maxTempReg):
         print k.generateCode(), "\t: ", v
     
     #Generate interference graph
-    print
-    print "Interference Graph"
-    print "#######################################"
     interferenceGraph = {}
     for t in range(maxTempReg):
         interferenceGraph[t] = set()
         for n in intermediateNodes:
-            print t, n, liveOut[n]
+            # print t, n, liveOut[n]
             if t in liveOut[n]:
                 interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
     
+    print
+    print "Interference Graph"
+    print "#######################################"
     for k, v in interferenceGraph.items():
         print k, "\t:", v
 
