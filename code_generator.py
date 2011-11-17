@@ -97,8 +97,8 @@ class CodeGenerator(object):
             
             
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
-        for node in intermediateNodes:
-            print node.generateIntermediateCode()
+        #for node in intermediateNodes:
+        #    print node.generateIntermediateCode()
 
         registerMap = solveDataFlow(intermediateNodes, reg, registers)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
@@ -153,8 +153,9 @@ class CodeGenerator(object):
             return reg, (exp1 + exp2), parents
 
         if node.tokType == ASTNode.ASSIGNMENT:
-            registersDict[node.children[0]] = reg
+            assignmentReg = reg
             reg, exp, parents = self.intTransExp( node.children[1], registersDict, reg, parents)
+            registersDict[node.children[0]] = assignmentReg
             return reg, exp, parents
 
         if node.tokType == ASTNode.DECLARATION:
