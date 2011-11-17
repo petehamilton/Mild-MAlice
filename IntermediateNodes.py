@@ -7,7 +7,10 @@ class IntermediateNode(object):
             
 
     #TODO: MAKE THIS ABSTRACT
-    def generateCode(self):
+    def generateIntermediateCode(self, registerMap):
+        pass
+        
+    def generateCode(self, registerMap = {}):
         pass
         
     def alteredRegisters(self):
@@ -21,8 +24,13 @@ class InstructionNode(IntermediateNode):
         super(InstructionNode, self).__init__(parents)
         self.instruction = instruction
     
-    def generateCode(self):
-        return "%s " %(self.instruction) + (', ').join(["T%d" %r for r in self.registers])
+    def generateIntermediateCode(self):
+        return "%s " %(self.instruction) + (', ').join(["T%d" % r for r in self.registers])
+    
+    def generateCode(self, registerMap = {}):
+        if registerMap == {}:
+            return self.generateIntermediateCode()
+        return "%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])
     
     def alteredRegisters(self):
         return [self.registers[0]]
@@ -41,8 +49,13 @@ class ImmMovNode(InstructionNode):
         self.registers = [reg]
         self.imm = imm
         
-    def generateCode(self):
+    def generateIntermediateCode(self):
         return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
+        
+    def generateCode(self, registerMap = {}):
+        if registerMap == {}:
+            return self.generateIntermediateCode()
+        return "%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)
 
     def uses(self):
         return []
@@ -107,7 +120,12 @@ class SpokeNode(IntermediateNode):
     def __init__(self, reg, parents):
         super(SpokeNode, self).__init__(parents)
         self.registers = [reg]
+
+    def generateIntermediateCode(self):
+        return "PRINT T%d" %self.registers[0]
         
-    def generateCode(self):
-        return "PRINT T%s" %self.registers[0]
+    def generateCode(self, registerMap = {}):
+        if registerMap == {}:
+            return self.generateIntermediateCode()
+        return "PRINT %s" %registerMap[self.registers[0]]
     

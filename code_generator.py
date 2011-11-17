@@ -15,7 +15,7 @@ def indent( string, indentation = "    "):
 #change list of registers later
 def generate( node, variables, registers, flags ):
     reg, exp, parents = intTransExp( node, {}, 0, [] )
-    solveDataFlow(exp, reg)
+    solveDataFlow(exp, reg, registers)
     #return setup(variables, flags) + exp + finish()
     return None
 
@@ -30,7 +30,7 @@ def succs(node):
     return None
 
 # Reversing intermediateNodes for bottom up parsing. See slide 32 ch 6 PK Notes
-def solveDataFlow( intermediateNodes, maxTempReg):
+def solveDataFlow( intermediateNodes, maxTempReg, availableRegisters):
     liveIn = {}
     liveOut = {}
     intermediateNodes.reverse()
@@ -59,19 +59,20 @@ def solveDataFlow( intermediateNodes, maxTempReg):
     print "#######################################"
     for k, v in liveIn.items():
         print k.generateCode(), "\t: ", v
+        pass
     
     print
     print "Live Out"
     print "#######################################"
     for k, v in liveOut.items():
         print k.generateCode(), "\t: ", v
+        pass
     
     #Generate interference graph
     interferenceGraph = {}
     for t in range(maxTempReg):
         interferenceGraph[t] = set()
         for n in intermediateNodes:
-            # print t, n, liveOut[n]
             if t in liveOut[n]:
                 interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
     
@@ -80,19 +81,37 @@ def solveDataFlow( intermediateNodes, maxTempReg):
     print "#######################################"
     for k, v in interferenceGraph.items():
         print k, "\t:", v
+
+    colors = {}
+    #TODO, MAP ME
+    for k, v in interferenceGraph.items():
+        colors[k] = None
+    for k, v in interferenceGraph.items():
+        colors[k] = getColorForReg(k, maxTempReg, interferenceGraph, colors)
     
     print
     print "Graph Colouring"
     print "#######################################"
+    for k, v in colors.items():
+        print "T" + str(k), "\t:", v
     
-    colors = {}
-    for k, v in interferenceGraph.items():
-        colors[k] = None
-        
-    for k, v in interferenceGraph.items():
-        colors[k] = getColorForReg(k, maxTempReg, interferenceGraph, colors)
-        
-    print colors
+    registerMap = {}
+    for k, v in colors.items():
+        registerMap[k] = availableRegisters[v]
+
+    print
+    print "Register Mapping"
+    print "#######################################"
+    for k, v in colors.items():
+        print "T" + str(k), "\t:", registerMap[v]
+    
+    print
+    print "Generating Final Code"
+    print "#######################################"
+    intermediateNodes.reverse()
+
+    for n in intermediateNodes:
+        print n.generateCode(registerMap)
 
 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
     for color in range(maxColor):
