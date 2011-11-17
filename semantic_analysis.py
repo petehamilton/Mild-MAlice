@@ -1,5 +1,5 @@
 import sys
-import Node as n
+import Node as n #TODO: Should be ASTNode
 
 from grammar_exceptions import SemanticException
 
