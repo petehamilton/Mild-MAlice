@@ -119,12 +119,6 @@ class CodeGenerator(object):
             reg, exp2, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
             return reg, exp1 + exp2, parents
 
-    #    if node.tokType == ASTNode.IF_STATMENT:
-            #reg, exp, node = create if node
-            #reg, exp, node2 = create then node = create node ( node )
-            #reg, exp, node3 = create else node ( node )
-            # return [ node2, node3 ]
-
         if node.tokType == ASTNode.SPOKE:
             reg1, exp, parents = self.intTransExp( node.children[0], registersDict, reg, parents )
         
@@ -260,11 +254,11 @@ class CodeGenerator(object):
                             "main:"])
 
         return ( externSection   +
-                 [self.newline]       +
+                 [self.newline]  +
                  globalSection   +
-                 [self.newline]       +
+                 [self.newline]  +
                  dataSection     +
-                 [self.newline]       +
+                 [self.newline]  +
                  textSection
                )
 
