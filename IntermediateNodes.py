@@ -81,20 +81,21 @@ class DivNode(BinOpNode):
     def generateCode(self, registerMap):
         idivRegisters = ["rax", "rdx", "rcx" ]
         registersToPreserve = list( set(idivRegisters) - set(self.registers) )
-        return (["cmp %s %d" % (self.registers[1], 0),
+        destReg, nextReg = map( lambda x: registerMap[x], self.registers )
+        return (["cmp %s, %d" % (nextReg, 0),
                  "jz os_return" ] +
-                [["push", x] for x in registersToPreserve] +
-                ["mov rax, %s"%self.registers[0],
-                 "mov rcx, %s"%self.registers[1],
+                ["push %s" %x for x in registersToPreserve] +
+                ["mov rax, %s"%destReg,
+                 "mov rcx, %s"%nextReg,
                  "mov rdx, %d"%0,
                  "idiv rcx",
-                 "mov %s %s"%(self.registers[0], self.regToReturn)
+                 "mov %s, %s"%(destReg, self.regToReturn)
                 ] +
-                [["pop", x] for x in registersToPreserve])
+                ["pop %s" %x for x in registersToPreserve])
         
 class ModNode(DivNode):
     def __init__(self, reg1, reg2, parents):
-        super(ModNode, self).__init__("idiv", reg1, reg2, parents) 
+        super(ModNode, self).__init__(reg1, reg2, parents) 
         self.regToReturn = "rdx"
          
 class OrNode(BinOpNode):
