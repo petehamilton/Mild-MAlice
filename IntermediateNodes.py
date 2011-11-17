@@ -86,7 +86,7 @@ class DivNode(BinOpNode):
         self.regToReturn = "rax"
     
     def generateIntermediateCode(self):
-        return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
+        return "%s T%d, T%s" %(self.instruction, self.registers[0], self.registers[1])
 
 
     def generateCode(self, registerMap):
