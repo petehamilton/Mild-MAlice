@@ -2,11 +2,15 @@ class IntermediateNode(object):
     def __init__(self, parents):
         self.parents = parents
 
+    def parentsToString(self):
+        return [x.generateCode() for x in self.parents]
+            
+
     #TODO: MAKE THIS ABSTRACT
-    def generateCode():
+    def generateCode(self):
         pass
         
-    def alteredRegisters():
+    def alteredRegisters(self):
         return []
         
 class InstructionNode(IntermediateNode):
@@ -32,7 +36,7 @@ class ImmMovNode(InstructionNode):
         self.imm = imm
         
     def generateCode(self):
-        return "%s T%d, %s" %(self.instruction, self.reg, self.imm)
+        return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
     
     
 #TODO MAKE THIS ABSTRACT
@@ -96,5 +100,5 @@ class SpokeNode(IntermediateNode):
         self.registers = [reg]
         
     def generateCode(self):
-        return "PRINT %s" %self.reg
+        return "PRINT %s" %self.registers[0]
     

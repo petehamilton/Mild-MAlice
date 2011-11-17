@@ -32,7 +32,7 @@ def succs(node):
 # Reversing intermediateNodes for bottom up parsing. See slide 32 ch 6 PK Notes
 def solveDataFlow( intermediateNodes ):
     for node in intermediateNodes:
-        print node
+        print node.generateCode(), node.parentsToString()
 
 """
     liveIn = {}
