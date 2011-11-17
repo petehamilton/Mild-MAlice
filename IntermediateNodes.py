@@ -132,9 +132,6 @@ class SpokeNode(IntermediateNode):
         self.registers = [reg]
 
     def generateCode(self, registerMap):
-        if registerMap == {}:
-            return self.generateIntermediateCode()
-        
         return ["mov rsi, %s" % registerMap[self.registers[0]],
                 "mov rdi, intfmt",
                 "xor rax, rax",
