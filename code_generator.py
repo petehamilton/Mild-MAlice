@@ -119,19 +119,18 @@ class CodeGenerator(object):
 
         if node.tokType == ASTNode.SPOKE:
             reg1, exp, parents = self.intTransExp( node.children[0], registersDict, reg, parents )
-        
-            # spokeChild = node.children[0]
-            # if spokeChild.children[0] == node.ID:
-            #     (idType, lineNo, assigned) = symbolTable[spokeChild.children[1]]
-            # else:
-            #     idType = spokeChild.children[0]
-            # 
-            # if idType == n.NUMBER:
-            #     format = "intfmt"
-            # elif idType == n.LETTER:
-            #     format = "charfmt"
-            #TODO: CHANGE ME!!!
-            format = "intfmt"
+            
+            spokeChild = node.children[0]
+            
+            if spokeChild.children[0] == ASTNode.ID:
+                (idType, lineNo, assigned) = self.symbolTable[spokeChild.children[1]]
+            else:
+                idType = spokeChild.children[0]
+            
+            if idType == ASTNode.NUMBER:
+                format = "intfmt"
+            elif idType == ASTNode.LETTER:
+                format = "charfmt"
             
             intermediateNode = INodes.SpokeNode(reg, parents, format)
             return reg1, exp + [intermediateNode], [intermediateNode]
@@ -239,7 +238,7 @@ class CodeGenerator(object):
             dataSection.append("section .data")
             for printType in flags[ASTNode.SPOKE]:
                 if printType == ASTNode.LETTER:     
-                    dataSection.append(ident("charfmt: ") + self.charfmt)
+                    dataSection.append(self.indent("charfmt: ") + self.charfmt)
                 elif printType == ASTNode.NUMBER:
                     dataSection.append(self.indent("intfmt: ") + self.intfmt)
 
