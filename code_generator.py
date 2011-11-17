@@ -80,7 +80,32 @@ def solveDataFlow( intermediateNodes, maxTempReg):
     print "#######################################"
     for k, v in interferenceGraph.items():
         print k, "\t:", v
+    
+    print
+    print "Graph Colouring"
+    print "#######################################"
+    
+    colors = {}
+    for k, v in interferenceGraph.items():
+        colors[k] = None
+    
+    for k, v in interferenceGraph.items():
+        colors[k] = gcfs(k, maxTempReg, interferenceGraph, colors)
+        
+    print colors
 
+def gcfs(s, m, ig, cs):
+    for c in range(m):
+        if promising(s, c, ig, cs):
+            return c
+
+def promising(s, c, ig, cs):
+    for n in ig[s]:
+        con = cs[n]
+        if con == c:
+            return False
+    return True
+    
 #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
 # Returns take format (nextAvailableRegister, instructions, callees children)
 def intTransExp( node, registersDict, reg, parents ):
