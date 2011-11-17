@@ -68,7 +68,7 @@ class CodeGenerator(object):
                     for n in intermediateNodes:
                         if t in liveOut[n]:
                             interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
-
+                
                 colors = {}
                 for k in interferenceGraph.keys():
                     colors[k] = None
@@ -81,10 +81,23 @@ class CodeGenerator(object):
                     registerMap[k] = availableRegisters[v]
                 
                 return registerMap
-            
-            
+                
+            # Modifies intermediateNodes which is passed in by reference
+            # TODO: Is this Pythonesque?
+            def removeUnusedInstructions(intermediateNodes, liveOut):
+                for node in intermediateNodes:
+                    used = False
+                    #TODO: Is there a nicer way to do this isinstance?
+                    for node1, liveOutRegs in liveOut.items():
+                        used |= len(set(defs(node)) & liveOutRegs) > 0
+                        used |= isinstance(node, INodes.SpokeNode)
+                    if not used:
+                        intermediateNodes.remove(node)
+                        
+                        
             intermediateNodes.reverse()
             liveOut = calculateLiveRange(intermediateNodes)
+            removeUnusedInstructions(intermediateNodes, liveOut)
             registerMap = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
             return registerMap
@@ -97,9 +110,6 @@ class CodeGenerator(object):
             
             
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
-        #for node in intermediateNodes:
-        #    print node.generateIntermediateCode()
-
         registerMap = solveDataFlow(intermediateNodes, reg, registers)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(flags) + finalCode + self.finish()
