@@ -2,7 +2,7 @@ import re
 import tokrules
 import Node as ASTNode
 import IntermediateNodes as INodes
-
+from collections import defaultdict
 
 class CodeGenerator(object):
     intfmt = 'db "%ld", 10, 0'
@@ -18,87 +18,90 @@ class CodeGenerator(object):
 
     #change list of registers later
     def generate(self, node, registers, flags):
-        reg, exp, parents = self.intTransExp( node, {}, 0, [] )
-        instructions = self.solveDataFlow(exp, reg, registers)
-        return self.setup(flags) + instructions + self.finish()
+        # solveDataFlow takes a list of intermediate nodes, the last temporary
+        # register number and a list of available registers.
+        # It returns an dictionary of register numbers to actual Intel registers.
+        def solveDataFlow(intermediateNodes, lastReg, availableRegisters):
+            def uses(node):
+                return node.uses()
+            
+            def defs(node):
+                return node.alteredRegisters()
+            
+            # Parses the list of intermediate notes to calculate their live
+            # in and live out.
+            # Returns a dictionary containing key value pairs of node to a set
+            # of integer register values.
+            def calculateLiveRange( intermediateNodes ):
+                liveIn = defaultdict(set)
+                liveOut = defaultdict(set)
+                while True:
+                    previousLiveIn = liveIn
+                    previousLiveOut = liveOut
+                    for n in intermediateNodes:
+                        liveIn[n]  = set(uses(n)) | (set(liveOut[n]) - set(defs(n)))
+                        #TODO: Map this with lambda - EDIT - cant have assignment in Lambda :(
+                        for p in n.parents:
+                            liveOut[p] = liveIn[n]
+                    if liveIn == previousLiveIn and liveOut == previousLiveOut:
+                        break
+                return liveOut
+             
+             # Performs a graph coloring algorithm to work out which nodes
+             # can share registers.
+            def calculateRealRegisters( liveOut, lastReg ):
+                def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
+                    for color in range(maxColor):
+                        if promising(tReg, color, interferenceGraph, registerColors):
+                            return color
+
+                def promising(tReg, color, interferenceGraph, registerColors):
+                    for reg in interferenceGraph[tReg]:
+                        colorOfNeighbourReg = registerColors[reg]
+                        if colorOfNeighbourReg == color:
+                            return False
+                    return True
+                 
+                interferenceGraph = {}
+                for t in range(lastReg):
+                    interferenceGraph[t] = set()
+                    for n in intermediateNodes:
+                        if t in liveOut[n]:
+                            interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
+
+                colors = defaultdict(int)
+                for k, v in interferenceGraph.items():
+                    colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
+            
+                registerMap = {}
+                for k, v in colors.items():
+                    registerMap[k] = availableRegisters[v]
+                
+                return registerMap
+            
+            
+            intermediateNodes.reverse()
+            liveOut = calculateLiveRange(intermediateNodes)
+            registerMap = calculateRealRegisters( liveOut, lastReg )
+            intermediateNodes.reverse() #Put nodes back in right order.
+            return registerMap
+            
+        def generateFinalCode(intermediateNodes, registerMap):
+            code = []
+            for n in intermediateNodes:
+                code.extend(n.generateCode(registerMap))
+            return code
+            
+            
+        reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
+        registerMap = solveDataFlow(intermediateNodes, reg, registers)
+        finalCode = generateFinalCode( intermediateNodes, registerMap )
+        return self.setup(flags) + finalCode + self.finish()
         # return None
 
-    #TODO POSSIBLY MAKE THIS A FUNCTION LATER
-    def uses(self, node):
-        return node.uses()
-    
-    def defs(self, node):
-        return node.alteredRegisters()
-    
-    def succs(self, node):
-        return None
 
-    # Reversing intermediateNodes for bottom up parsing. See slide 32 ch 6 PK Notes
-    def solveDataFlow(self, intermediateNodes, maxTempReg, availableRegisters):
-        liveIn = {}
-        liveOut = {}
-        intermediateNodes.reverse()
-    
-        #TODO MAP THIS?
-        for node in intermediateNodes:
-            liveIn[node] = set()
-            liveOut[node] = set()
-        
-        while True:
-        
-            previousLiveIn = liveIn
-            previousLiveOut = liveOut
-        
-            for n in intermediateNodes:
-                liveIn[n]  = set(self.uses(n)) | (set(liveOut[n]) - set(self.defs(n)))
-            
-                #TODO: Map this with lambda
-                for p in n.parents:
-                    liveOut[p] = liveIn[n]
-            
-            if liveIn == previousLiveIn and liveOut == previousLiveOut:
-                break
-    
-        #Generate interference graph
-        interferenceGraph = {}
-        for t in range(maxTempReg):
-            interferenceGraph[t] = set()
-            for n in intermediateNodes:
-                if t in liveOut[n]:
-                    interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
 
-        #TODO, MAP ME
-        colors = {}
-        for k, v in interferenceGraph.items():
-            colors[k] = None
     
-        for k, v in interferenceGraph.items():
-            colors[k] = self.getColorForReg(k, maxTempReg, interferenceGraph, colors)
-    
-        registerMap = {}
-        for k, v in colors.items():
-            registerMap[k] = availableRegisters[v]
-    
-        #Put back in right order!
-        intermediateNodes.reverse()
-    
-        #TODO: Map me!
-        code = []
-        for n in intermediateNodes:
-            code += n.generateCode(registerMap)
-        return code
-
-    def getColorForReg(self, tReg, maxColor, interferenceGraph, registerColors):
-        for color in range(maxColor):
-            if self.promising(tReg, color, interferenceGraph, registerColors):
-                return color
-
-    def promising(self, tReg, color, interferenceGraph, registerColors):
-        for reg in interferenceGraph[tReg]:
-            colorOfNeighbourReg = registerColors[reg]
-            if colorOfNeighbourReg == color:
-                return False
-        return True
     
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
