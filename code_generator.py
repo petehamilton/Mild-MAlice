@@ -15,7 +15,7 @@ def indent( string, indentation = "    "):
 #change list of registers later
 def generate( node, variables, registers, flags ):
     reg, exp, parents = intTransExp( node, {}, 0, [] )
-    solveDataFlow(exp)
+    solveDataFlow(exp, reg)
     #return setup(variables, flags) + exp + finish()
     return None
 
@@ -30,35 +30,56 @@ def succs(node):
     return None
 
 # Reversing intermediateNodes for bottom up parsing. See slide 32 ch 6 PK Notes
-def solveDataFlow( intermediateNodes ):
-    for node in intermediateNodes:
-        print node.generateCode(), node.parentsToString()
-
-"""
+def solveDataFlow( intermediateNodes, maxTempReg):
     liveIn = {}
     liveOut = {}
-    succs = {}
     intermediateNodes.reverse()
-    #TODO MAP THIS
+    
+    #TODO MAP THIS?
     for node in intermediateNodes:
-        liveIn[node] = []
-        liveOut[node] = []
-        succs[node] = []
+        liveIn[node] = set()
+        liveOut[node] = set()
         
     while True:
         
         previousLiveIn = liveIn
         previousLiveOut = liveOut
-        for node in intermediateNodes:
-            liveOut[node] = [ liveIn[s] for s in succs[node]]
-            liveIn[node]  = uses(node) + [ n for n in liveOut[Node] if n not in defs(node)]
         
+        for n in intermediateNodes:
+            liveIn[n]  = set(uses(n)) | (set(liveOut[n]) - set(defs(n)))
             
-        if liveIn == previousLineIn and liveOut == previousLiveOut:
+            #TODO: Map this with lambda
+            for p in n.parents:
+                liveOut[p] = liveIn[n]
+            
+        if liveIn == previousLiveIn and liveOut == previousLiveOut:
             break
-"""
-        
-        
+    
+    print "Live In"
+    print "#######################################"
+    for k, v in liveIn.items():
+        print k.generateCode(), "\t: ", v
+    
+    print
+    print "Live Out"
+    print "#######################################"
+    for k, v in liveOut.items():
+        print k.generateCode(), "\t: ", v
+    
+    #Generate interference graph
+    print
+    print "Interference Graph"
+    print "#######################################"
+    interferenceGraph = {}
+    for t in range(maxTempReg):
+        interferenceGraph[t] = set()
+        for n in intermediateNodes:
+            print t, n, liveOut[n]
+            if t in liveOut[n]:
+                interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
+    
+    for k, v in interferenceGraph.items():
+        print k, "\t:", v
 
 #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
 # Returns take format (nextAvailableRegister, instructions, callees children)
