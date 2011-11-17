@@ -109,5 +109,5 @@ class SpokeNode(IntermediateNode):
         self.registers = [reg]
         
     def generateCode(self):
-        return "PRINT %s" %self.registers[0]
+        return "PRINT T%s" %self.registers[0]
     
