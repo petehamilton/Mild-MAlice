@@ -34,3 +34,19 @@ Storing registers in variables and graph colouring
 
 Removing definitions for variables which aren't used in any other expressions
 -----------------------------------------------------------------------------
+
+
+
+Current Bugs
+###########################################
+x was a number and x became 3.
+b spoke.
+
+
+OVERFLOW STRATEGY:
+###########################################
+If no overflow, code runs ok
+if overflow flag registers as overflow and assign register as None?!
+Then for each instruction where you need to use register which is overflowed. Push all/some(2?) registers.
+Do the calcuation
+pop the registers off the stack.
