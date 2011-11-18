@@ -10,14 +10,15 @@ class CodeGenerator(object):
     idivRegisters = ["rax", "rdx", "rcx" ]
     newline = "\n"
     
-    def __init__(self, symbolTable, registers):
+    def __init__(self, symbolTable, registers, flags):
         self.symbolTable = symbolTable
         self.availableRegisters = registers
+        self.flags = flags
         
     def indent(self, string, indentation = "    "):
         return indentation + string
 
-    def generate(self, node, flags):
+    def generate(self, node):
         # solveDataFlow takes a list of intermediate nodes, the last temporary
         # register number and a list of available registers.
         # It returns an dictionary of register numbers to actual Intel registers.
@@ -127,7 +128,7 @@ class CodeGenerator(object):
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(flags, overflowValues) + finalCode + self.finish()
+        return self.setup(overflowValues) + finalCode + self.finish()
     
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
@@ -261,17 +262,17 @@ class CodeGenerator(object):
         elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
             pass
 
-    def setup(self, flags, overflowValues):
+    def setup(self, overflowValues):
         externSection = []
         dataSection = []
         bssSection = []
         globalSection = []
         textSection = []
         
-        if ASTNode.SPOKE in flags:
+        if ASTNode.SPOKE in self.flags:
             externSection.append("extern printf")
             dataSection.append("section .data")
-            for printType in flags[ASTNode.SPOKE]:
+            for printType in self.flags[ASTNode.SPOKE]:
                 if printType == ASTNode.LETTER:     
                     dataSection.append(self.indent("charfmt: ") + self.charfmt)
                 elif printType == ASTNode.NUMBER:

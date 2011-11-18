@@ -36,8 +36,8 @@ def parse_code(code):
             symbolTable = {}
             flags = defaultdict(set)
             analyse(symbolTable, result, flags)
-            cg = CodeGenerator(symbolTable, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi", "r8", "r9"])
-            code = cg.generate( result, flags )
+            cg = CodeGenerator(symbolTable, ["rax", "rdx", "rcx", "rbx", "rsi", "rdi", "r8", "r9"], flags)
+            code = cg.generate( result )
             writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print "----------------"
