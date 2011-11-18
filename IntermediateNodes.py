@@ -10,7 +10,6 @@ class IntermediateNode(object):
     def generateIntermediateCode(self, registerMap):
         pass        
 
-    #TODO: MAKE THIS ABSTRACT
     def generateCode(self, registerMap):
         pass
         
@@ -50,8 +49,6 @@ class MovNode(InstructionNode):
             return []
         return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
 
-    
-
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
         super(ImmMovNode, self).__init__("mov", parents)  
@@ -72,7 +69,6 @@ class ImmMovNode(InstructionNode):
     def generateIntermediateCode(self):
         return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
     
-#TODO MAKE THIS ABSTRACT
 class BinOpNode(InstructionNode):
     def __init__(self, instruction, reg1, reg2, parents):
         super(BinOpNode, self).__init__(instruction, parents)  
@@ -164,10 +160,8 @@ class SpokeNode(IntermediateNode):
     def generateIntermediateCode(self):
         return "PRINT T%d" %self.registers[0]
         
-        
     def generateCode(self, registerMap):
         return ["mov rsi, %s" % registerMap[self.registers[0]],
                 "mov rdi, %s" % self.format,
                 "xor rax, rax",
                 "call printf"]
-    
