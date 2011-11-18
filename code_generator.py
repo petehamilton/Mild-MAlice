@@ -125,14 +125,14 @@ class CodeGenerator(object):
             return code
             
             
-        reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
+        reg, intermediateNodes, parents = self.transExp( node, {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish()
     
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
-    def intTransExp(self, node, registersDict, reg, parents ):
+    def transExp(self, node, registersDict, reg, parents ):
         if node.tokType == ASTNode.FACTOR:
             if node.children[0] == ASTNode.ID:
                 intermediateNode = INodes.MovNode(reg, registersDict[node.children[1]], parents)
@@ -142,12 +142,12 @@ class CodeGenerator(object):
     
         #TODO DOUBLE CHECK CHILDREN
         if node.tokType == ASTNode.STATEMENT_LIST:
-            reg, exp1, parents = self.intTransExp( node.children[0], registersDict, reg, parents )
-            reg, exp2, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
+            reg, exp1, parents = self.transExp( node.children[0], registersDict, reg, parents )
+            reg, exp2, parents = self.transExp( node.children[1], registersDict, reg, parents )
             return reg, exp1 + exp2, parents
 
         if node.tokType == ASTNode.SPOKE:
-            reg1, exp, parents = self.intTransExp( node.children[0], registersDict, reg, parents )
+            reg1, exp, parents = self.transExp( node.children[0], registersDict, reg, parents )
             
             spokeChild = node.children[0]
             
@@ -166,20 +166,20 @@ class CodeGenerator(object):
 
         #TODO MAKE SURE YOU GET REGISTERS RIGHT!
         if node.tokType == ASTNode.BINARY_OP:
-            reg1, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents)
-            reg2, exp2, parents = self.intTransExp( node.children[2], registersDict, reg1, parents )
-            reg, exp3, parents = self.intTransBinOp( node.children[0], reg, reg1, parents )
+            reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents)
+            reg2, exp2, parents = self.transExp( node.children[2], registersDict, reg1, parents )
+            reg, exp3, parents = self.transBinOp( node.children[0], reg, reg1, parents )
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
         
         if node.tokType == ASTNode.UNARY_OP:
-            #reg1, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
-            reg, exp2, parents = self.intTransUnOp( node.children[0], reg, node.children[1], registersDict, parents )
+            #reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents )
+            reg, exp2, parents = self.transUnOp( node.children[0], reg, node.children[1], registersDict, parents )
             return reg, exp2, parents
 
         if node.tokType == ASTNode.ASSIGNMENT:
             assignmentReg = reg
-            reg, exp, parents = self.intTransExp( node.children[1], registersDict, reg, parents)
+            reg, exp, parents = self.transExp( node.children[1], registersDict, reg, parents)
             registersDict[node.children[0]] = assignmentReg
             return reg, exp, parents
 
@@ -188,7 +188,7 @@ class CodeGenerator(object):
 
     # Returns the assembly code needed to perform the given binary 'op' operation on 
     # the two provided registers
-    def intTransBinOp(self, op, destReg, nextReg, parents):
+    def transBinOp(self, op, destReg, nextReg, parents):
         if re.match( tokrules.t_PLUS, op ):
             intermediateNode = INodes.AddNode(destReg, nextReg, parents)
         
@@ -217,7 +217,7 @@ class CodeGenerator(object):
 
     # Returns the assembly code needed to perform the given unary 'op' operation on 
     # the provided register
-    def intTransUnOp(self, op, destReg, node, registersDict, parents):
+    def transUnOp(self, op, destReg, node, registersDict, parents):
         if re.match( "ate", op ):
             intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
             parents = intermediateNode
@@ -227,7 +227,7 @@ class CodeGenerator(object):
             parents = intermediateNode
             
         elif re.match( tokrules.t_B_NOT, op ):
-            reg1, exp, parents = self.intTransExp( node, registersDict, destReg, parents )
+            reg1, exp, parents = self.transExp( node, registersDict, destReg, parents )
             intermediateNode = [INodes.NotNode(destReg, parents)]
             parents = intermediateNode
             intermediateNode = exp + intermediateNode
