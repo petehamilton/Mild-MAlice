@@ -188,36 +188,36 @@ class CodeGenerator(object):
 
     # Returns the assembly code needed to perform the given binary 'op' operation on 
     # the two provided registers
-    def intTransBinOp(self, op, dest_reg, next_reg, parents):
+    def intTransBinOp(self, op, destReg, nextReg, parents):
         if re.match( tokrules.t_PLUS, op ):
-            intermediateNode = INodes.AddNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.AddNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_MINUS, op ):
-            intermediateNode = INodes.SubNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.SubNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_MULTIPLY, op ):
-            intermediateNode = INodes.MulNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.MulNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_DIVIDE, op ):
-            intermediateNode = INodes.DivNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.DivNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_MOD, op ):
-            intermediateNode = INodes.ModNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.ModNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_B_OR, op ):
-            intermediateNode = INodes.OrNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.OrNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_B_XOR, op ):
-            intermediateNode = INodes.XORNode(dest_reg, next_reg, parents)
+            intermediateNode = INodes.XORNode(destReg, nextReg, parents)
         
         elif re.match( tokrules.t_B_AND, op ):
-            intermediateNode = INodes.AndNode(dest_reg, next_reg, parents)
-        return dest_reg, [intermediateNode], [intermediateNode]
+            intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+        return destReg, [intermediateNode], [intermediateNode]
    
 
     # Returns the assembly code needed to perform the given unary 'op' operation on 
     # the provided register
-    def intTransUnOp(self, op, dest_reg, node, registersDict, parents):
+    def intTransUnOp(self, op, destReg, node, registersDict, parents):
         if op == "ate":
             intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
             parents = intermediateNode
@@ -227,12 +227,12 @@ class CodeGenerator(object):
             parents = intermediateNode
             
         elif re.match( tokrules.t_B_NOT, op ):
-            reg1, exp, parents = self.intTransExp( node, registersDict, dest_reg, parents )
-            intermediateNode = [INodes.NotNode(dest_reg, parents)]
+            reg1, exp, parents = self.intTransExp( node, registersDict, destReg, parents )
+            intermediateNode = [INodes.NotNode(destReg, parents)]
             parents = intermediateNode
             intermediateNode = exp + intermediateNode
             
-        return dest_reg, intermediateNode, parents
+        return destReg, intermediateNode, parents
 
     # Node types are:
     # statement_list, spoke, assignment, declaration, 
