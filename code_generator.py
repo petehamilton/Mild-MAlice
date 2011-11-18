@@ -13,7 +13,8 @@ class CodeGenerator(object):
     def __init__(self, symbolTable, registers):
         self.symbolTable = symbolTable
         self.availableRegisters = registers
-
+        #self.availableRegisters = ['rbx', 'rcx']
+        
     def indent(self, string, indentation = "    "):
         return indentation + string
 
@@ -78,10 +79,15 @@ class CodeGenerator(object):
                     colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
             
                 registerMap = {}
+                overflowValues = []
                 for k, v in colors.items():
-                    registerMap[k] = self.availableRegisters[v]
+                    if v >= len(self.availableRegisters):
+                        overflowValues.append("overflow%d"%k)
+                        registerMap[k] = "[overflow%d]"%k
+                    else:
+                        registerMap[k] = self.availableRegisters[v]
                 
-                return registerMap
+                return registerMap, overflowValues
                 
             # Modifies intermediateNodes which is passed in by reference
             # TODO: Is this Pythonesque?
@@ -99,9 +105,9 @@ class CodeGenerator(object):
             intermediateNodes.reverse()
             liveOut = calculateLiveRange(intermediateNodes)
             removeUnusedInstructions(intermediateNodes, liveOut)
-            registerMap = calculateRealRegisters( liveOut, lastReg )
+            registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
-            return registerMap
+            return registerMap, overflowValues
             
         def generateFinalCode(intermediateNodes, registerMap):
             code = []
@@ -111,9 +117,9 @@ class CodeGenerator(object):
             
             
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
-        registerMap = solveDataFlow(intermediateNodes, reg)
+        registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(flags) + finalCode + self.finish()
+        return self.setup(flags, overflowValues) + finalCode + self.finish()
     
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
@@ -157,11 +163,10 @@ class CodeGenerator(object):
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
         
-        # return reg not reg + 1 as we know unary op won't create any new registers
         if node.tokType == ASTNode.UNARY_OP:
-            reg1, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
-            reg, exp2, parents = self.intTransUnOp( node.children[0], reg, parents )
-            return reg, (exp1 + exp2), parents
+            #reg1, exp1, parents = self.intTransExp( node.children[1], registersDict, reg, parents )
+            reg, exp2, parents = self.intTransUnOp( node.children[0], reg, node.children[1], registersDict, parents )
+            return reg, exp2, parents
 
         if node.tokType == ASTNode.ASSIGNMENT:
             assignmentReg = reg
@@ -203,17 +208,22 @@ class CodeGenerator(object):
 
     # Returns the assembly code needed to perform the given unary 'op' operation on 
     # the provided register
-    def intTransUnOp(self, op, dest_reg, parents):
+    def intTransUnOp(self, op, dest_reg, node, registersDict, parents):
         if op == "ate":
-            intermediateNode = INodes.IncNode(dest_reg, parents)
+            intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
+            parents = intermediateNode
         
         elif op == "drank":
-            intermediateNode = INodes.DecNode(dest_reg, parents)
-        
+            intermediateNode = [INodes.DecNode(registersDict[node.children[1]], parents)]
+            parents = intermediateNode
+            
         elif re.match( tokrules.t_B_NOT, op ):
-            intermediateNode = INodes.NotNode(dest_reg, parents)
-        
-        return dest_reg, [intermediateNode], [intermediateNode]
+            reg1, exp, parents = self.intTransExp( node, registersDict, dest_reg, parents )
+            intermediateNode = [INodes.NotNode(dest_reg, parents)]
+            parents = intermediateNode
+            intermediateNode = exp + intermediateNode
+            
+        return dest_reg, intermediateNode, parents
 
     # Node types are:
     # statement_list, spoke, assignment, declaration, 
@@ -243,12 +253,13 @@ class CodeGenerator(object):
         elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
             pass
 
-    def setup(self, flags):
+    def setup(self, flags, overflowValues):
         externSection = []
         dataSection = []
+        bssSection = []
         globalSection = []
         textSection = []
-
+        
         if ASTNode.SPOKE in flags:
             externSection.append("extern printf")
             dataSection.append("section .data")
@@ -260,6 +271,10 @@ class CodeGenerator(object):
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
+
+        if overflowValues:
+            bssSection.append("section .bss")
+            bssSection.extend([ self.indent("%s: resq 1") %name for name in overflowValues])
     
         textSection.extend(["segment .text", 
                             self.indent("global	main"),
@@ -269,6 +284,8 @@ class CodeGenerator(object):
         return ( externSection   +
                  [self.newline]  +
                  globalSection   +
+                 [self.newline]  +
+                 bssSection      +
                  [self.newline]  +
                  dataSection     +
                  [self.newline]  +
