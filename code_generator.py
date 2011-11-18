@@ -10,18 +10,19 @@ class CodeGenerator(object):
     idivRegisters = ["rax", "rdx", "rcx" ]
     newline = "\n"
     
-    def __init__(self, symbolTable):
+    def __init__(self, symbolTable, registers):
         self.symbolTable = symbolTable
+        self.availableRegisters = registers
 
     def indent(self, string, indentation = "    "):
         return indentation + string
 
     #change list of registers later
-    def generate(self, node, registers, flags):
+    def generate(self, node, flags):
         # solveDataFlow takes a list of intermediate nodes, the last temporary
         # register number and a list of available registers.
         # It returns an dictionary of register numbers to actual Intel registers.
-        def solveDataFlow(intermediateNodes, lastReg, availableRegisters):
+        def solveDataFlow(intermediateNodes, lastReg):
             def uses(node):
                 return node.uses()
             
@@ -78,7 +79,7 @@ class CodeGenerator(object):
             
                 registerMap = {}
                 for k, v in colors.items():
-                    registerMap[k] = availableRegisters[v]
+                    registerMap[k] = self.availableRegisters[v]
                 
                 return registerMap
                 
@@ -110,7 +111,7 @@ class CodeGenerator(object):
             
             
         reg, intermediateNodes, parents = self.intTransExp( node, {}, 0, [] )
-        registerMap = solveDataFlow(intermediateNodes, reg, registers)
+        registerMap = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(flags) + finalCode + self.finish()
     
