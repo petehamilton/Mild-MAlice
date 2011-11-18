@@ -1,4 +1,3 @@
-#from malice_lexer import MAliceLexer
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
@@ -63,7 +62,6 @@ def tests():
                 fin = open('./milestone2/' + file, "r");
                 print "Parsing", file
                 code = fin.read()
-                # print code
                 parse_code(code)
                 print
                 
