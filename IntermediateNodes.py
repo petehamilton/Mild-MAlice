@@ -100,7 +100,7 @@ class DivNode(BinOpNode):
 
 
     def generateCode(self, registerMap):
-        idivRegisters = ["rax", "rdx", "rcx" ]
+        idivRegisters = ["rdx", "rcx" ]
         destReg, nextReg = map( lambda x: registerMap[x], self.registers )
         registersToPreserve = list( set(idivRegisters) - set([destReg]) )
         registersToPreserveReverse = list( set(idivRegisters) - set([destReg]) )
