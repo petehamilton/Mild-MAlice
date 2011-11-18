@@ -218,11 +218,11 @@ class CodeGenerator(object):
     # Returns the assembly code needed to perform the given unary 'op' operation on 
     # the provided register
     def intTransUnOp(self, op, destReg, node, registersDict, parents):
-        if op == "ate":
+        if re.match( "ate", op ):
             intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
             parents = intermediateNode
         
-        elif op == "drank":
+        elif re.match( "drank", op ):
             intermediateNode = [INodes.DecNode(registersDict[node.children[1]], parents)]
             parents = intermediateNode
             
