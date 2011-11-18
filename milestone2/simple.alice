@@ -1,7 +1,6 @@
-x was a number.
-x became 3.
-x spoke.
+x was a number, x became 1.
+y was a number, y became 2.
+z was a number, z became 3.
 
-y was a letter.
-y became 'a'.
-y spoke.
+w was a number, w became x + y + z.
+w spoke.
