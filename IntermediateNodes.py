@@ -34,6 +34,9 @@ class InstructionNode(IntermediateNode):
     def alteredRegisters(self):
         return [self.registers[0]]
         
+    def isInMemory(self, reg):
+        return re.match('\[\w+\]', reg)
+        
 class MovNode(InstructionNode):
     def __init__(self, reg1, reg2, parents):
         super(MovNode, self).__init__("mov", parents)
@@ -57,11 +60,8 @@ class ImmMovNode(InstructionNode):
         
     # Chosen to move rax as everyone knows it gets overwritten.
     def generateCode(self, registerMap):
-        def isInMemory(reg):
-            return re.match('\[\w+\]', reg)
-        
         destReg = registerMap[self.registers[0]]
-        if isInMemory(destReg):
+        if self.isInMemory(destReg):
             return [ "mov rax, %s \n%s %s, rax" %(self.imm, self.instruction, destReg)]
             
         return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)]
@@ -106,10 +106,7 @@ class DivNode(BinOpNode):
         registersToPreserveReverse = list( set(idivRegisters) - set([destReg]) )
         registersToPreserveReverse.reverse()
         
-        def isInMemory(reg):
-            return re.match('\[\w+\]', reg)
-        
-        if isInMemory(nextReg):
+        if self.isInMemory(nextReg):
             compCode = "mov rax, %s \ncmp rax, 0" %(nextReg)
         else:
             compCode = "cmp %s, 0" %nextReg
