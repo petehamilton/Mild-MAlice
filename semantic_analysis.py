@@ -48,11 +48,11 @@ def analyse( symbolTable, node, flags ):
 
     elif node.tokType == n.FACTOR:
         if node.children[0] == n.ID:
-            (idType, lineNo, assigned ) = symbolTable[node.children[1]]
-            if assigned:
-                return idType
-            else:
-                raise SemanticException( node.lineno, node.clauseno)
+            if node.children[1] in symbolTable:
+                (idType, lineNo, assigned ) = symbolTable[node.children[1]]
+                if assigned:
+                    return idType
+            raise SemanticException( node.lineno, node.clauseno)
         return node.children[0]
         
     elif node.tokType == n.DECLARATION:

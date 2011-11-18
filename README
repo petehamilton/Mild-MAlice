@@ -39,8 +39,8 @@ Removing definitions for variables which aren't used in any other expressions
 
 Current Bugs
 ###########################################
-x was a number and x became 3.
-b spoke.
+y was a number and y became 5.
+x was a number and x became ~y.
 
 
 OVERFLOW STRATEGY:
