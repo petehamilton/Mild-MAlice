@@ -13,12 +13,10 @@ class CodeGenerator(object):
     def __init__(self, symbolTable, registers):
         self.symbolTable = symbolTable
         self.availableRegisters = registers
-        #self.availableRegisters = ['rbx', 'rcx']
         
     def indent(self, string, indentation = "    "):
         return indentation + string
 
-    #change list of registers later
     def generate(self, node, flags):
         # solveDataFlow takes a list of intermediate nodes, the last temporary
         # register number and a list of available registers.
@@ -34,6 +32,7 @@ class CodeGenerator(object):
             # in and live out.
             # Returns a dictionary containing key value pairs of node to a set
             # of integer register values.
+            # TODO: Should we make liveIn and liveRange variables in IntermediateNodes?
             def calculateLiveRange( intermediateNodes ):
                 liveIn = defaultdict(set)
                 liveOut = defaultdict(set)
@@ -42,15 +41,14 @@ class CodeGenerator(object):
                     previousLiveOut = liveOut
                     for n in intermediateNodes:
                         liveIn[n]  = set(uses(n)) | (set(liveOut[n]) - set(defs(n)))
-                        #TODO: Map this with lambda - EDIT - cant have assignment in Lambda :(
                         for p in n.parents:
                             liveOut[p] = liveIn[n]
                     if liveIn == previousLiveIn and liveOut == previousLiveOut:
                         break
                 return liveOut
              
-             # Performs a graph coloring algorithm to work out which nodes
-             # can share registers.
+            # Performs a graph coloring algorithm to work out which nodes
+            # can share registers.
             def calculateRealRegisters( liveOut, lastReg ):
                 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
                     for color in range(maxColor):
@@ -63,31 +61,41 @@ class CodeGenerator(object):
                         if colorOfNeighbourReg == color:
                             return False
                     return True
-                 
-                interferenceGraph = {}
-                for t in range(lastReg):
-                    interferenceGraph[t] = set()
-                    for n in intermediateNodes:
-                        if t in liveOut[n]:
-                            interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
                 
-                colors = {}
-                for k in interferenceGraph.keys():
-                    colors[k] = None
+                def calculateInterferenceGraph(liveOut):
+                    interferenceGraph = {}
+                    for t in range(lastReg):
+                        interferenceGraph[t] = set()
+                        for n in intermediateNodes:
+                            if t in liveOut[n]:
+                                interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
+                    return interferenceGraph
+                
+                def calculateColors(interferenceGraph, lastReg):
+                    colors = {}
+                    for k in interferenceGraph.keys():
+                        colors[k] = None
+                        
+                    for k, v in interferenceGraph.items():
+                        colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
+                    return colors
                     
-                for k, v in interferenceGraph.items():
-                    colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
-            
-                registerMap = {}
-                overflowValues = []
-                for k, v in colors.items():
-                    if v >= len(self.availableRegisters):
-                        overflowValues.append("overflow%d"%k)
-                        registerMap[k] = "[overflow%d]"%k
-                    else:
-                        registerMap[k] = self.availableRegisters[v]
+                def mapToRegisters(colors):
+                    registerMap = {}
+                    overflowValues = []
+                    for k, v in colors.items():
+                        if v >= len(self.availableRegisters):
+                            overflowValues.append("overflow%d"%k)
+                            registerMap[k] = "[overflow%d]"%k
+                        else:
+                            registerMap[k] = self.availableRegisters[v]
+                    
+                    return registerMap, overflowValues
                 
-                return registerMap, overflowValues
+                interferenceGraph = calculateInterferenceGraph(liveOut)
+                colors = calculateColors(interferenceGraph, lastReg)
+                return mapToRegisters( colors )
+                
                 
             # Modifies intermediateNodes which is passed in by reference
             # TODO: Is this Pythonesque?
