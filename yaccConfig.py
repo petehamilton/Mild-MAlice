@@ -1,10 +1,10 @@
+# This file contains the BNF rules for MAlice.
+
 import ASTNodes
 from tokRules import tokens
 import grammarExceptions as e
 
-start = 'statement_list' # Optional as uses first rule
-class ParseError(Exception): 
-    pass
+start = 'statement_list'
 
 precedence = (
     ('left', 'B_OR'),
@@ -14,10 +14,6 @@ precedence = (
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
     ('right','INCREMENT', 'DECREMENT', 'B_NOT'),
 )
-
-def _parse_error(msg, coord):
-    raise ParseError("%s: %s" % (coord, msg))  
-    
 
 def p_statement_list_sep_comma(p):
     'statement_list : statement SEP_COMMA statement_list'
@@ -59,7 +55,6 @@ def p_statement_became(p):
     'statement : ID ASSIGNMENT expression'
     p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
 
-# Have to implement for drank and ate
 def p_statement_expression(p):
     'statement : expression'
     p[0] = p[1]
@@ -136,7 +131,6 @@ def p_factor_letter(p):
 def p_factor_id(p):
     'factor : ID'
     p[0] = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
-
     
 def p_error(p):
     if p == None:
