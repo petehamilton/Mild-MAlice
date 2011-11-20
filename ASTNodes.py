@@ -102,7 +102,7 @@ class SpokeNode(ASTNode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
     
-    def getVariable():
+    def getExpression():
         return self.children[0]
         
 class TypeNode(ASTNode):
