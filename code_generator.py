@@ -1,6 +1,6 @@
 import re
 import tokrules
-import ASTNode
+import ASTNodes
 import IntermediateNodes as INodes
 from collections import defaultdict
 
