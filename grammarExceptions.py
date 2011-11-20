@@ -6,7 +6,7 @@ class GrammarException(Exception):
 class SemanticException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(SemanticException, self).__init__(lineno, clauseno)       
-        self.value = "Oh No! Silly you!"# + value
+        self.value = "Oh No! Silly you!" + value
         
 class SyntaxException(GrammarException):
     def __init__( self, lineno, clauseno, value = "" ):
