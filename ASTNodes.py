@@ -17,16 +17,15 @@ class ASTNode(object):
         self.clauseno = clauseno
         self.children = children
         
-    def getNodeType():
+    def getNodeType(self):
         return self.nodeType
 
 class OperatorNode(ASTNode):
-    def __init__(self, lineno, clauseno, operator, children ):
-        super(OperatorNode, self).__
-        init__( nodeType, lineno, clauseno, children )
+    def __init__(self, nodeType, lineno, clauseno, operator, children ):
+        super(OperatorNode, self).__init__( nodeType, lineno, clauseno, children )
         self.operator = operator
         
-    def getOperator():
+    def getOperator(self):
         return self.operator
 
 class BinaryNode(OperatorNode):
@@ -34,10 +33,10 @@ class BinaryNode(OperatorNode):
         super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
         self.operator = operator
         
-    def getLeftExpression():
+    def getLeftExpression(self):
         return self.children[0]
         
-    def getRightExpression():
+    def getRightExpression(self):
         return self.children[1]
     
 class UnaryNode(OperatorNode):
@@ -51,10 +50,10 @@ class StatementNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
         super(StatementNode, self).__init__( nodeType, lineno, clauseno, children )
     
-    def getVariable():
+    def getVariable(self):
         return self.children[0]
         
-    def getExpression():
+    def getExpression(self):
         return self.children[1]
         
 class AssignmentNode(StatementNode):
@@ -69,10 +68,10 @@ class StatementListNode(ASTNode):
     def __init__(self, lineno, clauseno, children ):
         super(StatementListNode, self).__init__( STATEMENT_LIST, lineno, clauseno, children )
     
-    def getStatement():
+    def getStatement(self):
         return self.children[0]
         
-    def getStatementList():
+    def getStatementList(self):
         return self.children[1]
         
 class Factor(ASTNode):
@@ -80,10 +79,10 @@ class Factor(ASTNode):
         super(Factor, self).__init__( FACTOR, lineno, clauseno, [child] )
         self.factorType = nodeType
         
-    def getFactorType():
+    def getFactorType(self):
         return self.factorType
     
-    def getValue():
+    def getValue(self):
         return self.children[0]
         
 class NumberNode(Factor):
@@ -102,7 +101,7 @@ class SpokeNode(ASTNode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
     
-    def getExpression():
+    def getExpression(self):
         return self.children[0]
         
 class TypeNode(ASTNode):
@@ -110,7 +109,7 @@ class TypeNode(ASTNode):
         super(TypeNode, self).__init__( TYPE, lineno, clauseno, [] )
         self.typeType = typeType
         
-    def getType():
+    def getType(self):
         return self.typeType
         
         
