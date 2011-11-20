@@ -16,7 +16,13 @@ def run():
         fName = sys.argv[1]
         if os.path.getsize(fName):
             maliceprogram = open(fName, 'r').read()
-            parse_code(maliceprogram)
+            base, ext = os.path.splitext(os.path.basename(fName))
+            if ext == ".alice":
+                code = parse_code(maliceprogram)
+                writeASM( code, base )
+            else:
+                print "Error! Filetype is not of format .alice."
+                return 1
         return 0
     else:
         print "Error! No given files."
@@ -34,14 +40,14 @@ def parse_code(code):
             analyse(symbolTable, result, flags)
             cg = CodeGenerator(symbolTable, ["rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9"], flags)
             code = cg.generate( result )
-            writeASM( code )
+            return code
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
 
 
-def writeASM( result ):
-    asmFile = open('output.asm', 'w')
+def writeASM( result, fileName ):
+    asmFile = open(fileName + ".asm", 'w')
     for line in result:
         asmFile.write(line + "\n")
     asmFile.close()
