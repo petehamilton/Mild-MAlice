@@ -4,12 +4,6 @@ class IntermediateNode(object):
     def __init__(self, parents):
         self.parents = parents
 
-    def parentsToString(self):
-        return [x.generateCode() for x in self.parents]
-    
-    def generateIntermediateCode(self, registerMap):
-        pass        
-
     def generateCode(self, registerMap):
         pass
         
@@ -19,6 +13,12 @@ class IntermediateNode(object):
     def uses(self):
         return self.registers
         
+    def pushRegs(self, registersToPush):
+        return ["push %s" %x for x in registersToPush]
+        
+    def popRegs(self, registersToPop):
+        return ["pop %s" %x for x in registersToPop]
+        
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):
         super(InstructionNode, self).__init__(parents)
@@ -27,14 +27,13 @@ class InstructionNode(IntermediateNode):
     def generateCode(self, registerMap):
         return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
     
-    def generateIntermediateCode(self):
-        return "%s " %(self.instruction) + (', ').join(["T%d" % r for r in self.registers])
-    
     def alteredRegisters(self):
         return [self.registers[0]]
         
-    def isInMemory(self, reg):
-        return re.match('\[\w+\]', reg)
+    # Works out if a given value for an instruction is in memory by using 
+    # regular expressions. 
+    def isInMemory(self, value):
+        return re.match('\[\w+\]', value)
         
 class MovNode(InstructionNode):
     def __init__(self, reg1, reg2, parents):
@@ -55,19 +54,17 @@ class ImmMovNode(InstructionNode):
         self.registers = [reg]
         self.imm = imm
         
-    # Chosen to move rax as everyone knows it gets overwritten.
+    # Chosen to move into rax as it is a given in assembly that this register will
+    # get overwritten in function calls.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
         if self.isInMemory(destReg):
-            return [ "mov rax, %s \n%s %s, rax" %(self.imm, self.instruction, destReg)]
+            return ["mov rax, %s \n%s %s, rax" %(self.imm, self.instruction, destReg)]
             
         return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)]
 
     def uses(self):
         return []
-    
-    def generateIntermediateCode(self):
-        return "%s T%d, %s" %(self.instruction, self.registers[0], self.imm)
     
 class BinOpNode(InstructionNode):
     def __init__(self, instruction, reg1, reg2, parents):
@@ -90,16 +87,15 @@ class DivNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
         super(DivNode, self).__init__("idiv", reg1, reg2, parents)
         self.regToReturn = "rax"
+        self.idivRegisters = ["rdx", "rcx"]
     
-    def generateIntermediateCode(self):
-        return "%s T%d, T%s" %(self.instruction, self.registers[0], self.registers[1])
-
-
+    # Preserves registers that could get overwritten by the div instruction
+    # unless it's the desintation register.
+    # Puts registers in relevant registers required by idiv instruction.
     def generateCode(self, registerMap):
-        idivRegisters = ["rdx", "rcx" ]
-        destReg, nextReg = map( lambda x: registerMap[x], self.registers )
-        registersToPreserve = list( set(idivRegisters) - set([destReg]) )
-        registersToPreserveReverse = list( set(idivRegisters) - set([destReg]) )
+        destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+        registersToPreserve = list(set(self.idivRegisters) - set([destReg]))
+        registersToPreserveReverse = registersToPreserve[0:]
         registersToPreserveReverse.reverse()
         
         if self.isInMemory(nextReg):
@@ -109,13 +105,13 @@ class DivNode(BinOpNode):
         
         return ([compCode,
                  "jz os_return" ] +
-                ["push %s" %x for x in registersToPreserve] +
-                ["mov rax, %s"%destReg,
-                 "mov rcx, %s"%nextReg,
-                 "mov rdx, %d"%0,
+                self.pushRegs(registersToPreserve) +
+                ["mov rax, %s" %destReg,
+                 "mov rcx, %s" %nextReg,
+                 "mov rdx, %d" %0,
                  "idiv rcx",
                  "mov %s, %s"%(destReg, self.regToReturn)] +
-                ["pop %s" %x for x in registersToPreserveReverse])
+               self.popRegs(registersToPreserveReverse))
         
 class ModNode(DivNode):
     def __init__(self, reg1, reg2, parents):
@@ -152,16 +148,22 @@ class NotNode(UnOpNode):
         super(NotNode, self).__init__("not", reg, parents)
 
 class SpokeNode(IntermediateNode):
-    def __init__(self, reg, parents, format):
+    def __init__(self, reg, parents, formatting):
         super(SpokeNode, self).__init__(parents)
         self.registers = [reg]
-        self.format = format
-        
-    def generateIntermediateCode(self):
-        return "PRINT T%d" %self.registers[0]
-        
+        self.formatting = formatting
+        self.spokeRegisters = ['rsi', 'rdi']
+    
+    # Puts registers in the relevant registers required for printf call and
+    # preserves the registers which may be overwritten.
     def generateCode(self, registerMap):
-        return ["mov rsi, %s" % registerMap[self.registers[0]],
-                "mov rdi, %s" % self.format,
+        destReg = registerMap[self.registers[0]]
+        registersToPreserve = list(set(self.spokeRegisters) - set([destReg]))
+        registersToPreserveReverse = registersToPreserve[0:]
+        registersToPreserveReverse.reverse()
+        return (self.pushRegs(registersToPreserve) +
+                ["mov rsi, %s" %destReg,
+                "mov rdi, %s" %self.formatting,
                 "xor rax, rax",
-                "call printf"]
+                "call printf"] +
+                self.popRegs(registersToPreserve))

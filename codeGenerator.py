@@ -157,10 +157,10 @@ class CodeGenerator(object):
                 # valid as factors and not as part of operations or expressions
                 idType = ASTNodes.NUMBER
             if idType == ASTNodes.NUMBER:
-                format = "intfmt"
+                formatting = "intfmt"
             elif idType == ASTNodes.LETTER:
-                format = "charfmt"
-            intermediateNode = INodes.SpokeNode(reg, parents, format)
+                formatting = "charfmt"
+            intermediateNode = INodes.SpokeNode(reg, parents, formatting)
             return reg1, exp + [intermediateNode], [intermediateNode]
 
         if node.getNodeType() == ASTNodes.BINARY_OP:
