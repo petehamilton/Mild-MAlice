@@ -132,29 +132,37 @@ class CodeGenerator(object):
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
     def transExp(self, node, registersDict, reg, parents ):
-        if node.tokType == ASTNode.FACTOR:
-            if node.children[0] == ASTNode.ID:
-                intermediateNode = INodes.MovNode(reg, registersDict[node.children[1]], parents)
+        if node.getNodeType() == ASTNode.FACTOR:
+            if node.factorType() == ASTNode.ID:
+                intermediateNode = INodes.MovNode(reg, registersDict[node.getValue()], parents)
             else:
-                intermediateNode = INodes.ImmMovNode(reg, str(node.children[1]), parents)    
+                intermediateNode = INodes.ImmMovNode(reg, str(node.getValue()), parents)    
             return reg + 1, [intermediateNode], [intermediateNode]
     
         #TODO DOUBLE CHECK CHILDREN
-        if node.tokType == ASTNode.STATEMENT_LIST:
-            reg, exp1, parents = self.transExp( node.children[0], registersDict, reg, parents )
-            reg, exp2, parents = self.transExp( node.children[1], registersDict, reg, parents )
+        if node.getNodeType() == ASTNode.STATEMENT_LIST:
+            reg, exp1, parents = self.transExp( node.getStatement(), registersDict, reg, parents )
+            reg, exp2, parents = self.transExp( node.getStatementList(), registersDict, reg, parents )
             return reg, exp1 + exp2, parents
 
-        if node.tokType == ASTNode.SPOKE:
-            reg1, exp, parents = self.transExp( node.children[0], registersDict, reg, parents )
+        if node.getNodeType() == ASTNode.SPOKE:    
+            spokeExpression = node.getExpression()
+            reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents )
             
-            spokeChild = node.children[0]
             
-            if spokeChild.children[0] == ASTNode.ID:
-                (idType, lineNo, assigned) = self.symbolTable[spokeChild.children[1]]
+            #############################################################
+            #TODO: Work me out, allow for expressions not just IDs here  
+            #############################################################
+            if spokeChild.getNodeType() == ASTNode.Factor:
+                if spokeChild.getFactorType() == ASTNode.ID:
+                    (idType, lineNo, assigned) = self.symbolTable[spokeChild.getValue()]
+                else:
+                    idType = spokeChild.getFactorType()
             else:
-                idType = spokeChild.children[0]
-            
+                # If not a factor, must be of type number since letters are only 
+                # valid as factors and not as part of operations or expressions
+                idType = ASTNode.NUMBER
+                
             if idType == ASTNode.NUMBER:
                 format = "intfmt"
             elif idType == ASTNode.LETTER:
@@ -164,25 +172,24 @@ class CodeGenerator(object):
             return reg1, exp + [intermediateNode], [intermediateNode]
 
         #TODO MAKE SURE YOU GET REGISTERS RIGHT!
-        if node.tokType == ASTNode.BINARY_OP:
-            reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents)
-            reg2, exp2, parents = self.transExp( node.children[2], registersDict, reg1, parents )
-            reg, exp3, parents = self.transBinOp( node.children[0], reg, reg1, parents )
+        if node.getNodeType() == ASTNode.BINARY_OP:
+            reg1, exp1, parents = self.transExp( node.getLeftExpression(), registersDict, reg, parents)
+            reg2, exp2, parents = self.transExp( node.getRightExpression(), registersDict, reg1, parents )
+            reg, exp3, parents = self.transBinOp( node.getOperator(), reg, reg1, parents )
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
         
-        if node.tokType == ASTNode.UNARY_OP:
-            #reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents )
-            reg, exp2, parents = self.transUnOp( node.children[0], reg, node.children[1], registersDict, parents )
+        if node.getNodeType() == ASTNode.UNARY_OP:
+            reg, exp2, parents = self.transUnOp( node.getOperator(), reg, node.getExpression(), registersDict, parents )
             return reg, exp2, parents
 
-        if node.tokType == ASTNode.ASSIGNMENT:
+        if node.getNodeType() == ASTNode.ASSIGNMENT:
             assignmentReg = reg
-            reg, exp, parents = self.transExp( node.children[1], registersDict, reg, parents)
-            registersDict[node.children[0]] = assignmentReg
+            reg, exp, parents = self.transExp( node.getExpression(), registersDict, reg, parents)
+            registersDict[getVariable()] = assignmentReg
             return reg, exp, parents
 
-        if node.tokType == ASTNode.DECLARATION:
+        if node.getNodeType() == ASTNode.DECLARATION:
             return reg, [], parents
 
     # Returns the assembly code needed to perform the given binary 'op' operation on 
