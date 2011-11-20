@@ -1,4 +1,4 @@
-# This class contains the nodes created by the parser.
+# This module contains the nodes created by the parser.
 
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
