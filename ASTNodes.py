@@ -77,8 +77,12 @@ class StatementListNode(ASTNode):
         
 class Factor(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, child ):
-        super(Factor, self).__init__( nodeType, lineno, clauseno, [child] )
+        super(Factor, self).__init__( FACTOR, lineno, clauseno, [child] )
+        self.factorType = nodeType
         
+    def getFactorType():
+        return self.factorType
+    
     def getValue():
         return self.children[0]
         
