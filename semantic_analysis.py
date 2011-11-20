@@ -68,7 +68,7 @@ def analyse( symbolTable, node, flags ):
         if variable in symbolTable:
             raise SemanticException( node.lineno, node.clauseno, "You already told me what '%s' was on line %d" %(variable,  symbolTable[variable][1]) )
         else:
-            symbolTable[variable] = [node.getFactorType(), node.lineno, True]  
+            symbolTable[variable] = [node.getExpression().getType(), node.lineno, True]  
 
 
 
