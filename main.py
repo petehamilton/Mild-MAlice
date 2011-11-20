@@ -46,21 +46,5 @@ def writeASM( result ):
         asmFile.write(line + "\n")
     asmFile.close()
 
-def tests():
-    import fnmatch
-    import os
-    files = os.listdir('./milestone2')
-    files.sort()
-    for f in files:
-        if fnmatch.fnmatch(file, '*.alice'):
-            symbolTable.clear()
-            if os.path.getsize('./milestone2/' + f):
-                fin = open('./milestone2/' + f, "r");
-                print "Parsing", f
-                code = fin.read()
-                parse_code(code)
-                print
-                
-
 if __name__ == '__main__':
     run()
