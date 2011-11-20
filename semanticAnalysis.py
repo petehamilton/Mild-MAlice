@@ -1,8 +1,13 @@
 import sys
-import ASTNodes #TODO: Should be ASTNodes
 
+import ASTNodes
 from grammarExceptions import SemanticException
 
+# Analyses the abstract syntax tree.
+# Inputs are a symbolTable dictionary of form { id : ( id type, line number, assigned bool ) },
+# the starting AST node and a flags dictionary of form { nodeType : info } where any relevant information
+# for the particular node is set.
+# Does not return anything. Will throw a semantic error if the code breaks the rules.
 def analyse( symbolTable, node, flags ):
     if node.getNodeType() == ASTNodes.STATEMENT_LIST:
         analyse( symbolTable, node.getStatement(), flags  )
@@ -10,8 +15,7 @@ def analyse( symbolTable, node, flags ):
 
     elif node.getNodeType() == ASTNodes.SPOKE:    
         spokeExpression = node.getExpression()
-        type1 = analyse( symbolTable, spokeExpression, flags )
-        
+        expType = analyse( symbolTable, spokeExpression, flags )
         if spokeExpression.getNodeType() == ASTNodes.Factor:
             if spokeExpression.getFactorType() == ASTNodes.ID:
                 (idType, lineNo, assigned) = symbolTable[spokeExpression.getValue()]
@@ -21,16 +25,14 @@ def analyse( symbolTable, node, flags ):
                 idType = spokeExpression.getFactorType()
         else:
             # If not a factor, must be of type number since letters are only 
-            # valid as factors and not as part of operations or expressions
+            # valid as factors and not as part of operations or expressions.
             idType = ASTNodes.NUMBER
-
         flags[ASTNodes.SPOKE].add( idType )
-            
 
     elif node.getNodeType() == ASTNodes.ASSIGNMENT:
         (identifier, expression) = node.children
-        type1 = analyse( symbolTable, node.getExpression(), flags  )
-        if type1 == symbolTable[node.getVariable()][0]:
+        expType = analyse( symbolTable, node.getExpression(), flags  )
+        if expType == symbolTable[node.getVariable()][0]:
             symbolTable[node.getVariable()][2] = True
         else:
             raise SemanticException( node.lineno, node.clauseno )
@@ -39,17 +41,17 @@ def analyse( symbolTable, node, flags ):
         return node.getType()
         
     elif node.getNodeType() == ASTNodes.UNARY_OP:
-        type1 = analyse( symbolTable, node.getExpression(), flags )
-        if type1 == ASTNodes.NUMBER:
-            return type1
+        expType = analyse( symbolTable, node.getExpression(), flags )
+        if expType == ASTNodes.NUMBER:
+            return expType
         else:
             raise SemanticException( node.lineno, node.clauseno)
     
     elif node.getNodeType() == ASTNodes.BINARY_OP:
-        type1 = analyse( symbolTable, node.getLeftExpression(), flags )
-        type2 = analyse( symbolTable, node.getRightExpression(), flags )
-        if type1 == type2 == ASTNodes.NUMBER:
-            return type1
+        leftExpType = analyse( symbolTable, node.getLeftExpression(), flags )
+        rightExpType = analyse( symbolTable, node.getRightExpression(), flags )
+        if leftExpType == rightExpType == ASTNodes.NUMBER:
+            return leftExpType
         else:
             raise SemanticException( node.lineno, node.clauseno)
 
@@ -69,7 +71,3 @@ def analyse( symbolTable, node, flags ):
             raise SemanticException( node.lineno, node.clauseno, "You already told me what '%s' was on line %d" %(variable,  symbolTable[variable][1]) )
         else:
             symbolTable[variable] = [node.getExpression().getType(), node.lineno, True]  
-
-
-
-
