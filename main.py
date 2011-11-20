@@ -11,6 +11,9 @@ from semanticAnalysis import analyse
 from codeGenerator import CodeGenerator
 import grammarExceptions as e
 
+
+registers = ['r%d' %r for r in range(8,16)]  + ["rbx", "rcx", "rdx", "rsi", "rdi"]
+
 def run():
     if len(sys.argv) > 1:
         fName = sys.argv[1]
@@ -38,12 +41,13 @@ def parse_code(code):
             symbolTable = {}
             flags = defaultdict(set)
             analyse(symbolTable, result, flags)
-            cg = CodeGenerator(symbolTable, ["rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9"], flags)
-            code = cg.generate( result )
+            cg = CodeGenerator(symbolTable, registers, flags)
+            code = cg.generate(result)
             return code
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+        sys.exit(1)
 
 
 def writeASM( result, fileName ):
