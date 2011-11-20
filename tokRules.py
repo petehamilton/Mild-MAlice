@@ -39,8 +39,6 @@ t_PLUS = r'\+'
 t_MINUS = r'-'
 t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
-#t_SEP_COMMA = r'\,'
-#t_SEP_PERIOD = r'\.'
 t_B_AND = r'\&'
 t_B_OR = r'\|'
 t_B_XOR = r'\^'
@@ -48,9 +46,9 @@ t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
 
-tokens += list(reserved.values())
+tokens.extend(reserved.values())
 
-# A string containing ignored characters (spaces and tabs)
+# A string containing ignored characters.
 t_ignore  = ' \t\r'
 
 # A regular expression rule with some action code
@@ -69,7 +67,6 @@ def t_SEP_PERIOD(t):
     t.lexer.clauseno += 1
     return t    
 
-    
 def t_SEP_AND(t):
     r'and$'
     t.lexer.clauseno += 1
@@ -104,5 +101,3 @@ def t_ID(t):
 def t_TOO(t):
     r'\too'
     pass
-
-
