@@ -62,7 +62,7 @@ class AssignmentNode(StatementNode):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, children )
 
 class DeclarationNode(StatementNode):
-    def __init__(self, lineno, clauseno, child ):
+    def __init__(self, lineno, clauseno, children ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, children )
     
 class StatementListNode(ASTNode):
