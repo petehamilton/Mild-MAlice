@@ -7,7 +7,6 @@ from collections import defaultdict
 class CodeGenerator(object):
     intfmt = 'db "%ld", 10, 0'
     charfmt = 'db "%c", 10, 0'
-    idivRegisters = ["rax", "rdx", "rcx" ]
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -258,7 +257,6 @@ class CodeGenerator(object):
         elif node.tokType == ASTNode.STATEMENT_LIST:
             return max( weight(node.children[0]), weight(node.children[1]) )
 
-        #is this right? Dont need to store anything in register yet
         elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
             pass
 
