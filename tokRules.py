@@ -1,7 +1,6 @@
-# module: tokrules.py
-# This module just contains the lexing rules
+# This module contains the lexing rules
 
-from grammar_exceptions import LexicalException
+from grammarExceptions import LexicalException
 
 tokens = [
         'NUMBER',

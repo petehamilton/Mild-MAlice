@@ -1,7 +1,7 @@
 import sys
 import ASTNodes #TODO: Should be ASTNodes
 
-from grammar_exceptions import SemanticException
+from grammarExceptions import SemanticException
 
 def analyse( symbolTable, node, flags ):
     if node.getNodeType() == ASTNodes.STATEMENT_LIST:

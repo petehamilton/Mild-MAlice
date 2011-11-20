@@ -1,6 +1,6 @@
 import ASTNodes
-from tokrules import tokens
-import grammar_exceptions as e
+from tokRules import tokens
+import grammarExceptions as e
 
 start = 'statement_list' # Optional as uses first rule
 class ParseError(Exception): 

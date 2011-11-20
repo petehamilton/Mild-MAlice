@@ -1,18 +1,15 @@
-import ply.lex as lex
-import ply.yacc as yacc
 import sys
 import os
 from collections import defaultdict
 
-import tokrules
-from yacc_config import *
+import ply.lex as lex
+import ply.yacc as yacc
 
-import Node
-
-from semantic_analysis import analyse
-from code_generator import CodeGenerator
-import grammar_exceptions as e
-import sys
+import tokRules
+from yaccConfig import *
+from semanticAnalysis import analyse
+from codeGenerator import CodeGenerator
+import grammarExceptions as e
 
 def run():
     if len(sys.argv) > 1:
@@ -28,7 +25,7 @@ def run():
 
 def parse_code(code):
     try:
-        lexer = lex.lex(module=tokrules)
+        lexer = lex.lex(module=tokRules)
         parser = yacc.yacc()
         result = parser.parse(code)
         if result:
@@ -39,9 +36,8 @@ def parse_code(code):
             code = cg.generate( result )
             writeASM( code )
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
-        print "----------------"
         print exception.value 
-        #print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+        print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
 
 
 def writeASM( result ):
@@ -55,12 +51,12 @@ def tests():
     import os
     files = os.listdir('./milestone2')
     files.sort()
-    for file in files:
+    for f in files:
         if fnmatch.fnmatch(file, '*.alice'):
             symbolTable.clear()
-            if os.path.getsize('./milestone2/' + file):
-                fin = open('./milestone2/' + file, "r");
-                print "Parsing", file
+            if os.path.getsize('./milestone2/' + f):
+                fin = open('./milestone2/' + f, "r");
+                print "Parsing", f
                 code = fin.read()
                 parse_code(code)
                 print
