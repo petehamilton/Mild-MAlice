@@ -1,65 +1,74 @@
 import sys
-import ASTNode #TODO: Should be ASTNode
+import ASTNodes #TODO: Should be ASTNodes
 
 from grammar_exceptions import SemanticException
 
 def analyse( symbolTable, node, flags ):
-    if node.tokType == ASTNode.STATEMENT_LIST:
-        analyse( symbolTable, node.children[0], flags  )
-        analyse( symbolTable, node.children[1], flags  )
+    if node.getNodeType() == ASTNodes.STATEMENT_LIST:
+        analyse( symbolTable, node.getStatement(), flags  )
+        analyse( symbolTable, node.getStatementList(), flags  )
 
-    elif node.tokType == ASTNode.SPOKE:
-        type1 = analyse( symbolTable, node.children[0], flags )
-        spokeChild = node.children[0]
-        if spokeChild.children[0] == ASTNode.ID:
-            (idType, lineNo, assigned ) = symbolTable[spokeChild.children[1]]
-            if not assigned:
-                raise SemanticException( node.lineno, node.clauseno )
+    elif node.getNodeType() == ASTNodes.SPOKE:    
+        spokeExpression = node.getExpression()
+        type1 = analyse( symbolTable, spokeExpression, flags )
+        
+        if spokeExpression.getNodeType() == ASTNodes.Factor:
+            if spokeExpression.getFactorType() == ASTNodes.ID:
+                (idType, lineNo, assigned) = symbolTable[spokeExpression.getValue()]
+                if not assigned:
+                    raise SemanticException( node.lineno, node.clauseno )
+            else:
+                idType = spokeExpression.getFactorType()
         else:
-            idType = spokeChild.children[0]            
-        flags[ASTNode.SPOKE].add( idType )
+            # If not a factor, must be of type number since letters are only 
+            # valid as factors and not as part of operations or expressions
+            idType = ASTNodes.NUMBER
+
+        flags[ASTNodes.SPOKE].add( idType )
             
 
-    elif node.tokType == ASTNode.ASSIGNMENT:
+    elif node.getNodeType() == ASTNodes.ASSIGNMENT:
         (identifier, expression) = node.children
-        type1 = analyse( symbolTable, expression, flags  )
-        if type1 == symbolTable[identifier][0]:
-            symbolTable[identifier][2] = True
+        type1 = analyse( symbolTable, node.getExpression(), flags  )
+        if type1 == symbolTable[node.getVariable()][0]:
+            symbolTable[node.getVariable()][2] = True
         else:
             raise SemanticException( node.lineno, node.clauseno )
 
-    elif node.tokType == ASTNode.TYPE:
-        return node.children[0]
+    elif node.getNodeType() == ASTNodes.TYPE:
+        return node.getType()
         
-    elif node.tokType == ASTNode.UNARY_OP:
-        type1 = analyse( symbolTable, node.children[1], flags )
-        if type1 == ASTNode.NUMBER:
-            return ASTNode.NUMBER
+    elif node.getNodeType() == ASTNodes.UNARY_OP:
+        type1 = analyse( symbolTable, node.getExpression(), flags )
+        if type1 == ASTNodes.NUMBER:
+            return type1
         else:
             raise SemanticException( node.lineno, node.clauseno)
     
-    elif node.tokType == ASTNode.BINARY_OP:
-        type1 = analyse( symbolTable, node.children[1], flags )
-        type2 = analyse( symbolTable, node.children[2], flags )
-        if type1 == type2 == ASTNode.NUMBER:
-            return ASTNode.NUMBER
+    elif node.getNodeType() == ASTNodes.BINARY_OP:
+        type1 = analyse( symbolTable, node.getLeftExpression(), flags )
+        type2 = analyse( symbolTable, node.getRightExpression(), flags )
+        if type1 == type2 == ASTNodes.NUMBER:
+            return type1
         else:
             raise SemanticException( node.lineno, node.clauseno)
 
-    elif node.tokType == ASTNode.FACTOR:
-        if node.children[0] == ASTNode.ID:
-            if node.children[1] in symbolTable:
-                (idType, lineNo, assigned ) = symbolTable[node.children[1]]
+    elif node.getNodeType() == ASTNodes.FACTOR:
+        if node.getFactorType() == ASTNodes.ID:
+            variable = node.getVariable()
+            if variable in symbolTable:
+                (idType, lineNo, assigned ) = symbolTable[variable]
                 if assigned:
                     return idType
             raise SemanticException( node.lineno, node.clauseno)
-        return node.children[0]
+        return node.getFactorType()
         
-    elif node.tokType == ASTNode.DECLARATION:
-        if node.children[0] in symbolTable:
-            raise SemanticException( node.lineno, node.clauseno, "You already told me what '%s' was on line %d" %(node.children[0],  symbolTable[node.children[0]][1]) )
-        else:    
-            symbolTable[node.children[0]] = [node.children[1].children[0], node.lineno, True]  
+    elif node.getNodeType() == ASTNodes.DECLARATION:
+        variable = node.getVariable()
+        if variable in symbolTable:
+            raise SemanticException( node.lineno, node.clauseno, "You already told me what '%s' was on line %d" %(variable,  symbolTable[variable][1]) )
+        else:
+            symbolTable[variable] = [node.getFactorType(), node.lineno, True]  
 
 
 

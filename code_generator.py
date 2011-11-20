@@ -153,11 +153,11 @@ class CodeGenerator(object):
             #############################################################
             #TODO: Work me out, allow for expressions not just IDs here  
             #############################################################
-            if spokeChild.getNodeType() == ASTNode.Factor:
-                if spokeChild.getFactorType() == ASTNode.ID:
-                    (idType, lineNo, assigned) = self.symbolTable[spokeChild.getValue()]
+            if spokeExpression.getNodeType() == ASTNode.Factor:
+                if spokeExpression.getFactorType() == ASTNode.ID:
+                    (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
                 else:
-                    idType = spokeChild.getFactorType()
+                    idType = spokeExpression.getFactorType()
             else:
                 # If not a factor, must be of type number since letters are only 
                 # valid as factors and not as part of operations or expressions
