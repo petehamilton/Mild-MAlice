@@ -55,9 +55,9 @@ def analyse( symbolTable, node, flags ):
 
     elif node.getNodeType() == ASTNodes.FACTOR:
         if node.getFactorType() == ASTNodes.ID:
-            variable = node.getVariable()
-            if variable in symbolTable:
-                (idType, lineNo, assigned ) = symbolTable[variable]
+            symbol = node.getValue()
+            if symbol in symbolTable:
+                (idType, lineNo, assigned ) = symbolTable[symbol]
                 if assigned:
                     return idType
             raise SemanticException( node.lineno, node.clauseno)
