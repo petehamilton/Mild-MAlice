@@ -1,3 +1,5 @@
+# This class contains the nodes created by the parser.
+
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
 FACTOR = "factor"
@@ -112,7 +114,6 @@ class TypeNode(ASTNode):
     def getType(self):
         return self.typeType
         
-        
 class NumberTypeNode(TypeNode):
     def __init__(self, lineno, clauseno ):
         super(NumberTypeNode, self).__init__( lineno, clauseno, NUMBER )
@@ -120,5 +121,3 @@ class NumberTypeNode(TypeNode):
 class LetterTypeNode(TypeNode):
     def __init__(self, lineno, clauseno ):
         super(LetterTypeNode, self).__init__( lineno, clauseno, LETTER )
-    
-    
