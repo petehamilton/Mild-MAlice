@@ -13,7 +13,9 @@ class CodeGenerator(object):
         self.symbolTable = symbolTable
         self.availableRegisters = registers
         self.flags = flags
-        
+     
+    # This function indents a string with four spaces. It is used in our assembly
+    # code generation to format the .asm file.
     def indent(self, string, indentation = "    "):
         return indentation + string
 
@@ -32,7 +34,6 @@ class CodeGenerator(object):
             # in and live out.
             # Returns a dictionary containing key value pairs of node to a set
             # of integer register values.
-            # TODO: Should we make liveIn and liveRange variables in IntermediateNodes?
             def calculateLiveRange( intermediateNodes ):
                 liveIn = defaultdict(set)
                 liveOut = defaultdict(set)
@@ -50,6 +51,7 @@ class CodeGenerator(object):
             # Performs a graph coloring algorithm to work out which nodes
             # can share registers.
             def calculateRealRegisters( liveOut, lastReg ):
+                #
                 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
                     if len(interferenceGraph[tReg]) == 0:
                         usedRegisters = [k for k, v in registerColors.items() if v != None]
@@ -61,14 +63,14 @@ class CodeGenerator(object):
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
                             return color
-
+                #
                 def promising(tReg, color, interferenceGraph, registerColors):
                     for reg in interferenceGraph[tReg]:
                         colorOfNeighbourReg = registerColors[reg]
                         if colorOfNeighbourReg == color:
                             return False
                     return True
-                
+                #
                 def calculateInterferenceGraph(liveOut, lastReg):
                     interferenceGraph = {}
                     for t in range(lastReg + 1):
@@ -77,7 +79,7 @@ class CodeGenerator(object):
                             if t in liveOut[n]:
                                 interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
                     return interferenceGraph
-                
+                #
                 def calculateColors(interferenceGraph, lastReg):
                     colors = {}
                     for k in interferenceGraph.keys():
@@ -87,6 +89,9 @@ class CodeGenerator(object):
                         colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
                     return colors
                     
+                # This function takes a colors dictionary of format { tempReg : finalRegisterIndex }
+                # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
+                # to be used in the setup.
                 def mapToRegisters(colors):
                     registerMap = {}
                     overflowValues = []
@@ -121,8 +126,11 @@ class CodeGenerator(object):
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish()
     
-    #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
-    # Returns take format (nextAvailableRegister, instructions, callees children)
+    # This is a recursive function that takes an ASTNode, a dictionary of
+    # registers that have been assigned to, an integer which is the next available
+    # register and the parents for any nodes created. 
+    # It translates ASTNodes to intermediate nodes and returns the next register
+    # available, the intermediate nodes created and a list of parent intermediate nodes.
     def transExp(self, node, registersDict, reg, parents ):
         if node.getNodeType() == ASTNodes.FACTOR:
             if node.getFactorType() == ASTNodes.ID:
@@ -131,7 +139,6 @@ class CodeGenerator(object):
                 intermediateNode = INodes.ImmMovNode(reg, str(node.getValue()), parents)    
             return reg + 1, [intermediateNode], [intermediateNode]
     
-        #TODO DOUBLE CHECK CHILDREN
         if node.getNodeType() == ASTNodes.STATEMENT_LIST:
             reg, exp1, parents = self.transExp( node.getStatement(), registersDict, reg, parents )
             reg, exp2, parents = self.transExp( node.getStatementList(), registersDict, reg, parents )
@@ -140,11 +147,6 @@ class CodeGenerator(object):
         if node.getNodeType() == ASTNodes.SPOKE:    
             spokeExpression = node.getExpression()
             reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents )
-            
-            
-            #############################################################
-            #TODO: Work me out, allow for expressions not just IDs here  
-            #############################################################
             if spokeExpression.getNodeType() == ASTNodes.Factor:
                 if spokeExpression.getFactorType() == ASTNodes.ID:
                     (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
@@ -154,16 +156,13 @@ class CodeGenerator(object):
                 # If not a factor, must be of type number since letters are only 
                 # valid as factors and not as part of operations or expressions
                 idType = ASTNodes.NUMBER
-                
             if idType == ASTNodes.NUMBER:
                 format = "intfmt"
             elif idType == ASTNodes.LETTER:
                 format = "charfmt"
-            
             intermediateNode = INodes.SpokeNode(reg, parents, format)
             return reg1, exp + [intermediateNode], [intermediateNode]
 
-        #TODO MAKE SURE YOU GET REGISTERS RIGHT!
         if node.getNodeType() == ASTNodes.BINARY_OP:
             reg1, exp1, parents = self.transExp( node.getLeftExpression(), registersDict, reg, parents)
             reg2, exp2, parents = self.transExp( node.getRightExpression(), registersDict, reg1, parents )
@@ -213,8 +212,9 @@ class CodeGenerator(object):
         return destReg, [intermediateNode], [intermediateNode]
    
 
-    # Returns the assembly code needed to perform the given unary 'op' operation on 
-    # the provided register
+    # Returns the assembly code needed to perform the given unary 'op' operation.
+    # If it is either an increment or decrement instruction it performs this operation
+    # on the register the id is stored in directly.
     def transUnOp(self, op, destReg, node, registersDict, parents):
         if re.match( "ate", op ):
             intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
@@ -232,33 +232,7 @@ class CodeGenerator(object):
             
         return destReg, intermediateNode, parents
 
-    # Node types are:
-    # statement_list, spoke, assignment, declaration, 
-    # binary_op, unary_op, type, factor
-    def weight(self, node ):
-        if node.tokType == ASTNodes.FACTOR:
-            return 1
-
-        elif node.tokType == ASTNodes.BINARY_OP:
-            cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
-            cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
-            return min( cost1, cost2 )
-
-        elif node.tokType == ASTNodes.UNARY_OP:
-            return weight(node.children[1])
-
-        elif node.tokType == ASTNodes.SPOKE:
-            return weight(node.children[1])
-
-        elif node.tokType == ASTNodes.ASSIGNMENT:
-            return 1
-
-        elif node.tokType == ASTNodes.STATEMENT_LIST:
-            return max( weight(node.children[0]), weight(node.children[1]) )
-
-        elif node.tokType == ASTNodes.DECLARATION or node.tokType == ASTNodes.TYPE:
-            pass
-
+    # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
         externSection = []
         dataSection = []
@@ -298,6 +272,8 @@ class CodeGenerator(object):
                  textSection
                )
 
+    # This function generates the code that remains the same for each assembly file at the bottom
+    # of the file.
     def finish(self):
         return ([self.indent("call os_return		; return to operating system")] +
                 [self.newline] +
