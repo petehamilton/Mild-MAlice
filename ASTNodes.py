@@ -40,10 +40,10 @@ class BinaryNode(OperatorNode):
         return self.children[1]
     
 class UnaryNode(OperatorNode):
-    def __init__(self, nodeType, lineno, clauseno, operator, child ):
+    def __init__(self, lineno, clauseno, operator, child ):
         super(UnaryNode, self).__init__( UNARY_OP, lineno, clauseno, operator, [child] )
 
-    def getExpression():
+    def getExpression(self):
         return self.children[0]
 
 class StatementNode(ASTNode):

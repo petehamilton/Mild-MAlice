@@ -132,20 +132,20 @@ class CodeGenerator(object):
     #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
     # Returns take format (nextAvailableRegister, instructions, callees children)
     def transExp(self, node, registersDict, reg, parents ):
-        if node.getNodeType() == ASTNode.FACTOR:
-            if node.factorType() == ASTNode.ID:
+        if node.getNodeType() == ASTNodes.FACTOR:
+            if node.getFactorType() == ASTNodes.ID:
                 intermediateNode = INodes.MovNode(reg, registersDict[node.getValue()], parents)
             else:
                 intermediateNode = INodes.ImmMovNode(reg, str(node.getValue()), parents)    
             return reg + 1, [intermediateNode], [intermediateNode]
     
         #TODO DOUBLE CHECK CHILDREN
-        if node.getNodeType() == ASTNode.STATEMENT_LIST:
+        if node.getNodeType() == ASTNodes.STATEMENT_LIST:
             reg, exp1, parents = self.transExp( node.getStatement(), registersDict, reg, parents )
             reg, exp2, parents = self.transExp( node.getStatementList(), registersDict, reg, parents )
             return reg, exp1 + exp2, parents
 
-        if node.getNodeType() == ASTNode.SPOKE:    
+        if node.getNodeType() == ASTNodes.SPOKE:    
             spokeExpression = node.getExpression()
             reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents )
             
@@ -153,43 +153,43 @@ class CodeGenerator(object):
             #############################################################
             #TODO: Work me out, allow for expressions not just IDs here  
             #############################################################
-            if spokeExpression.getNodeType() == ASTNode.Factor:
-                if spokeExpression.getFactorType() == ASTNode.ID:
+            if spokeExpression.getNodeType() == ASTNodes.Factor:
+                if spokeExpression.getFactorType() == ASTNodes.ID:
                     (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
                 else:
                     idType = spokeExpression.getFactorType()
             else:
                 # If not a factor, must be of type number since letters are only 
                 # valid as factors and not as part of operations or expressions
-                idType = ASTNode.NUMBER
+                idType = ASTNodes.NUMBER
                 
-            if idType == ASTNode.NUMBER:
+            if idType == ASTNodes.NUMBER:
                 format = "intfmt"
-            elif idType == ASTNode.LETTER:
+            elif idType == ASTNodes.LETTER:
                 format = "charfmt"
             
             intermediateNode = INodes.SpokeNode(reg, parents, format)
             return reg1, exp + [intermediateNode], [intermediateNode]
 
         #TODO MAKE SURE YOU GET REGISTERS RIGHT!
-        if node.getNodeType() == ASTNode.BINARY_OP:
+        if node.getNodeType() == ASTNodes.BINARY_OP:
             reg1, exp1, parents = self.transExp( node.getLeftExpression(), registersDict, reg, parents)
             reg2, exp2, parents = self.transExp( node.getRightExpression(), registersDict, reg1, parents )
             reg, exp3, parents = self.transBinOp( node.getOperator(), reg, reg1, parents )
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
         
-        if node.getNodeType() == ASTNode.UNARY_OP:
+        if node.getNodeType() == ASTNodes.UNARY_OP:
             reg, exp2, parents = self.transUnOp( node.getOperator(), reg, node.getExpression(), registersDict, parents )
             return reg, exp2, parents
 
-        if node.getNodeType() == ASTNode.ASSIGNMENT:
+        if node.getNodeType() == ASTNodes.ASSIGNMENT:
             assignmentReg = reg
             reg, exp, parents = self.transExp( node.getExpression(), registersDict, reg, parents)
-            registersDict[getVariable()] = assignmentReg
+            registersDict[node.getVariable()] = assignmentReg
             return reg, exp, parents
 
-        if node.getNodeType() == ASTNode.DECLARATION:
+        if node.getNodeType() == ASTNodes.DECLARATION:
             return reg, [], parents
 
     # Returns the assembly code needed to perform the given binary 'op' operation on 
@@ -225,11 +225,11 @@ class CodeGenerator(object):
     # the provided register
     def transUnOp(self, op, destReg, node, registersDict, parents):
         if re.match( "ate", op ):
-            intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
+            intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
         
         elif re.match( "drank", op ):
-            intermediateNode = [INodes.DecNode(registersDict[node.children[1]], parents)]
+            intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
             
         elif re.match( tokrules.t_B_NOT, op ):
@@ -244,27 +244,27 @@ class CodeGenerator(object):
     # statement_list, spoke, assignment, declaration, 
     # binary_op, unary_op, type, factor
     def weight(self, node ):
-        if node.tokType == ASTNode.FACTOR:
+        if node.tokType == ASTNodes.FACTOR:
             return 1
 
-        elif node.tokType == ASTNode.BINARY_OP:
+        elif node.tokType == ASTNodes.BINARY_OP:
             cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
             cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
             return min( cost1, cost2 )
 
-        elif node.tokType == ASTNode.UNARY_OP:
+        elif node.tokType == ASTNodes.UNARY_OP:
             return weight(node.children[1])
 
-        elif node.tokType == ASTNode.SPOKE:
+        elif node.tokType == ASTNodes.SPOKE:
             return weight(node.children[1])
 
-        elif node.tokType == ASTNode.ASSIGNMENT:
+        elif node.tokType == ASTNodes.ASSIGNMENT:
             return 1
 
-        elif node.tokType == ASTNode.STATEMENT_LIST:
+        elif node.tokType == ASTNodes.STATEMENT_LIST:
             return max( weight(node.children[0]), weight(node.children[1]) )
 
-        elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
+        elif node.tokType == ASTNodes.DECLARATION or node.tokType == ASTNodes.TYPE:
             pass
 
     def setup(self, overflowValues):
@@ -274,13 +274,13 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if ASTNode.SPOKE in self.flags:
+        if ASTNodes.SPOKE in self.flags:
             externSection.append("extern printf")
             dataSection.append("section .data")
-            for printType in self.flags[ASTNode.SPOKE]:
-                if printType == ASTNode.LETTER:     
+            for printType in self.flags[ASTNodes.SPOKE]:
+                if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent("charfmt: ") + self.charfmt)
-                elif printType == ASTNode.NUMBER:
+                elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent("intfmt: ") + self.intfmt)
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",

@@ -113,7 +113,7 @@ def p_expression_multiply(p):
 #Handles division by 0 constant
 def p_expression_divide(p):
     'expression : expression DIVIDE expression'
-    if p[3].children[1] == 0:
+    if p[3].getValue() == 0:
         raise e.DivisionByZeroException(p.lineno(1), p.clauseno(1))
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
