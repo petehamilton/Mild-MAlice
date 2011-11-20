@@ -51,6 +51,13 @@ class CodeGenerator(object):
             # can share registers.
             def calculateRealRegisters( liveOut, lastReg ):
                 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
+                    if len(interferenceGraph[tReg]) == 0:
+                        usedRegisters = [k for k, v in registerColors.items() if v != None]
+                        unusedSet = (set(range(maxColor)) - set(usedRegisters))
+                        if unusedSet:
+                            return unusedSet.pop()
+                        else:
+                            return maxColor
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
                             return color
@@ -62,9 +69,9 @@ class CodeGenerator(object):
                             return False
                     return True
                 
-                def calculateInterferenceGraph(liveOut):
+                def calculateInterferenceGraph(liveOut, lastReg):
                     interferenceGraph = {}
-                    for t in range(lastReg):
+                    for t in range(lastReg + 1):
                         interferenceGraph[t] = set()
                         for n in intermediateNodes:
                             if t in liveOut[n]:
@@ -76,7 +83,7 @@ class CodeGenerator(object):
                     for k in interferenceGraph.keys():
                         colors[k] = None
                         
-                    for k, v in interferenceGraph.items():
+                    for k in interferenceGraph.keys():
                         colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
                     return colors
                     
@@ -92,27 +99,12 @@ class CodeGenerator(object):
                     
                     return registerMap, overflowValues
                 
-                interferenceGraph = calculateInterferenceGraph(liveOut)
+                interferenceGraph = calculateInterferenceGraph(liveOut, lastReg)
                 colors = calculateColors(interferenceGraph, lastReg)
                 return mapToRegisters( colors )
                 
-                
-            # Modifies intermediateNodes which is passed in by reference
-            # TODO: Is this Pythonesque?
-            def removeUnusedInstructions(intermediateNodes, liveOut):
-                for node in intermediateNodes:
-                    used = False
-                    #TODO: Is there a nicer way to do this isinstance?
-                    for node1, liveOutRegs in liveOut.items():
-                        used |= len(set(defs(node)) & liveOutRegs) > 0
-                        used |= isinstance(node, INodes.SpokeNode)
-                    if not used:
-                        intermediateNodes.remove(node)
-                        
-                        
             intermediateNodes.reverse()
             liveOut = calculateLiveRange(intermediateNodes)
-            removeUnusedInstructions(intermediateNodes, liveOut)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
             return registerMap, overflowValues
