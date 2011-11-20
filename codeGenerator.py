@@ -50,43 +50,55 @@ class CodeGenerator(object):
              
             # Performs a graph coloring algorithm to work out which nodes
             # can share registers.
-            def calculateRealRegisters( liveOut, lastReg ):
-                #
+            def calculateRealRegisters(liveOut, lastReg):
+                
+                # Returns the first available colouring for the given temporary 
+                # register depending on it's neighbours and whether they can 
+                # potentially share registers to optimise code
                 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
                     if len(interferenceGraph[tReg]) == 0:
                         usedRegisters = [k for k, v in registerColors.items() if v != None]
                         unusedSet = (set(range(maxColor)) - set(usedRegisters))
                         if unusedSet:
-                            return unusedSet.pop()
+                            return unusedSet.pop(), maxColor
                         else:
-                            return maxColor
+                            return maxColor, maxColor + 1
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
-                            return color
-                #
+                            return color, maxColor
+                
+                # Returns whether the given color can be applied to the given 
+                # temporary register. True when none of the registers it 
+                # interferes with have already been assigned the color
                 def promising(tReg, color, interferenceGraph, registerColors):
                     for reg in interferenceGraph[tReg]:
                         colorOfNeighbourReg = registerColors[reg]
                         if colorOfNeighbourReg == color:
                             return False
                     return True
-                #
+                
+                # Calculates which registers have live ranges which overlap. 
+                # i.e. is it connected to any of the other registers.
                 def calculateInterferenceGraph(liveOut, lastReg):
                     interferenceGraph = {}
-                    for t in range(lastReg + 1):
-                        interferenceGraph[t] = set()
+                    for tReg in range(lastReg + 1):
+                        interferenceGraph[tReg] = set()
                         for n in intermediateNodes:
-                            if t in liveOut[n]:
-                                interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
+                            if tReg in liveOut[n]:
+                                interferenceGraph[tReg] = interferenceGraph[tReg] | set(liveOut[n])
                     return interferenceGraph
-                #
+                
+                # Works out which temporary registers can share real registers 
+                # by using graph colouring. Returns a dictionary of the colours 
+                # and a corresponding index to be used with a register/memory 
+                # location mapping
                 def calculateColors(interferenceGraph, lastReg):
                     colors = {}
                     for k in interferenceGraph.keys():
                         colors[k] = None
                         
                     for k in interferenceGraph.keys():
-                        colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
+                        colors[k], lastReg = getColorForReg(k, lastReg, interferenceGraph, colors)
                     return colors
                     
                 # This function takes a colors dictionary of format { tempReg : finalRegisterIndex }
