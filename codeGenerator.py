@@ -1,3 +1,4 @@
+import re
 import tokRules
 import ASTNodes
 import intermediateNodes as INodes
@@ -197,30 +198,29 @@ class CodeGenerator(object):
     # Returns the assembly code needed to perform the given binary 'op' operation on 
     # the two provided registers
     def transBinOp(self, op, destReg, nextReg, parents):
-        if tokRules.t_PLUS == op:
+        if re.match( tokRules.t_PLUS, op ):
             intermediateNode = INodes.AddNode(destReg, nextReg, parents)
         
-        elif tokRules.t_MINUS == op:
+        elif re.match( tokRules.t_MINUS, op ):
             intermediateNode = INodes.SubNode(destReg, nextReg, parents)
         
-        elif tokRules.t_MULTIPLY == op:
+        elif re.match( tokRules.t_MULTIPLY, op ):
             intermediateNode = INodes.MulNode(destReg, nextReg, parents)
         
-        elif tokRules.t_DIVIDE == op:
+        elif re.match( tokRules.t_DIVIDE, op ):
             intermediateNode = INodes.DivNode(destReg, nextReg, parents)
         
-        elif tokRules.t_MOD == op:
+        elif re.match( tokRules.t_MOD, op ):
             intermediateNode = INodes.ModNode(destReg, nextReg, parents)
         
-        elif tokRules.t_B_OR == op:
+        elif re.match( tokRules.t_B_OR, op ):
             intermediateNode = INodes.OrNode(destReg, nextReg, parents)
         
-        elif tokRules.t_B_XOR == op:
+        elif re.match( tokRules.t_B_XOR, op ):
             intermediateNode = INodes.XORNode(destReg, nextReg, parents)
         
-        elif tokRules.t_B_AND == op:
+        elif re.match( tokRules.t_B_AND, op ):
             intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-        
         return destReg, [intermediateNode], [intermediateNode]
    
 
@@ -228,15 +228,15 @@ class CodeGenerator(object):
     # If it is either an increment or decrement instruction it performs this operation
     # on the register the id is stored in directly.
     def transUnOp(self, op, destReg, node, registersDict, parents):
-        if "ate" == op:
+        if re.match( "ate", op ):
             intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
         
-        elif "drank" == op:
+        elif re.match( "drank", op ):
             intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
             
-        elif tokRules.t_B_NOT == op:
+        elif re.match( tokRules.t_B_NOT, op ):
             reg1, exp, parents = self.transExp( node, registersDict, destReg, parents )
             intermediateNode = [INodes.NotNode(destReg, parents)]
             parents = intermediateNode
