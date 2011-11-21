@@ -1,8 +1,12 @@
 import sys
-
+from SymbolTable import SymbolTable
 import ASTNodes
 from grammarExceptions import SemanticException
 
+
+def newAnalyse( node, flags ):
+    node.check(SymbolTable())
+    
 # Analyses the abstract syntax tree.
 # Inputs are a symbolTable dictionary of form { id : ( id type, line number, assigned bool ) },
 # the starting AST node and a flags dictionary of form { nodeType : info } where any relevant information
@@ -53,7 +57,7 @@ def analyse( symbolTable, node, flags ):
         if leftExpType == rightExpType == ASTNodes.NUMBER:
             return leftExpType
         else:
-            raise SemanticException( node.lineno, node.clauseno)
+            raise SemanticException(node.lineno, node.clauseno)
 
     elif node.getNodeType() == ASTNodes.FACTOR:
         if node.getFactorType() == ASTNodes.ID:

@@ -8,6 +8,7 @@ import ply.yacc as yacc
 import tokRules
 from yaccConfig import *
 from semanticAnalysis import analyse
+from semanticAnalysis import newAnalyse
 from codeGenerator import CodeGenerator
 import grammarExceptions as e
 
@@ -22,7 +23,7 @@ def run():
             base, ext = os.path.splitext(os.path.basename(fName))
             if ext == ".alice":
                 code = parse_code(maliceprogram)
-                writeASM( code, base )
+                # writeASM( code, base )
             else:
                 print "Error! Filetype is not of format .alice."
                 return 1
@@ -40,10 +41,12 @@ def parse_code(code):
         if result:
             symbolTable = {}
             flags = defaultdict(set)
-            analyse(symbolTable, result, flags)
-            cg = CodeGenerator(symbolTable, registers, flags)
-            code = cg.generate(result)
-            return code
+            newAnalyse(result, flags)
+            # analyse(symbolTable, result, flags)
+            # cg = CodeGenerator(symbolTable, registers, flags)
+            # code = cg.generate(result)
+            # return code
+            return None
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)

@@ -49,11 +49,11 @@ def p_statement_too(p):
 
 def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
-    p[0] = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), [p[1], p[4]])
+    p[0] = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4])
 
 def p_statement_became(p):
     'statement : ID ASSIGNMENT expression'
-    p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
+    p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), p[1], p[3])
 
 def p_statement_expression(p):
     'statement : expression'
