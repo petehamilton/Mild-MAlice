@@ -1,25 +1,31 @@
-import ply.lex as lex
-import ply.yacc as yacc
 import sys
 import os
 from collections import defaultdict
 
-import tokrules
-from yacc_config import *
+import ply.lex as lex
+import ply.yacc as yacc
 
-import Node
+import tokRules
+from yaccConfig import *
+from semanticAnalysis import analyse
+from codeGenerator import CodeGenerator
+import grammarExceptions as e
 
-from semantic_analysis import analyse
-from code_generator import CodeGenerator
-import grammar_exceptions as e
-import sys
+
+registers = ['r%d' %r for r in range(8,16)]  + ["rbx", "rcx", "rdx", "rsi", "rdi"]
 
 def run():
     if len(sys.argv) > 1:
         fName = sys.argv[1]
         if os.path.getsize(fName):
             maliceprogram = open(fName, 'r').read()
-            parse_code(maliceprogram)
+            base, ext = os.path.splitext(os.path.basename(fName))
+            if ext == ".alice":
+                code = parse_code(maliceprogram)
+                writeASM( code, base )
+            else:
+                print "Error! Filetype is not of format .alice."
+                return 1
         return 0
     else:
         print "Error! No given files."
@@ -28,43 +34,27 @@ def run():
 
 def parse_code(code):
     try:
-        lexer = lex.lex(module=tokrules)
+        lexer = lex.lex(module=tokRules)
         parser = yacc.yacc()
         result = parser.parse(code)
         if result:
             symbolTable = {}
             flags = defaultdict(set)
             analyse(symbolTable, result, flags)
-            cg = CodeGenerator(symbolTable, ["rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9"], flags)
-            code = cg.generate( result )
-            writeASM( code )
+            cg = CodeGenerator(symbolTable, registers, flags)
+            code = cg.generate(result)
+            return code
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
-        print "----------------"
         print exception.value 
-        #print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+        print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
+        sys.exit(1)
 
 
-def writeASM( result ):
-    asmFile = open('output.asm', 'w')
+def writeASM( result, fileName ):
+    asmFile = open(fileName + ".asm", 'w')
     for line in result:
         asmFile.write(line + "\n")
     asmFile.close()
-
-def tests():
-    import fnmatch
-    import os
-    files = os.listdir('./milestone2')
-    files.sort()
-    for file in files:
-        if fnmatch.fnmatch(file, '*.alice'):
-            symbolTable.clear()
-            if os.path.getsize('./milestone2/' + file):
-                fin = open('./milestone2/' + file, "r");
-                print "Parsing", file
-                code = fin.read()
-                parse_code(code)
-                print
-                
 
 if __name__ == '__main__':
     run()

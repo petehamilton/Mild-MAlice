@@ -1,20 +1,21 @@
 import re
-import tokrules
-import Node as ASTNode
-import IntermediateNodes as INodes
+import tokRules
+import ASTNodes
+import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
     intfmt = 'db "%ld", 10, 0'
     charfmt = 'db "%c", 10, 0'
-    idivRegisters = ["rax", "rdx", "rcx" ]
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
         self.symbolTable = symbolTable
         self.availableRegisters = registers
         self.flags = flags
-        
+     
+    # This function indents a string with four spaces. It is used in our assembly
+    # code generation to format the .asm file.
     def indent(self, string, indentation = "    "):
         return indentation + string
 
@@ -33,7 +34,6 @@ class CodeGenerator(object):
             # in and live out.
             # Returns a dictionary containing key value pairs of node to a set
             # of integer register values.
-            # TODO: Should we make liveIn and liveRange variables in IntermediateNodes?
             def calculateLiveRange( intermediateNodes ):
                 liveIn = defaultdict(set)
                 liveOut = defaultdict(set)
@@ -50,12 +50,26 @@ class CodeGenerator(object):
              
             # Performs a graph coloring algorithm to work out which nodes
             # can share registers.
-            def calculateRealRegisters( liveOut, lastReg ):
+            def calculateRealRegisters(liveOut, lastReg):
+                
+                # Returns the first available colouring for the given temporary 
+                # register depending on it's neighbours and whether they can 
+                # potentially share registers to optimise code
                 def getColorForReg(tReg, maxColor, interferenceGraph, registerColors):
+                    if len(interferenceGraph[tReg]) == 0:
+                        usedRegisters = [k for k, v in registerColors.items() if v != None]
+                        unusedSet = (set(range(maxColor)) - set(usedRegisters))
+                        if unusedSet:
+                            return unusedSet.pop(), maxColor
+                        else:
+                            return maxColor, maxColor + 1
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
-                            return color
-
+                            return color, maxColor
+                
+                # Returns whether the given color can be applied to the given 
+                # temporary register. True when none of the registers it 
+                # interferes with have already been assigned the color
                 def promising(tReg, color, interferenceGraph, registerColors):
                     for reg in interferenceGraph[tReg]:
                         colorOfNeighbourReg = registerColors[reg]
@@ -63,24 +77,33 @@ class CodeGenerator(object):
                             return False
                     return True
                 
-                def calculateInterferenceGraph(liveOut):
+                # Calculates which registers have live ranges which overlap. 
+                # i.e. is it connected to any of the other registers.
+                def calculateInterferenceGraph(liveOut, lastReg):
                     interferenceGraph = {}
-                    for t in range(lastReg):
-                        interferenceGraph[t] = set()
+                    for tReg in range(lastReg + 1):
+                        interferenceGraph[tReg] = set()
                         for n in intermediateNodes:
-                            if t in liveOut[n]:
-                                interferenceGraph[t] = interferenceGraph[t] | set(liveOut[n])
+                            if tReg in liveOut[n]:
+                                interferenceGraph[tReg] = interferenceGraph[tReg] | set(liveOut[n])
                     return interferenceGraph
                 
+                # Works out which temporary registers can share real registers 
+                # by using graph colouring. Returns a dictionary of the colours 
+                # and a corresponding index to be used with a register/memory 
+                # location mapping
                 def calculateColors(interferenceGraph, lastReg):
                     colors = {}
                     for k in interferenceGraph.keys():
                         colors[k] = None
                         
-                    for k, v in interferenceGraph.items():
-                        colors[k] = getColorForReg(k, lastReg, interferenceGraph, colors)
+                    for k in interferenceGraph.keys():
+                        colors[k], lastReg = getColorForReg(k, lastReg, interferenceGraph, colors)
                     return colors
                     
+                # This function takes a colors dictionary of format { tempReg : finalRegisterIndex }
+                # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
+                # to be used in the setup.
                 def mapToRegisters(colors):
                     registerMap = {}
                     overflowValues = []
@@ -93,27 +116,12 @@ class CodeGenerator(object):
                     
                     return registerMap, overflowValues
                 
-                interferenceGraph = calculateInterferenceGraph(liveOut)
+                interferenceGraph = calculateInterferenceGraph(liveOut, lastReg)
                 colors = calculateColors(interferenceGraph, lastReg)
                 return mapToRegisters( colors )
                 
-                
-            # Modifies intermediateNodes which is passed in by reference
-            # TODO: Is this Pythonesque?
-            def removeUnusedInstructions(intermediateNodes, liveOut):
-                for node in intermediateNodes:
-                    used = False
-                    #TODO: Is there a nicer way to do this isinstance?
-                    for node1, liveOutRegs in liveOut.items():
-                        used |= len(set(defs(node)) & liveOutRegs) > 0
-                        used |= isinstance(node, INodes.SpokeNode)
-                    if not used:
-                        intermediateNodes.remove(node)
-                        
-                        
             intermediateNodes.reverse()
             liveOut = calculateLiveRange(intermediateNodes)
-            removeUnusedInstructions(intermediateNodes, liveOut)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
             return registerMap, overflowValues
@@ -130,103 +138,105 @@ class CodeGenerator(object):
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish()
     
-    #EXPLAIN PARENTS WILL BE MORE THAN ONE LATER. WRITING REUSABLE CODE
-    # Returns take format (nextAvailableRegister, instructions, callees children)
+    # This is a recursive function that takes an ASTNode, a dictionary of
+    # registers that have been assigned to, an integer which is the next available
+    # register and the parents for any nodes created. 
+    # It translates ASTNodes to intermediate nodes and returns the next register
+    # available, the intermediate nodes created and a list of parent intermediate nodes.
     def transExp(self, node, registersDict, reg, parents ):
-        if node.tokType == ASTNode.FACTOR:
-            if node.children[0] == ASTNode.ID:
-                intermediateNode = INodes.MovNode(reg, registersDict[node.children[1]], parents)
+        if node.getNodeType() == ASTNodes.FACTOR:
+            if node.getFactorType() == ASTNodes.ID:
+                intermediateNode = INodes.MovNode(reg, registersDict[node.getValue()], parents)
             else:
-                intermediateNode = INodes.ImmMovNode(reg, str(node.children[1]), parents)    
+                intermediateNode = INodes.ImmMovNode(reg, str(node.getValue()), parents)    
             return reg + 1, [intermediateNode], [intermediateNode]
     
-        #TODO DOUBLE CHECK CHILDREN
-        if node.tokType == ASTNode.STATEMENT_LIST:
-            reg, exp1, parents = self.transExp( node.children[0], registersDict, reg, parents )
-            reg, exp2, parents = self.transExp( node.children[1], registersDict, reg, parents )
+        if node.getNodeType() == ASTNodes.STATEMENT_LIST:
+            reg, exp1, parents = self.transExp( node.getStatement(), registersDict, reg, parents )
+            reg, exp2, parents = self.transExp( node.getStatementList(), registersDict, reg, parents )
             return reg, exp1 + exp2, parents
 
-        if node.tokType == ASTNode.SPOKE:
-            reg1, exp, parents = self.transExp( node.children[0], registersDict, reg, parents )
-            
-            spokeChild = node.children[0]
-            
-            if spokeChild.children[0] == ASTNode.ID:
-                (idType, lineNo, assigned) = self.symbolTable[spokeChild.children[1]]
+        if node.getNodeType() == ASTNodes.SPOKE:    
+            spokeExpression = node.getExpression()
+            reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents )
+            if spokeExpression.getNodeType() == ASTNodes.Factor:
+                if spokeExpression.getFactorType() == ASTNodes.ID:
+                    (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
+                else:
+                    idType = spokeExpression.getFactorType()
             else:
-                idType = spokeChild.children[0]
-            
-            if idType == ASTNode.NUMBER:
-                format = "intfmt"
-            elif idType == ASTNode.LETTER:
-                format = "charfmt"
-            
-            intermediateNode = INodes.SpokeNode(reg, parents, format)
+                # If not a factor, must be of type number since letters are only 
+                # valid as factors and not as part of operations or expressions
+                idType = ASTNodes.NUMBER
+            if idType == ASTNodes.NUMBER:
+                formatting = "intfmt"
+            elif idType == ASTNodes.LETTER:
+                formatting = "charfmt"
+            intermediateNode = INodes.SpokeNode(reg, parents, formatting)
             return reg1, exp + [intermediateNode], [intermediateNode]
 
-        #TODO MAKE SURE YOU GET REGISTERS RIGHT!
-        if node.tokType == ASTNode.BINARY_OP:
-            reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents)
-            reg2, exp2, parents = self.transExp( node.children[2], registersDict, reg1, parents )
-            reg, exp3, parents = self.transBinOp( node.children[0], reg, reg1, parents )
+        if node.getNodeType() == ASTNodes.BINARY_OP:
+            reg1, exp1, parents = self.transExp( node.getLeftExpression(), registersDict, reg, parents)
+            reg2, exp2, parents = self.transExp( node.getRightExpression(), registersDict, reg1, parents )
+            reg, exp3, parents = self.transBinOp( node.getOperator(), reg, reg1, parents )
             reg = reg + (reg2 - reg1)
             return reg + 1, (exp1 + exp2 + exp3), parents
         
-        if node.tokType == ASTNode.UNARY_OP:
-            #reg1, exp1, parents = self.transExp( node.children[1], registersDict, reg, parents )
-            reg, exp2, parents = self.transUnOp( node.children[0], reg, node.children[1], registersDict, parents )
+        if node.getNodeType() == ASTNodes.UNARY_OP:
+            reg, exp2, parents = self.transUnOp( node.getOperator(), reg, node.getExpression(), registersDict, parents )
             return reg, exp2, parents
 
-        if node.tokType == ASTNode.ASSIGNMENT:
+        if node.getNodeType() == ASTNodes.ASSIGNMENT:
             assignmentReg = reg
-            reg, exp, parents = self.transExp( node.children[1], registersDict, reg, parents)
-            registersDict[node.children[0]] = assignmentReg
+            reg, exp, parents = self.transExp( node.getExpression(), registersDict, reg, parents)
+            registersDict[node.getVariable()] = assignmentReg
             return reg, exp, parents
 
-        if node.tokType == ASTNode.DECLARATION:
+        if node.getNodeType() == ASTNodes.DECLARATION:
             return reg, [], parents
 
     # Returns the assembly code needed to perform the given binary 'op' operation on 
     # the two provided registers
     def transBinOp(self, op, destReg, nextReg, parents):
-        if re.match( tokrules.t_PLUS, op ):
+        if re.match( tokRules.t_PLUS, op ):
             intermediateNode = INodes.AddNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_MINUS, op ):
+        elif re.match( tokRules.t_MINUS, op ):
             intermediateNode = INodes.SubNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_MULTIPLY, op ):
+        elif re.match( tokRules.t_MULTIPLY, op ):
             intermediateNode = INodes.MulNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_DIVIDE, op ):
+        elif re.match( tokRules.t_DIVIDE, op ):
             intermediateNode = INodes.DivNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_MOD, op ):
+        elif re.match( tokRules.t_MOD, op ):
             intermediateNode = INodes.ModNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_B_OR, op ):
+        elif re.match( tokRules.t_B_OR, op ):
             intermediateNode = INodes.OrNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_B_XOR, op ):
+        elif re.match( tokRules.t_B_XOR, op ):
             intermediateNode = INodes.XORNode(destReg, nextReg, parents)
         
-        elif re.match( tokrules.t_B_AND, op ):
+        elif re.match( tokRules.t_B_AND, op ):
             intermediateNode = INodes.AndNode(destReg, nextReg, parents)
         return destReg, [intermediateNode], [intermediateNode]
    
 
-    # Returns the assembly code needed to perform the given unary 'op' operation on 
-    # the provided register
+    # Returns the assembly code needed to perform the given unary 'op' operation.
+    # If it is either an increment or decrement instruction it performs this operation
+    # on the register the id is stored in directly.
     def transUnOp(self, op, destReg, node, registersDict, parents):
         if re.match( "ate", op ):
-            intermediateNode = [INodes.IncNode(registersDict[node.children[1]], parents)]
+            intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
         
         elif re.match( "drank", op ):
-            intermediateNode = [INodes.DecNode(registersDict[node.children[1]], parents)]
+            intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
             parents = intermediateNode
             
-        elif re.match( tokrules.t_B_NOT, op ):
+        elif re.match( tokRules.t_B_NOT, op ):
             reg1, exp, parents = self.transExp( node, registersDict, destReg, parents )
             intermediateNode = [INodes.NotNode(destReg, parents)]
             parents = intermediateNode
@@ -234,34 +244,7 @@ class CodeGenerator(object):
             
         return destReg, intermediateNode, parents
 
-    # Node types are:
-    # statement_list, spoke, assignment, declaration, 
-    # binary_op, unary_op, type, factor
-    def weight(self, node ):
-        if node.tokType == ASTNode.FACTOR:
-            return 1
-
-        elif node.tokType == ASTNode.BINARY_OP:
-            cost1 = max( weight(node.children[1]), weight(node.children[2]) + 1 )
-            cost2 = max( weight(node.children[2]), weight(node.children[1]) + 1 )
-            return min( cost1, cost2 )
-
-        elif node.tokType == ASTNode.UNARY_OP:
-            return weight(node.children[1])
-
-        elif node.tokType == ASTNode.SPOKE:
-            return weight(node.children[1])
-
-        elif node.tokType == ASTNode.ASSIGNMENT:
-            return 1
-
-        elif node.tokType == ASTNode.STATEMENT_LIST:
-            return max( weight(node.children[0]), weight(node.children[1]) )
-
-        #is this right? Dont need to store anything in register yet
-        elif node.tokType == ASTNode.DECLARATION or node.tokType == ASTNode.TYPE:
-            pass
-
+    # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
         externSection = []
         dataSection = []
@@ -269,13 +252,13 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if ASTNode.SPOKE in self.flags:
+        if ASTNodes.SPOKE in self.flags:
             externSection.append("extern printf")
             dataSection.append("section .data")
-            for printType in self.flags[ASTNode.SPOKE]:
-                if printType == ASTNode.LETTER:     
+            for printType in self.flags[ASTNodes.SPOKE]:
+                if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent("charfmt: ") + self.charfmt)
-                elif printType == ASTNode.NUMBER:
+                elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent("intfmt: ") + self.intfmt)
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
@@ -301,6 +284,8 @@ class CodeGenerator(object):
                  textSection
                )
 
+    # This function generates the code that remains the same for each assembly file at the bottom
+    # of the file.
     def finish(self):
         return ([self.indent("call os_return		; return to operating system")] +
                 [self.newline] +
