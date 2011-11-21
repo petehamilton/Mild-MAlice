@@ -15,23 +15,58 @@ tokens = [
         'B_OR',
         'B_XOR',
         'B_NOT',
+        'B_EQUALS'
+        'B_LESS_THAN',
+        'B_GREATER_THAN',
+        'B_GREATER_THAN_EQUAL',
+        'B_LESS_THAN_EQUAL',
+        'B_NOT_EQUAL',
+        'L_AND',
+        'L_OR',
         'MOD',
         'ID',
+        'L_PAREN',
+        'R_PAREN',
     ]
 
 reserved = {
+    'Alice'       : 'ALICE',
     'spoke'       : 'PRINT_SPOKE',
+    'said'        : 'PRINT_SAID',
+    'found'       : 'RETURN_FOUND'
     'drank'       : 'DECREMENT',
     'ate'         : 'INCREMENT', 
     'and'         : 'SEP_AND',
     'but'         : 'SEP_BUT',
     'then'        : 'SEP_THEN',
+    'what'        : 'INPUT_WHAT',
     'was'         : 'DEC_WAS',
     'a'           : 'DEC_A',
     'became'      : 'ASSIGNMENT',
     'too'         : 'TOO',
     'number'      : 'TYPE_NUMBER',
     'letter'      : 'TYPE_LETTER',
+    'thought'     : 'COMMENT_THOUGHT',
+    'had'         : 'ARRAY_HAS',
+    'piece'       : 'ARRAY_PIECE',
+    'eventually'  : 'LOOP_EVENTUALLY',
+    'because'     : 'LOOP_BECAUSE', 
+    'enough'      : 'LOOP_ENOUGH',
+    'times'       : 'LOOP_TIMES',
+    'either'      : 'IF_EITHER',
+    'so'          : 'IF_SO',
+    'or'          : 'IF_OR',
+    'maybe'       : 'IF_MAYBE'
+    'unsure'      : 'IF_UNSURE',
+    'which'       : 'IF_WHICH',
+    'perhaps'     : 'IF_PERHAPS',
+    'went'        : 'FUNCTION_WENT',
+    'through'     : 'FUNCTION_THROUGH',
+    'The'         : 'FUNCTION_THE',
+    'contained'   : 'FUNCTION_CONTAINED',
+    'changed'     : 'FUNCTION_CHANGED',
+    'it'          : 'FUNCTION_IT'
+    
 }
 
 # Tokens 
@@ -45,6 +80,16 @@ t_B_XOR = r'\^'
 t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
+t_L_PAREN = r'\('
+t_R_PAREN = r'\)'
+t_B_EQUALS = r'=='
+t_B_LESS_THAN = r'<'
+t_B_GREATER_THAN = r'>'
+t_B_GREATHER_THAN_EQUAL = r'>='
+t_B_LESS_THAN_EQUAL = r'<='
+t_B_NOT_EQUAL = r'!='
+t_L_AND = r'&&'
+t_L_ORD = r'\|\|'
 
 tokens.extend(reserved.values())
 
