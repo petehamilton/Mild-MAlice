@@ -1,0 +1,15 @@
+SARAH's THOUGHTS ON WHAT EACH PROGRAM TELLS US ABOUT THE LANGUAGE.
+
+hello_world.alice - x said Alice means print string x. what was z? means get z from user input.
+data_types.alice  - x thought Alice. means a comment
+                  - new data types = string and array. x has size type. means declaration of an array x that has size(variable/integer) of type (char/letter/string). To access an entry in an array its x's number peice... where number is the index.
+
+veryLargeLoop.alice - eventually (CONDITION) because LOOPCODE enough times.
+simpleButNiceLoop.alice - didn't deduct anything new
+short_circuit.alice - if then else is either(CONDITION) so THENCODE or ELSECODE Alice was unsure which. (think the which is superfluous) single if (i.e. without an else) is perhaps (CONDITION) so THENCHODE Alice was unsure.
+
+looking_class.alice - x went through fn means call fn with parameters x. Its a function. To define a function do "The Looking-Glass addAnswer changed a number". think changed a number is return type?
+
+input.alice - learn nothing knew. consolidates tghat what was x? means get input from console and assign it to x.
+
+conidtional.alice - perhaps is if or maybe is else if or is else.
