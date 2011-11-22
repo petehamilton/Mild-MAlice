@@ -39,7 +39,6 @@ def p_statement_list_input(p):
 def p_statement_print(p):
     '''statement    : expression PRINT_SPOKE
                     | expression PRINT_SAID ALICE'''
-    print "PRINT"
     p[0] = ASTNodes.SpokeNode(p.lineno(1), p.clauseno(1), p[1])
 
 def p_statement_return(p):
@@ -89,8 +88,8 @@ def p_statement_if_perhaps_multiple(p):
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7]) 
 
 def p_statement_if_either(p):
-    'statement    : IF_EITHER expression IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
-    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4], p[6]) 
+    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8]) 
 
 def p_logical_clauses(p):
     '''logical_clauses  : logical_clause logical_clauses
