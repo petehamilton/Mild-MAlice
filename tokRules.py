@@ -5,6 +5,7 @@ from grammarExceptions import LexicalException
 tokens = [
         'NUMBER',
         'LETTER',
+        'STRING',
         'PLUS',
         'MINUS',
         'MULTIPLY',
@@ -82,6 +83,7 @@ t_B_XOR = r'\^'
 t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
+t_STRING = r'"[^\"]*"'
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
 t_L_EQUAL = r'=='
@@ -137,6 +139,7 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
+    print t
     raise LexicalException( t.lexer.lineno, t.lexer.clauseno )
     t.lexer.skip(1)
 
