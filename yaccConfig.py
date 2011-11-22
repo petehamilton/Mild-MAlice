@@ -76,8 +76,8 @@ def p_expression_array_access(p):
     p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_statement_loop(p):
-    'statement : LOOP_EVENTUALLY expression LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
-    p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[2], p[4])
+    'statement : LOOP_EVENTUALLY L_PAREN expression R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
+    p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[3], p[6])
     
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
@@ -193,8 +193,8 @@ def p_factor_string(p):
     p[0] =  ASTNodes.StringNode(p.lineno(1), p.clauseno(1), p[1])
     
 def p_error(p):
-    print p
     if p == None:
         raise e.NoMatchException()
     else:
+        print p
         raise e.SyntaxException(p.lineno, p.clauseno)
