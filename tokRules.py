@@ -5,7 +5,6 @@ from grammarExceptions import LexicalException
 tokens = [
         'NUMBER',
         'LETTER',
-        'STRING',
         'PLUS',
         'MINUS',
         'MULTIPLY',
@@ -17,19 +16,17 @@ tokens = [
         'B_XOR',
         'B_NOT',
         'L_EQUALS',
-        'B_LESS_THAN',
-        'B_GREATER_THAN',
-        'B_GREATER_THAN_EQUAL',
-        'B_LESS_THAN_EQUAL',
-        'B_NOT_EQUAL',
+        'L_LESS_THAN',
+        'L_GREATER_THAN',
+        'L_GREATER_THAN_EQUAL',
+        'L_LESS_THAN_EQUAL',
+        'L_NOT_EQUAL',
         'L_AND',
         'L_OR',
         'MOD',
         'ID',
         'L_PAREN',
         'R_PAREN',
-        'INPUT_QUESTION',
-        'ARRAY_APOSTROPHE',
     ]
 
 reserved = {
@@ -85,18 +82,16 @@ t_B_XOR = r'\^'
 t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
-t_STRING = r'"[^\"]*"'
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
 t_L_EQUALS = r'=='
-t_B_LESS_THAN = r'<'
-t_B_GREATER_THAN = r'>'
-t_B_GREATER_THAN_EQUAL = r'>='
-t_B_LESS_THAN_EQUAL = r'<='
-t_B_NOT_EQUAL = r'!='
+t_L_LESS_THAN = r'<'
+t_L_GREATER_THAN = r'>'
+t_L_GREATER_THAN_EQUAL = r'>='
+t_L_LESS_THAN_EQUAL = r'<='
+t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
-t_INPUT_QUESTION = r'\?'
 
 tokens.extend(reserved.values())
 
@@ -150,11 +145,6 @@ def t_ID(t):
     r'[a-zA-Z][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     return t
-
-# TODO: IS THERE A BETTER WAY? Will match on t_ID first
-def t_ARRAY_APOSTROPHE(t):
-    r'\'s'
-    pass
 
 def t_TOO(t):
     r'\too'
