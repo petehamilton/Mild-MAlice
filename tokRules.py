@@ -12,6 +12,7 @@ tokens = [
         'DIVIDE',
         'SEP_COMMA',
         'SEP_PERIOD',
+        'SEP_QUESTION',
         'B_AND',
         'B_OR',
         'B_XOR',
@@ -125,6 +126,11 @@ def t_SEP_BUT(t):
     r'but$'
     t.lexer.clauseno += 1
     return t  
+    
+def t_SEP_QUESTION(t):
+    r'\?'
+    t.lexer.clauseno += 1
+    return t
     
 def t_SEP_THEN(t):
     r'then$'
