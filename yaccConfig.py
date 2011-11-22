@@ -98,7 +98,7 @@ def p_logical_clauses(p):
     # TODO: IMPLEMENT NODE
 
 def p_logical_clause(p):
-    '''logical_clause   : IF_OR IF_MAYBE expression IF_SO statement_list
+    '''logical_clause   : IF_OR IF_MAYBE L_PAREN expression R_PAREN IF_SO statement_list
                         | IF_OR statement_list'''
     # TODO: IMPLEMENT NODE
 
