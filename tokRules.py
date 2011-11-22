@@ -15,7 +15,7 @@ tokens = [
         'B_OR',
         'B_XOR',
         'B_NOT',
-        'B_EQUALS'
+        'L_EQUALS',
         'B_LESS_THAN',
         'B_GREATER_THAN',
         'B_GREATER_THAN_EQUAL',
@@ -84,14 +84,14 @@ t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
-t_B_EQUALS = r'=='
+t_L_EQUALS = r'=='
 t_B_LESS_THAN = r'<'
 t_B_GREATER_THAN = r'>'
-t_B_GREATHER_THAN_EQUAL = r'>='
+t_B_GREATER_THAN_EQUAL = r'>='
 t_B_LESS_THAN_EQUAL = r'<='
 t_B_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
-t_L_ORD = r'\|\|'
+t_L_OR = r'\|\|'
 
 tokens.extend(reserved.values())
 
@@ -137,6 +137,7 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
+    print t
     raise LexicalException( t.lexer.lineno, t.lexer.clauseno )
     t.lexer.skip(1)
 
