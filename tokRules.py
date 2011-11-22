@@ -137,7 +137,6 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
-    print t
     raise LexicalException( t.lexer.lineno, t.lexer.clauseno )
     t.lexer.skip(1)
 
