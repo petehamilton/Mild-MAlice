@@ -34,16 +34,15 @@ def p_statement_print(p):
 
 def p_statement_return(p):
     'statement    : expression RETURN_FOUND'
-    # p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
+    # TODO: IMPLEMENT NODE
 
 def p_statement_input(p):
     'statement : INPUT_WHAT ID'
-    # p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[2])
+    # TODO: IMPLEMENT NODE
 
-# TODO: "WORK ME OUT" thought Pete....
 def p_statement_comment(p):
-    'statement : expression COMMENT_THOUGHT'
-    # p[0] = ASTNodes.CommentNode(p.lineno(1), p.clauseno(1), p[1])
+    'statement : expression COMMENT_THOUGHT ALICE'
+    # TODO: IMPLEMENT NODE
 
 def p_statement_too(p):
     'statement : statement TOO'
@@ -58,59 +57,61 @@ def p_statement_became(p):
     p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), p[1], p[3])
 
 #TODO: SHOULD WE ONLY MATCH ON NUMBERS e.g "a has 'a' number" readable but catch later?
-#TODO: Work out Node format
 def p_statement_array_has(p):
     'statement : ID ARRAY_HAS expression type'
-    # p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[2])
+    # TODO: IMPLEMENT NODE
 
 def p_expression_array_access(p):
     'expression : ID expression ARRAY_PIECE'
-    # p[0] = ASTNodes.ArrayAssignment(p.lineno(1), p.clauseno(1), p[2])
+    # TODO: IMPLEMENT NODE
 
-#TODO: Should be logical expression?
 def p_statement_loop(p):
     'statement : LOOP_EVENTUALLY expression LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
-    # p[0] = ASTNodes.LoopNode(p.lineno(1), p.clauseno(1), p[2])
-
+    # TODO: IMPLEMENT NODE
     
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
+    # TODO: IMPLEMENT NODE
     
 def p_statement_if_perhaps_multiple(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list logical_clauses'
+    # TODO: IMPLEMENT NODE
 
-#TODO: FIGURE OUT HOW IF STRUCTURE IS REPRESENTED
 def p_statement_if_either(p):
     'statement    : IF_EITHER expression IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    # TODO: IMPLEMENT NODE
 
 def p_logical_clauses(p):
     '''logical_clauses  : logical_clause logical_clauses
                         | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
+    # TODO: IMPLEMENT NODE
 
 def p_logical_clause(p):
     '''logical_clause   : IF_OR IF_MAYBE expression IF_SO statement_list
                         | IF_OR statement_list'''
+    # TODO: IMPLEMENT NODE
 
-# Pass variable to modifier function
 def p_statement_function(p):
     'statement : FUNCTION_THE FUNCTION_ROOM ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list ALICE RETURN_FOUND expression'
+    # TODO: IMPLEMENT NODE
 
 def p_arguments(p):
     '''arguments    : argument SEP_COMMA arguments
                     | argument'''
+    # TODO: IMPLEMENT NODE
 
 def p_argument(p):
     'argument : type ID'
+    # TODO: IMPLEMENT NODE
     
 def p_statement_pbr_function(p):
     'statement : FUNCTION_THE FUNCTION_LOOKING_GLASS ID FUNCTION_CHANGED DEC_A type'
-    #p[3] is the id of the function, p[6] is the type it takes
-    #Within function symbol 'it' refers to the passed ID
-        
-# Pass variable to modifier function
+    # TODO: IMPLEMENT NODE
+    
 def p_statement_call_pbr_function(p):
     'statement : ID FUNCTION_WENT FUNCTION_THROUGH ID'
-
+    # TODO: IMPLEMENT NODE
+    
 def p_statement_expression(p):
     'statement : expression'
     p[0] = p[1]
@@ -151,7 +152,6 @@ def p_expression_logical(p):
                     | expression L_NOT_EQUAL expression
                     | expression L_AND expression
                     | expression L_OR expression'''
-    # p[0] = ASTNodes.LogicalNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
 # DIV/0 CHECK INTO ASTNODE CHECK FUNCTION
