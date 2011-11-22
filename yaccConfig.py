@@ -81,6 +81,9 @@ def p_statement_if_perhaps_multiple(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list logical_clauses'
     # TODO: IMPLEMENT NODE
 
+def p_elif(p):
+    'elif : '
+
 def p_statement_if_either(p):
     'statement    : IF_EITHER expression IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
     # TODO: IMPLEMENT NODE

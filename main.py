@@ -32,21 +32,25 @@ def run():
         print "Error! No given files."
         return 1
 
-
 def parse_code(code):
     try:
         lexer = lex.lex(module=tokRules)
-        parser = yacc.yacc()
-        result = parser.parse(code)
-        if result:
-            symbolTable = {}
-            flags = defaultdict(set)
-            newAnalyse(result, flags)
+        lexer.input(code)
+        while True:
+            tok = lexer.token()
+            if not tok: break
+            print tok
+        # parser = yacc.yacc()
+        # result = parser.parse(code)
+        # if result:
+        #     symbolTable = {}
+        #     flags = defaultdict(set)
+        #     newAnalyse(result, flags)
             # analyse(symbolTable, result, flags)
             # cg = CodeGenerator(symbolTable, registers, flags)
             # code = cg.generate(result)
             # return code
-            return None
+        return None
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)

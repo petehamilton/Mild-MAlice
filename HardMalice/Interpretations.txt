@@ -10,6 +10,6 @@ short_circuit.alice - if then else is either(CONDITION) so THENCODE or ELSECODE 
 
 looking_class.alice - x went through fn means call fn with parameters x. Its a function. To define a function do "The Looking-Glass addAnswer changed a number". think changed a number is return type?
 
-input.alice - learn nothing knew. consolidates tghat what was x? means get input from console and assign it to x.
+input.alice - learn nothing knew. consolidates that what was x? means get input from console and assign it to x.
 
 conidtional.alice - perhaps is if or maybe is else if or is else.
