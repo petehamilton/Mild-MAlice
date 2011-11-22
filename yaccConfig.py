@@ -31,22 +31,28 @@ def p_statement_list_sep(p):
                         | statement SEP_PERIOD statement_list'''
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
 
+def p_statement_list_input(p):
+    'statement_list :  input SEP_QUESTION statement_list'
+    print "Input"
+    p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
+    
 def p_statement_print(p):
     '''statement    : expression PRINT_SPOKE
                     | expression PRINT_SAID ALICE'''
+    print "PRINT"
     p[0] = ASTNodes.SpokeNode(p.lineno(1), p.clauseno(1), p[1])
 
 def p_statement_return(p):
     'statement    : expression RETURN_FOUND'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
 
-def p_statement_input(p):
-    'statement : INPUT_WHAT ID'
-    # TODO: IMPLEMENT NODE
+def p_input(p):
+    'input : INPUT_WHAT DEC_WAS ID'
+    p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[2])
 
 def p_statement_comment(p):
     'statement : expression COMMENT_THOUGHT ALICE'
-    # TODO: IMPLEMENT NODE
+    pass
 
 def p_statement_too(p):
     'statement : statement TOO'
@@ -63,30 +69,27 @@ def p_statement_became(p):
 #TODO: SHOULD WE ONLY MATCH ON NUMBERS e.g "a has 'a' number" readable but catch later?
 def p_statement_array_has(p):
     'statement : ID ARRAY_HAS expression type'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4], p[3])
 
 def p_expression_array_access(p):
     'expression : ID expression ARRAY_PIECE'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_statement_loop(p):
     'statement : LOOP_EVENTUALLY expression LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[2], p[4])
     
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4]) 
     
 def p_statement_if_perhaps_multiple(p):
     'statement    : IF_PERHAPS expression IF_SO statement_list logical_clauses'
-    # TODO: IMPLEMENT NODE
-
-def p_elif(p):
-    'elif : '
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4], p[5]) 
 
 def p_statement_if_either(p):
     'statement    : IF_EITHER expression IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
-    # TODO: IMPLEMENT NODE
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4], p[6]) 
 
 def p_logical_clauses(p):
     '''logical_clauses  : logical_clause logical_clauses
@@ -100,7 +103,7 @@ def p_logical_clause(p):
 
 def p_statement_function(p):
     'statement : FUNCTION_THE FUNCTION_ROOM ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list ALICE RETURN_FOUND expression'
-    # TODO: IMPLEMENT NODE
+    p[0] = FunctionDeclarationNode( p.lineno(3), p.clauseno(3), p[4], p[6], p[10], p[11], p[12])
 
 def p_arguments(p):
     '''arguments    : argument SEP_COMMA arguments
@@ -185,7 +188,12 @@ def p_factor_id(p):
     'factor : ID'
     p[0] = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
     
+def p_factor_string(p):
+    'factor : STRING'
+    p[0] =  ASTNodes.StringNode(p.lineno(1), p.clauseno(1), p[1])
+    
 def p_error(p):
+    print p
     if p == None:
         raise e.NoMatchException()
     else:
