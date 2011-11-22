@@ -7,13 +7,16 @@ import grammarExceptions as e
 start = 'statement_list'
 
 precedence = (
+    ('left', 'L_OR'),
+    ('left', 'L_AND'),
+    ('left', 'L_EQUAL', 'L_NOT_EQUAL'),
+    ('left', 'L_LESS_THAN', 'L_LESS_THAN_EQUAL', 'L_GREATER_THAN', 'L_GREATER_THAN_EQUAL'),
     ('left', 'B_OR'),
     ('left', 'B_XOR'),
     ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
     ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
-    ('left', 'L_EQUALS', 'L_LESS_THAN', 'L_GREATER_THAN', 'L_GREATER_THAN_EQUAL', 'L_LESS_THAN_EQUAL', 'L_NOT_EQUAL', 'L_AND', 'L_OR')
 )
 
 def p_statement_list_statement(p):
@@ -145,7 +148,7 @@ def p_expression_binary(p):
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 def p_expression_logical(p):
-    '''expression   : expression L_EQUALS expression
+    '''expression   : expression L_EQUAL expression
                     | expression L_LESS_THAN expression
                     | expression L_GREATER_THAN expression
                     | expression L_GREATER_THAN_EQUAL expression
