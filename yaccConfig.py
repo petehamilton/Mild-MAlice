@@ -13,7 +13,7 @@ precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
     ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
-    ('left', 'L_LESS_THAN', 'L_GREATER_THAN', 'L_GREATER_THAN_EQUAL', 'L_LESS_THAN_EQUAL', 'L_NOT_EQUAL', 'L_AND', 'L_OR')
+    ('left', 'L_EQUALS', 'L_LESS_THAN', 'L_GREATER_THAN', 'L_GREATER_THAN_EQUAL', 'L_LESS_THAN_EQUAL', 'L_NOT_EQUAL', 'L_AND', 'L_OR')
 )
 
 def p_statement_list_statement(p):
