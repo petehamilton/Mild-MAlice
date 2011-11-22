@@ -28,7 +28,8 @@ tokens = [
         'ID',
         'L_PAREN',
         'R_PAREN',
-        'INPUT_QUESTION'
+        'INPUT_QUESTION',
+        'ARRAY_APOSTROPHE',
     ]
 
 reserved = {
@@ -149,6 +150,11 @@ def t_ID(t):
     r'[a-zA-Z][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     return t
+
+# TODO: IS THERE A BETTER WAY? Will match on t_ID first
+def t_ARRAY_APOSTROPHE(t):
+    r'\'s'
+    pass
 
 def t_TOO(t):
     r'\too'
