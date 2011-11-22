@@ -5,6 +5,7 @@ from grammarExceptions import LexicalException
 tokens = [
         'NUMBER',
         'LETTER',
+        'STRING',
         'PLUS',
         'MINUS',
         'MULTIPLY',
@@ -27,6 +28,7 @@ tokens = [
         'ID',
         'L_PAREN',
         'R_PAREN',
+        'INPUT_QUESTION'
     ]
 
 reserved = {
@@ -82,6 +84,7 @@ t_B_XOR = r'\^'
 t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
+t_STRING = r'"[^\"]*"'
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
 t_L_EQUALS = r'=='
@@ -92,6 +95,7 @@ t_B_LESS_THAN_EQUAL = r'<='
 t_B_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
+t_INPUT_QUESTION = r'\?'
 
 tokens.extend(reserved.values())
 
