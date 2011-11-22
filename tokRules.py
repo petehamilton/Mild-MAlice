@@ -15,7 +15,7 @@ tokens = [
         'B_OR',
         'B_XOR',
         'B_NOT',
-        'L_EQUALS',
+        'L_EQUAL',
         'L_LESS_THAN',
         'L_GREATER_THAN',
         'L_GREATER_THAN_EQUAL',
@@ -84,7 +84,7 @@ t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
-t_L_EQUALS = r'=='
+t_L_EQUAL = r'=='
 t_L_LESS_THAN = r'<'
 t_L_GREATER_THAN = r'>'
 t_L_GREATER_THAN_EQUAL = r'>='
