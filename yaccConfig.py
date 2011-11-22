@@ -32,8 +32,8 @@ def p_statement_list_sep(p):
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
 
 def p_statement_list_input(p):
-    'statement_list :  input SEP_QUESTION statement_list'
-    print "Input"
+    '''statement_list : input SEP_QUESTION statement_list
+                      | input SEP_PERIOD statement_list'''
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
     
 def p_statement_print(p):
@@ -47,7 +47,7 @@ def p_statement_return(p):
     p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
 
 def p_input(p):
-    'input : INPUT_WHAT DEC_WAS ID'
+    'input : INPUT_WHAT DEC_WAS expression'
     p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[2])
 
 def p_statement_comment(p):
@@ -62,13 +62,14 @@ def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
     p[0] = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4])
 
+#TODO Had to change to expression to get arrays to work
 def p_statement_became(p):
-    'statement : ID ASSIGNMENT expression'
+    'statement : expression ASSIGNMENT expression'
     p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), p[1], p[3])
 
 #TODO: SHOULD WE ONLY MATCH ON NUMBERS e.g "a has 'a' number" readable but catch later?
 def p_statement_array_has(p):
-    'statement : ID ARRAY_HAS expression type'
+    'statement : ID ARRAY_HAD expression type'
     p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4], p[3])
 
 def p_expression_array_access(p):
@@ -80,12 +81,12 @@ def p_statement_loop(p):
     p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[3], p[6])
     
 def p_statement_if_perhaps(p):
-    'statement    : IF_PERHAPS expression IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
-    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4]) 
+    'statement    : IF_PERHAPS  L_PAREN expression R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
     
 def p_statement_if_perhaps_multiple(p):
-    'statement    : IF_PERHAPS expression IF_SO statement_list logical_clauses'
-    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[2], p[4], p[5]) 
+    'statement    : IF_PERHAPS L_PAREN expression R_PAREN IF_SO statement_list logical_clauses'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7]) 
 
 def p_statement_if_either(p):
     'statement    : IF_EITHER expression IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
