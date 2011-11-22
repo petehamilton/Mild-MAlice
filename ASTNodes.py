@@ -11,7 +11,12 @@ STATEMENT_LIST = "statement_list"
 TYPE = "type"
 NUMBER = "number"
 LETTER = "letter"
+SENTENCE = "sentence"
 ID = "ID"
+RETURN = "return"
+INPUT = "input"
+LOOP = "loop"
+IF = "if"
 
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
@@ -23,6 +28,19 @@ class ASTNode(object):
         
     def getNodeType(self):
         return self.nodeType
+
+    def __str__(self):
+        return "Node(%s,%r,%s,%s)" % (self.nodeType,self.lineno,self.clauseno,self.children)
+    
+    def display(self, depth = 0):
+        print (" " * (depth-1)) + \
+              ("|> " if (depth > 0) else "") + self.nodeType
+        
+        for child in self.children:
+            if isinstance(child, ASTNode):
+                child.display(depth + 1)
+            else:
+                print (" " * (depth)) + "|> '" + str(child) + "'"
 
 class OperatorNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, operator, children ):
@@ -110,7 +128,19 @@ class DeclarationNode(StatementNode):
             self.children[1].check(symbolTable)
             self.type = self.children[1].type
             symbolTable.add(self.variableName, self)
-            
+
+class ArrayDeclarationNode(DeclarationNode):
+    def __init__(self, lineno, clauseno, variableName, typeNode,  length):
+        super(ArrayDeclarationNode, self).__init__( lineno, clauseno, variableName, typeNode )
+        self.length = length
+    
+    def check(self,symbolTable):
+        self.length.check(symbolTable)
+        if self.length.type != NUMBER:
+            raise SemanticException()
+        super(ArrayDeclarationNode, self).check(symbolTable)
+
+
 class StatementListNode(ASTNode):
     def __init__(self, lineno, clauseno, children ):
         super(StatementListNode, self).__init__( STATEMENT_LIST, lineno, clauseno, children )
@@ -146,14 +176,18 @@ class NumberNode(Factor):
 class LetterNode(Factor):
     def __init__(self, lineno, clauseno, child ):
         super(LetterNode, self).__init__( LETTER, lineno, clauseno, child )
-        
+
+class SentenceNode(Factor):
+    def __init__(self, lineno, clauseno, child ):
+        super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
+
 class IDNode(Factor):
     def __init__(self, lineno, clauseno, child ):
         super(IDNode, self).__init__( ID, lineno, clauseno, child )
     
     def check(self, symbolTable):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
-        
+
 class SpokeNode(ASTNode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
@@ -183,7 +217,69 @@ class NumberTypeNode(TypeNode):
 class LetterTypeNode(TypeNode):
     def __init__(self, lineno, clauseno ):
         super(LetterTypeNode, self).__init__( lineno, clauseno, LETTER )
+        
+class SentenceTypeNode(TypeNode):
+    def __init__(self, lineno, clauseno ):
+        super(SentenceTypeNode, self).__init__( lineno, clauseno, SENTENCE )
 
+class ReturnNode(ASTNode):
+    def __init__(self, lineno, clauseno, exp ):
+        super(ReturnNode, self).__init__( RETURN, lineno, clauseno, [exp] )
+        
+    def getReturnExpression(self):
+        return self.children[0]
+        
+    def check(self, symbolTable):
+        self.getReturnExpression().check(symbolTable)
+        self.type = self.getReturnExpression().type
+    
+class InputNode(ASTNode):
+    def __init__(self, lineno, clauseno, variable ):
+        super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
+        
+    def getVariable(self):
+        return self.children[0]
+        
+    #TODO: CHECK IF ID    
+    def check(self, symbolTable):
+        self.getVariable().check(symbolTable)
+        self.type = self.getVariable().type
+
+class ArrayAccessNode(ASTNode):
+    def __init__(self, lineno, clauseno, variable, index ):
+        super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
+        self.index = index
+        
+    def getVariable(self):
+        return self.children[0]
+        
+    #TODO: CHECK IF ID    
+    def check(self, symbolTable):
+        self.getVariable().check(symbolTable)
+        self.type = self.getVariable().type
+        
+        # Can't raise out of upper bounds exception til runtime?
+        if self.index < 0:
+            raiseSemanticException()
+            
+class LoopNode(ASTNode):
+    def __init__(self, lineno, clauseno, exp, body ):
+        super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
+        
+class IfNode(ASTNode):
+    def __init__(self, lineno, clauseno, exp, thenBody, elseBody = None ):
+        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, elseBody])
+    
+class FunctionDeclarationNode(DeclarationNode):
+    def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
+        super(FunctionDeclarationNode, self).__init__( returnType, lineno, clauseno, [functionName, arguments, body, returnValue] )
+        
+#class ArgumentsNode(ASTNode):
+#    def __init__(self, lineno, clauseno
+        
+        
+#class CallFunctionNode(ASTNode):
+    
 
 # class FunctionDelcaration(ASTNode):
 #   def __init__(self, lineno, clauseno, returnType, funcName, parameters):

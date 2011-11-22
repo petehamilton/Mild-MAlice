@@ -135,6 +135,10 @@ def p_type_letter(p):
     'type : TYPE_LETTER'
     p[0] = ASTNodes.LetterTypeNode(p.lineno(1), p.clauseno(1))
 
+def p_type_sentence(p):
+    'type : TYPE_SENTENCE'
+    p[0] = ASTNodes.SentenceTypeNode(p.lineno(1), p.clauseno(1))
+
 def p_expression_not(p):
     'expression : B_NOT expression'
     p[0] = ASTNodes.UnaryNode(p.lineno(2), p.clauseno(2), p[1], p[2])
@@ -189,9 +193,9 @@ def p_factor_id(p):
     'factor : ID'
     p[0] = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
     
-def p_factor_string(p):
-    'factor : STRING'
-    p[0] =  ASTNodes.StringNode(p.lineno(1), p.clauseno(1), p[1])
+def p_factor_sentence(p):
+    'factor : SENTENCE'
+    p[0] =  ASTNodes.SentenceNode(p.lineno(1), p.clauseno(1), p[1])
     
 def p_error(p):
     if p == None:

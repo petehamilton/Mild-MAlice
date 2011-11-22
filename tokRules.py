@@ -5,7 +5,7 @@ from grammarExceptions import LexicalException
 tokens = [
         'NUMBER',
         'LETTER',
-        'STRING',
+        'SENTENCE',
         'PLUS',
         'MINUS',
         'MULTIPLY',
@@ -48,8 +48,9 @@ reserved = {
     'too'           : 'TOO',
     'number'        : 'TYPE_NUMBER',
     'letter'        : 'TYPE_LETTER',
+    'sentence'      : 'TYPE_SENTENCE',
     'thought'       : 'COMMENT_THOUGHT',
-    'had'           : 'ARRAY_HAS',
+    'had'           : 'ARRAY_HAD',
     'piece'         : 'ARRAY_PIECE',
     'eventually'    : 'LOOP_EVENTUALLY',
     'because'       : 'LOOP_BECAUSE', 
@@ -84,7 +85,7 @@ t_B_XOR = r'\^'
 t_B_NOT = r'\~'
 t_MOD = r'%'
 t_LETTER = r'\'[a-zA-Z]\''
-t_STRING = r'"[^\"]*"'
+t_SENTENCE = r'"[^\"]*"'
 t_L_PAREN = r'\('
 t_R_PAREN = r'\)'
 t_L_EQUAL = r'=='
