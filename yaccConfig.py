@@ -77,8 +77,7 @@ def p_expression_binary(p):
                     | expression B_AND expression
                     | expression PLUS expression
                     | expression MINUS expression
-                    | expression MULTIPLY expression
-                    | expression MOD expression'''
+                    | expression MULTIPLY expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
