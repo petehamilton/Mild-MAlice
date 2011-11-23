@@ -36,12 +36,12 @@ def parse_code(code):
     try:
         lexer = lex.lex(module=tokRules)
         lexer.input(code)
-        while True:
-            tok = lexer.token()
-            if not tok: break
-            print tok
-        # parser = yacc.yacc()
-        # result = parser.parse(code)
+        # while True:
+        #       tok = lexer.token()
+        #       if not tok: break
+        #       print tok
+        parser = yacc.yacc()
+        result = parser.parse(code)
         # if result:
         #     symbolTable = {}
         #     flags = defaultdict(set)

@@ -17,6 +17,8 @@ RETURN = "return"
 INPUT = "input"
 LOOP = "loop"
 IF = "if"
+ARGUMENT = 'argument'
+ARGUMENTS = 'arguments'
 
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
@@ -274,11 +276,23 @@ class FunctionDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
         super(FunctionDeclarationNode, self).__init__( returnType, lineno, clauseno, [functionName, arguments, body, returnValue] )
         
-#class ArgumentsNode(ASTNode):
-#    def __init__(self, lineno, clauseno
+class ArgumentsNode(ASTNode):
+    def __init__(self, lineno, clauseno, argument, arguments ):
+        super(ArgumentsNode, self).__init__( ARGUMENTS, lineno, clauseno, [argument, arguments])
+
+class ArgumentNode(ASTNode):
+    def __init__(self, lineno, clauseno, argumentType, identifier):
+        super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentType, identifier])
         
+class FunctionArgumentsNode(ASTNode):
+    def __init__(self, lineno, clauseno):
+        pass
         
-#class CallFunctionNode(ASTNode):
+class FunctionCallNode(ASTNode):
+    def __init__(self, lineno, clauseno, functionName, arguments):
+        pass
+# class CallFunctionNode(ASTNode):
+#     def __init__(self, lineno, clauseno, ):
     
 
 # class FunctionDelcaration(ASTNode):
