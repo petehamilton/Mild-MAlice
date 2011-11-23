@@ -28,12 +28,8 @@ def p_statement_list_sep(p):
                         | statement SEP_BUT statement_list
                         | statement SEP_THEN statement_list
                         | statement SEP_COMMA statement_list
+                        | statement SEP_QUESTION statment_list
                         | statement SEP_PERIOD statement_list'''
-    p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
-
-def p_statement_list_input(p):
-    '''statement_list : input SEP_QUESTION statement_list
-                      | input SEP_PERIOD statement_list'''
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
     
 def p_statement_print(p):
@@ -45,8 +41,8 @@ def p_statement_return(p):
     'statement    : expression RETURN_FOUND'
     p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
 
-def p_input(p):
-    'input : INPUT_WHAT DEC_WAS expression'
+def p_statement_input(p):
+    'statement : INPUT_WHAT DEC_WAS expression'
     p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[2])
 
 def p_statement_comment(p):
