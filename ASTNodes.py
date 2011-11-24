@@ -3,6 +3,7 @@ from grammarExceptions import SemanticException
 
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
+LOGICAL_OP = "logical_op"
 FACTOR = "factor"
 ASSIGNMENT = "assignment"
 DECLARATION = "declaration"
@@ -17,6 +18,10 @@ RETURN = "return"
 INPUT = "input"
 LOOP = "loop"
 IF = "if"
+ELSEIF = "elseif"
+ELSE = "else"
+LOGICALCLAUSE = "logical_clause"
+LOGICALCLAUSES = "logical_clauses"
 ARGUMENT = 'argument'
 ARGUMENTS = 'arguments'
 
@@ -35,14 +40,14 @@ class ASTNode(object):
         return "Node(%s,%r,%s,%s)" % (self.nodeType,self.lineno,self.clauseno,self.children)
     
     def display(self, depth = 0):
-        print (" " * (depth-1)) + \
+        print ("  " * (depth-1)) + \
               ("|> " if (depth > 0) else "") + self.nodeType
         
         for child in self.children:
             if isinstance(child, ASTNode):
                 child.display(depth + 1)
             else:
-                print (" " * (depth)) + "|> '" + str(child) + "'"
+                print ("  " * (depth)) + "|> '" + str(child) + "'"
 
 class OperatorNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, operator, children ):
@@ -54,7 +59,7 @@ class OperatorNode(ASTNode):
 
 class BinaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, children ):
-        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
+        super(BinaryNode, self).__init__( nodeType, lineno, clauseno, operator, children )
         self.operator = operator
         
     def getLeftExpression(self):
@@ -67,6 +72,26 @@ class BinaryNode(OperatorNode):
         self.getLeftExpression().check(symbolTable)
         self.getRightExpression().check(symbolTable)
         if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
+            self.type = self.getLeftExpression().type
+        else:
+            raise SemanticException(self.lineno, self.clauseno)
+
+#TODO: Inherit this from BINARY NODE or equivalent
+class LogicalNode(OperatorNode):
+    def __init__(self, lineno, clauseno, operator, children ):
+        super(LogicalNode, self).__init__( LOGICAL_OP, lineno, clauseno, operator, children )
+        self.operator = operator
+        
+    def getLeftExpression(self):
+        return self.children[0]
+
+    def getRightExpression(self):
+        return self.children[1]
+            
+    def check(self, symbolTable):
+        self.getLeftExpression().check(symbolTable)
+        self.getRightExpression().check(symbolTable)
+        if self.getLeftExpression().type == self.getRightExpression().type:
             self.type = self.getLeftExpression().type
         else:
             raise SemanticException(self.lineno, self.clauseno)
@@ -269,9 +294,21 @@ class LoopNode(ASTNode):
         super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
         
 class IfNode(ASTNode):
-    def __init__(self, lineno, clauseno, exp, thenBody, elseBody = None ):
-        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, elseBody])
-    
+    def __init__(self, lineno, clauseno, exp, thenBody, elseNode = None ):
+        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, elseNode])
+
+class LogicalClausesNode(ASTNode):
+    def __init__(self, lineno, clauseno, children):
+        super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, children)
+
+class ElseIfNode(ASTNode):
+    def __init__(self, lineno, clauseno, exp, thenBody):
+        super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
+        
+class ElseNode(ASTNode):
+    def __init__(self, lineno, clauseno, thenBody):
+        super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+        
 class FunctionDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
         super(FunctionDeclarationNode, self).__init__( returnType, lineno, clauseno, [functionName, arguments, body, returnValue] )

@@ -81,22 +81,28 @@ def p_statement_if_either(p):
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
 
 def p_statement_if_perhaps(p):
-    'statement    : IF_PERHAPS  L_PAREN expression_logical R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
+    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
 
 def p_statement_if_perhaps_multiple(p):
     'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_clauses'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7]) 
 
-def p_logical_clauses(p):
-    '''logical_clauses  : logical_clause logical_clauses
-                        | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
-    # TODO: IMPLEMENT NODE
+def p_logical_clauses_many(p):
+    'logical_clauses  : logical_clause logical_clauses'
+    p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), [p[1], p[2]])
+    
+def p_logical_clauses_none(p):
+    'logical_clauses  : ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    pass
 
-def p_logical_clause(p):
-    '''logical_clause   : IF_OR IF_MAYBE L_PAREN expression_logical R_PAREN IF_SO statement_list
-                        | IF_OR statement_list'''
-    # TODO: IMPLEMENT NODE
+def p_logical_clause_elif(p):
+    'logical_clause   : IF_OR IF_MAYBE L_PAREN expression_logical R_PAREN IF_SO statement_list'
+    p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
+
+def p_logical_clause_else(p):
+    'logical_clause   : IF_OR statement_list'
+    p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])
 
 def p_statement_function(p):
     'statement : FUNCTION_THE FUNCTION_ROOM ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list ALICE RETURN_FOUND expression'
@@ -198,6 +204,7 @@ def p_expression_logical(p):
                             | expression L_NOT_EQUAL expression
                             | expression L_AND expression
                             | expression L_OR expression'''
+    p[0] = ASTNodes.LogicalNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
 # DIV/0 CHECK INTO ASTNODE CHECK FUNCTION
