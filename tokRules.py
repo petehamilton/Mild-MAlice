@@ -70,7 +70,7 @@ reserved = {
     'The'           : 'FUNCTION_THE',
     'contained'     : 'FUNCTION_CONTAINED',
     'changed'       : 'FUNCTION_CHANGED',
-    'it'            : 'FUNCTION_IT',
+    # 'it'            : 'FUNCTION_IT',
     'room'          : 'FUNCTION_ROOM',
     'spider'        : 'FUNCTION_SPIDER',
     
