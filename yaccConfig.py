@@ -103,12 +103,9 @@ def p_statement_function(p):
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(3), p.clauseno(3), p[3], p[5], p[9], p[10], p[13])
 
 def p_arguments_single(p):
-#     'arguments    : type ID'
     'arguments    : argument'
 
-
 def p_arguments_multiple(p):
-    # 'arguments    : type ID SEP_COMMA arguments'
     'arguments    : argument SEP_COMMA arguments'
     p[0] = ASTNodes.ArgumentsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
     
@@ -116,6 +113,10 @@ def p_arguments_multiple(p):
 def p_argument(p):
     'argument : type ID'
     p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), p[1], p[2] )
+    
+def p_argument_reference(p):
+    'argument : FUNCTION_SPIDER type ID'
+    p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), p[1], p[2], True)
     
 def p_statement_pbr_function(p):
     'statement : FUNCTION_THE FUNCTION_LOOKING_GLASS ID FUNCTION_CHANGED DEC_A type statement_list'
@@ -136,9 +137,14 @@ def p_expression_call_pbr_function(p):
         
 
 def p_function_arguments_multiple(p):
-    '''function_arguments : ID SEP_COMMA function_arguments
-                          | ID '''
+    'function_arguments : function_argument SEP_COMMA function_arguments'
+    
+def p_function_arguments_single(p):
+    'function_arguments : function_argument'
     # p[0] = ASTNodes.FunctionArgumentsNode( p.lineno(1), p.clauseno(1))
+    
+def p_function_argument(p):
+    'function_argument : expression'
     
 def p_statement_expression(p):
     'statement : expression'
