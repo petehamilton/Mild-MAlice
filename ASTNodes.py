@@ -57,40 +57,41 @@ class OperatorNode(ASTNode):
     def getOperator(self):
         return self.operator
 
-class BinaryNode(OperatorNode):
-    def __init__(self, lineno, clauseno, operator, children ):
-        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
+class BinaryOperatorNode(ASTNode):
+    def __init__(self, nodeType, lineno, clauseno, operator, children ):
+        super(BinaryOperatorNode, self).__init__( nodeType, lineno, clauseno, children )
         self.operator = operator
-        
+    
     def getLeftExpression(self):
         return self.children[0]
-        
+
     def getRightExpression(self):
         return self.children[1]
-
+    
     def check(self, symbolTable):
         self.getLeftExpression().check(symbolTable)
         self.getRightExpression().check(symbolTable)
+
+    def getOperator(self):
+        return self.operator
+
+class BinaryNode(BinaryOperatorNode):
+    def __init__(self, lineno, clauseno, operator, children ):
+        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
+
+    def check(self, symbolTable):
+        super(BinaryNode, self).check( symbolTable )
         if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
             self.type = self.getLeftExpression().type
         else:
             raise SemanticException(self.lineno, self.clauseno)
 
-#TODO: Inherit this from BINARY NODE or equivalent
-class LogicalNode(OperatorNode):
+class LogicalNode(BinaryOperatorNode):
     def __init__(self, lineno, clauseno, operator, children ):
         super(LogicalNode, self).__init__( LOGICAL_OP, lineno, clauseno, operator, children )
-        self.operator = operator
-        
-    def getLeftExpression(self):
-        return self.children[0]
-
-    def getRightExpression(self):
-        return self.children[1]
             
     def check(self, symbolTable):
-        self.getLeftExpression().check(symbolTable)
-        self.getRightExpression().check(symbolTable)
+        super(LogicalNode, self).check( symbolTable )
         if self.getLeftExpression().type == self.getRightExpression().type:
             self.type = self.getLeftExpression().type
         else:
