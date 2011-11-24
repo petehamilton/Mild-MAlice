@@ -31,7 +31,7 @@ tokens = [
         'R_PAREN',
     ]
 
-reserved = {
+reserved = {          
     'Alice'         : 'ALICE',
     'spoke'         : 'PRINT_SPOKE',
     'said'          : 'PRINT_SAID',
@@ -70,7 +70,8 @@ reserved = {
     'changed'       : 'FUNCTION_CHANGED',
     'it'            : 'FUNCTION_IT',
     'room'          : 'FUNCTION_ROOM',
-    'Looking-Glass' : 'FUNCTION_LOOKING_GLASS'
+    'Looking-Glass' : 'FUNCTION_LOOKING_GLASS',
+    'spider'        : 'FUNCTION_SPIDER',
     
 }
 
