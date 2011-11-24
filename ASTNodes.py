@@ -59,7 +59,7 @@ class OperatorNode(ASTNode):
 
 class BinaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, children ):
-        super(BinaryNode, self).__init__( nodeType, lineno, clauseno, operator, children )
+        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
         self.operator = operator
         
     def getLeftExpression(self):
