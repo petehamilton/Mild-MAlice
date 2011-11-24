@@ -75,11 +75,15 @@ def p_expression_array_access(p):
 def p_statement_loop(p):
     'statement : LOOP_EVENTUALLY L_PAREN expression_logical R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
     p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[3], p[6])
-    
+
+def p_statement_if_either(p):
+    'statement    : IF_EITHER L_PAREN expression_logical R_PAREN IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
+
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS  L_PAREN expression_logical R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
-    
+
 def p_statement_if_perhaps_multiple(p):
     'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_clauses'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7]) 
@@ -184,6 +188,10 @@ def p_expression_binary(p):
                     | expression MINUS expression
                     | expression MULTIPLY expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
+
+def p_expression_expression_logical(p):
+    'expression : expression_logical'
+    p[0] = p[1]
 
 def p_expression_logical(p):
     '''expression_logical   : expression L_EQUAL expression
