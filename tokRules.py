@@ -1,6 +1,7 @@
 # This module contains the lexing rules
 
 from grammarExceptions import LexicalException
+from ply.lex import TOKEN
 
 tokens = [
         'NUMBER',
@@ -29,6 +30,7 @@ tokens = [
         'ID',
         'L_PAREN',
         'R_PAREN',
+        'FUNCTION_LOOKING_GLASS'
     ]
 
 reserved = {          
@@ -70,14 +72,13 @@ reserved = {
     'changed'       : 'FUNCTION_CHANGED',
     'it'            : 'FUNCTION_IT',
     'room'          : 'FUNCTION_ROOM',
-    'Looking-Glass' : 'FUNCTION_LOOKING_GLASS',
     'spider'        : 'FUNCTION_SPIDER',
     
 }
 
 # Tokens 
 t_PLUS = r'\+'
-t_MINUS = r'-'
+t_MINUS = r'\-'
 t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
 t_B_AND = r'\&'
@@ -98,8 +99,13 @@ t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
 
-tokens.extend(reserved.values())
 
+@TOKEN('Looking' + t_MINUS + 'Glass')
+def t_FUNCTION_LOOKING_GLASS(t):
+    return t
+
+# tokens.extend(reserved.values())
+tokens = reserved.values() + tokens
 # A string containing ignored characters.
 t_ignore  = ' \t\r'
 
