@@ -92,7 +92,7 @@ class LogicalNode(BinaryOperatorNode):
             
     def check(self, symbolTable):
         super(LogicalNode, self).check( symbolTable )
-        if self.getLeftExpression().type == self.getRightExpression().type:
+        if self.getLeftExpression().type == self.getRightExpression().type: # Don't need to be a specific type, just need to both be the same
             self.type = self.getLeftExpression().type
         else:
             raise SemanticException(self.lineno, self.clauseno)
