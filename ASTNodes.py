@@ -363,6 +363,16 @@ class FunctionDeclarationNode(DeclarationNode):
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
         super(ArgumentsNode, self).__init__( ARGUMENTS, lineno, clauseno, [argument, arguments])
+    
+    def getArgument(self):
+        return self.children[0]
+    
+    def getArguments(self):
+        return self.children[1]
+    
+    def check(self, symbolTable):
+        self.getArgument.check()
+        self.getArguments.check()
 
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentType, identifier):
