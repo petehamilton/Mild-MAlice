@@ -316,21 +316,21 @@ class IfNode(ASTNode):
                 nextLogicalClause.check(symbolTable)
 
 class LogicalClausesNode(ASTNode):
-    def __init__(self, lineno, clauseno, logical_clause, other_logical_clauses):
-        super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, [logical_clause, other_logical_clauses])
+    def __init__(self, lineno, clauseno, logicalClause, logicalClauses):
+        super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, [logicalClause, logicalClauses])
     
     def getLogicalClause(self):
         return self.children[0]
 
-    def getNextLogicalClause(self):
+    def getLogicalClauses(self):
         return self.children[1]
 
     def check(self, symbolTable):
         self.getLogicalClause().check(symbolTable)
         
-        nextLogicalClause = self.getNextLogicalClause();
-        if nextLogicalClause != None:
-            nextLogicalClause.check(symbolTable)
+        logicalClauses = self.getLogicalClauses();
+        if logicalClauses != None:
+            logicalClauses.check(symbolTable)
 
 class ElseIfNode(ASTNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
