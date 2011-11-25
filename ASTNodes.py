@@ -289,38 +289,34 @@ class ArrayAccessNode(ASTNode):
         # Can't raise out of upper bounds exception til runtime?
         if self.index < 0:
             raiseSemanticException()
-            
-class LoopNode(ASTNode):
-    def __init__(self, lineno, clauseno, exp, body ):
-        super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
-    
+
+class ConditionalNode(ASTNode):
+    def __init__(self, lineno, clauseno, children ):
+        super(Conditional, self).__init__(LOOP, lineno, clauseno, children) #Children always come in expr, body, other
+
     def getExpression(self):
         return self.children[0]
-    
+
     def getBody(self):
         return self.children[1]
-    
+
     def check(self, symbolTable):
         self.getExpression().check(symbolTable)
         self.getBody().check(symbolTable)
         
-class IfNode(ASTNode):
-    def __init__(self, lineno, clauseno, exp, thenBody, elseNode = None ):
-        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, elseNode])
+class LoopNode(ConditionalNode):
+    def __init__(self, lineno, clauseno, exp, body ):
+        super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
         
-        def getExpression(self):
-            return self.children[0]
-
-        def getBody(self):
-            return self.children[1]
+class IfNode(ConditionalNode):
+    def __init__(self, lineno, clauseno, exp, thenBody, nextLogicalClause = None ):
+        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, nextLogicalClause])
 
         def getNextLogicalClause(self):
             return self.children[2]
 
         def check(self, symbolTable):
-            self.getExpression().check(symbolTable)
-            self.getBody().check(symbolTable)
-            
+            super(IfNode, self).check(symbolTable)
             nextLogicalClause = self.getNextLogicalClause();
             if nextLogicalClause != None:
                 nextLogicalClause.check(symbolTable)
@@ -342,20 +338,12 @@ class LogicalClausesNode(ASTNode):
         if logicalClauses != None:
             logicalClauses.check(symbolTable)
 
-class ElseIfNode(ASTNode):
+class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
         super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
-    
-    def getExpression(self):
-        return self.children[0]
-    
-    def getBody(self):
-        return self.children[1]
-    
-    def check(self, symbolTable):
-        self.getExpression().check(symbolTable)
-        self.getBody().check(symbolTable)
-        
+
+# Some way to inherit this from conditionalNode as well? Although I suppose it's
+# not that conditional in that there is no logical check?
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
