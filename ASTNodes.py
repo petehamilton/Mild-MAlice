@@ -28,6 +28,7 @@ FUNCTION_ARGUMENT = 'f_argument'
 FUNCTION_ARGUMENTS = 'f_arguments'
 FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
+CODE_SEP = 'c_sep'
 
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
@@ -424,3 +425,8 @@ class FunctionCallNode(ASTNode):
 class FunctionsNode(ASTNode):
     def __init__(self, lineno, clauseno, function, functions):
         super(FunctionsNode, self).__init__( FUNCTIONS, lineno, clauseno, [function, functions])
+        
+        
+class CodeSeperatorNode(ASTNode):
+    def __init__(self, lineno, clauseno, statementList, functions):
+        super(CodeSeperatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])

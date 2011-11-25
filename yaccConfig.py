@@ -4,7 +4,7 @@ import ASTNodes
 from tokRules import tokens
 import grammarExceptions as e
 
-start = 'statement_list'
+start = 'code_seperator'
 
 precedence = (
     ('left', 'L_OR'),
@@ -24,13 +24,18 @@ def p_statement_list_statement(p):
     'statement_list : statement seperator'
     p[0] = p[1]
 
-def p_statement_list_function(p):
-    'statement_list : function_seperator functions'
-    p[0] = p[2]
-
 def p_statement_list_sep(p):
     '''statement_list   : statement seperator statement_list'''
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
+    
+def p_code_seperator(p):
+    '''code_seperator : statement_list function_seperator functions'''
+    p[0] = ASTNodes.CodeSeperatorNode(p.lineno(1), p.clauseno(1), p[1], p[3])
+    
+def p_code_seperator_single(p):
+    'code_seperator : statement_list'
+    p[0] = ASTNodes.CodeSeperatorNode(p.lineno(1), p.clauseno(1), p[1], None)
+    
     
 def p_functions_multiple(p):
     '''functions : function function_seperator functions
