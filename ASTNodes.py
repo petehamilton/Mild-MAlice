@@ -56,6 +56,15 @@ class OperatorNode(ASTNode):
         
     def getOperator(self):
         return self.operator
+        
+    def display(self, depth = 0):
+        print ("  " * (depth-1)) + \
+              ("|> " if (depth > 0) else "") + self.nodeType
+        for child in [self.children[0], self.operator]:
+            if isinstance(child, ASTNode):
+                child.display(depth + 1)
+            else:
+                print ("  " * (depth)) + "|> '" + str(child) + "'"
 
 class BinaryOperatorNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, operator, children ):
@@ -74,6 +83,15 @@ class BinaryOperatorNode(ASTNode):
 
     def getOperator(self):
         return self.operator
+    
+    def display(self, depth = 0):
+        print ("  " * (depth-1)) + \
+              ("|> " if (depth > 0) else "") + self.nodeType
+        for child in [self.children[0], self.operator, self.children[1]]:
+            if isinstance(child, ASTNode):
+              child.display(depth + 1)
+            else:
+              print ("  " * (depth)) + "|> '" + str(child) + "'"
 
 class BinaryNode(BinaryOperatorNode):
     def __init__(self, lineno, clauseno, operator, children ):
