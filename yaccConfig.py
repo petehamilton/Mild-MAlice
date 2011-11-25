@@ -23,7 +23,7 @@ precedence = (
 def p_statement_list_statement(p):
     'statement_list : statement seperator'
     p[0] = p[1]
-    
+
 def p_statement_list_function(p):
     'statement_list : function_seperator functions'
     p[0] = p[2]
