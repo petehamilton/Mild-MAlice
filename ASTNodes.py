@@ -293,6 +293,16 @@ class ArrayAccessNode(ASTNode):
 class LoopNode(ASTNode):
     def __init__(self, lineno, clauseno, exp, body ):
         super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
+    
+    def getExpression(self):
+        return self.children[0]
+    
+    def getBody(self):
+        return self.children[1]
+    
+    def check(self, symbolTable):
+        self.getExpression().check(symbolTable)
+        self.getBody().check(symbolTable)
         
 class IfNode(ASTNode):
     def __init__(self, lineno, clauseno, exp, thenBody, elseNode = None ):
