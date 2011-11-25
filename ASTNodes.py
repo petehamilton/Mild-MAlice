@@ -371,12 +371,22 @@ class ArgumentsNode(ASTNode):
         return self.children[1]
     
     def check(self, symbolTable):
-        self.getArgument.check()
-        self.getArguments.check()
+        self.getArgument.check(symbolTable)
+        self.getArguments.check(symbolTable)
 
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentType, identifier):
         super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentType, identifier])
+    
+    def getArgumentType(self):
+        return self.children[0]
+    
+    def getIdentifier(self):
+        return self.children[1]
+    
+    def check(self, symbolTable):
+        self.getArgumentType().check(symbolTable)
+        self.getIdentifier().check(symbolTable)
         
 class FunctionArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno):
