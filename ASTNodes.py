@@ -291,8 +291,8 @@ class ArrayAccessNode(ASTNode):
             raiseSemanticException()
 
 class ConditionalNode(ASTNode):
-    def __init__(self, lineno, clauseno, children ):
-        super(Conditional, self).__init__(LOOP, lineno, clauseno, children) #Children always come in expr, body, other
+    def __init__(self, nodeType, lineno, clauseno, children ):
+        super(ConditionalNode, self).__init__(nodeType, lineno, clauseno, children) #Children always come in expr, body, other
 
     def getExpression(self):
         return self.children[0]
