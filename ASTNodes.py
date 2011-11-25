@@ -297,18 +297,64 @@ class LoopNode(ASTNode):
 class IfNode(ASTNode):
     def __init__(self, lineno, clauseno, exp, thenBody, elseNode = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, elseNode])
+        
+        def getExpression(self):
+            return self.children[0]
+
+        def getBody(self):
+            return self.children[1]
+
+        def getNextLogicalClause(self):
+            return self.children[2]
+
+        def check(self, symbolTable):
+            self.getExpression().check(symbolTable)
+            self.getBody().check(symbolTable)
+            
+            nextLogicalClause = self.getNextLogicalClause();
+            if nextLogicalClause != None:
+                nextLogicalClause.check(symbolTable)
 
 class LogicalClausesNode(ASTNode):
-    def __init__(self, lineno, clauseno, children):
-        super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, children)
+    def __init__(self, lineno, clauseno, logical_clause, other_logical_clauses):
+        super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, [logical_clause, other_logical_clauses])
+    
+    def getLogicalClause(self):
+        return self.children[0]
+
+    def getNextLogicalClause(self):
+        return self.children[1]
+
+    def check(self, symbolTable):
+        self.getLogicalClause().check(symbolTable)
+        
+        nextLogicalClause = self.getNextLogicalClause();
+        if nextLogicalClause != None:
+            nextLogicalClause.check(symbolTable)
 
 class ElseIfNode(ASTNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
         super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
+    
+    def getExpression(self):
+        return self.children[0]
+    
+    def getBody(self):
+        return self.children[1]
+    
+    def check(self, symbolTable):
+        self.getExpression().check(symbolTable)
+        self.getBody().check(symbolTable)
         
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+    
+    def getBody(self):
+        return self.children[0]
+    
+    def check(self, symbolTable):
+        self.getBody().check(symbolTable)
         
 class FunctionDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):

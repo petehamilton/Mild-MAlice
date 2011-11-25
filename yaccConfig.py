@@ -90,7 +90,7 @@ def p_statement_if_perhaps_multiple(p):
 
 def p_logical_clauses_many(p):
     'logical_clauses  : logical_clause logical_clauses'
-    p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), [p[1], p[2]])
+    p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
     
 def p_logical_clauses_none(p):
     'logical_clauses  : ALICE DEC_WAS IF_UNSURE IF_WHICH'
