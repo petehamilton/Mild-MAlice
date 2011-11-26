@@ -158,12 +158,13 @@ def p_arguments_single(p):
     
 def p_argument(p):
     'argument : type ID'
-    print "herrre", p[2]
-    p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), p[1], p[2] )
+    declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[2], p[1])
+    p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), declarationNode )
 
 def p_argument_reference(p):
     'argument : FUNCTION_SPIDER type ID'
-    p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), p[1], p[2], True)
+    declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[3], p[2])
+    p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), declarationNode, True)
 
 def p_expression_call_function(p):
     'expression : ID L_PAREN function_arguments R_PAREN'
@@ -187,8 +188,6 @@ def p_function_arguments_single(p):
 def p_function_argument(p):
     'function_argument : expression'
     p[0] = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), p[1] )
-
-
     
 def p_statement_expression(p):
     'statement : expression'
@@ -274,7 +273,6 @@ def p_factor_sentence(p):
     p[0] =  ASTNodes.SentenceNode(p.lineno(1), p.clauseno(1), p[1])
     
 def p_error(p):
-    
     if p == None:
         raise e.NoMatchException()
     else:
