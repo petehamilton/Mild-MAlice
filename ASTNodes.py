@@ -163,7 +163,6 @@ class AssignmentNode(StatementNode):
             raise SemanticException(self.lineno, self.clauseno)
         else:
             self.expression.check(symbolTable)
-            print V.type, self.expression
             if V.type == self.expression.type:
                 self.type = self.expression.type
             else:
@@ -331,7 +330,6 @@ class InputNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
-        print self.getVariable()
         self.getVariable().check(symbolTable)
         self.type = self.getVariable().type
 
@@ -461,10 +459,11 @@ class FunctionArgumentsNode(ASTNode):
     def getArguments(self):
         return self.children[1]
         
-    def check(self, symbolTable):
+    def check(self, symbolTable):    
         self.getArgument().check(symbolTable)
         if self.getArguments():
-            self.getArguments.check()
+            self.getArguments().check(symbolTable)
+            print "LENGTH", self.getArguments()
             self.length += self.getArguments().length
         
         
@@ -476,8 +475,8 @@ class FunctionArgumentNode(ASTNode):
     def getExpression(self):
         return self.children[0]
         
-    def check(self):
-        self.getExpression().check()
+    def check(self, symbolTable):
+        self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
     
     
@@ -493,14 +492,17 @@ class FunctionCallNode(ASTNode):
         
     def check(self, symbolTable):
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
+        self.getArguments().check(symbolTable)
         if not func:
-            pass 
-            # RAISE EXCEPTION
-        elif func.getArguments().length != self.getArguments().length:
-            pass
-            # RAISE EXCEPTIOn
+            print "RAISE NOT FUNC"
+            raise SemanticException(self.lineno, self.clauseno)
+        elif func.getArguments().length != self.getArguments().length: 
+            print "Arguments:", self.getArguments().children[0].children[0].children[0],self.getArguments().children[1].children[0].children[0]
+            print func.getArguments().length, self.getArguments().length
+            print "RAISE WRONG ARGUMENTS FUNC"  
+            raise SemanticException(self.lineno, self.clauseno)
         else:
-            self.getArguments().check()
+            
             # TODO CHECK COMPATABILITY
             self.type = func.type
         
@@ -514,9 +516,10 @@ class FunctionsNode(ASTNode):
     def getFunctions(self):
         return self.children[1]    
     
-    def check(self, symbolTable):
+    def check(self, symbolTable):  
         self.getFunction().check(symbolTable)
-        self.getFunctions().check(symbolTable)
+        if self.getFunctions():
+            self.getFunctions().check(symbolTable)
         
         
 class CodeSeperatorNode(ASTNode):

@@ -45,7 +45,7 @@ def p_functions_multiple(p):
 def p_functions_single(p):
     '''functions : ref_function
                  | function'''
-    p[0] = p[1]
+    p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], None )
 
 def p_statement_print(p):
     '''statement    : expression PRINT_SPOKE
@@ -136,8 +136,7 @@ def p_ref_function(p):
     'ref_function : ID FUNCTION_CHANGED DEC_A type statement_list'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
     argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), p[4], factor )
-    arguments = ASTNodes.ArgumentsNode( p.lineno(4), p.clauseno(4), argument, None ) 
-    p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], arguments, p[4], p[5], factor )
+    p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], p[5], factor )
 
     
 def p_function(p):
@@ -154,7 +153,7 @@ def p_arguments_multiple(p):
     
 def p_arguments_single(p):
     'arguments : argument'
-    p[0] = ASTNodes.ArgumentsNode( p.lineno(1), p.clauseno(1), p[1], None)
+    p[0] = p[1]
     
 def p_argument(p):
     'argument : type ID'
@@ -173,8 +172,7 @@ def p_expression_call_function(p):
 def p_expression_call_pbr_function(p):
     'expression : ID FUNCTION_WENT FUNCTION_THROUGH ID'
     argument = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), p[1] )
-    arguments = ASTNodes.FunctionArgumentsNode( p.lineno(1), p.clauseno(1), argument, None)
-    p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], arguments)
+    p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], argument)
 
 
 def p_function_arguments_multiple(p):
