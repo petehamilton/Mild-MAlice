@@ -72,7 +72,7 @@ def p_statement_return(p):
 
 def p_statement_input(p):
     'statement : INPUT_WHAT DEC_WAS expression'
-    p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[2])
+    p[0] = ASTNodes.InputNode(p.lineno(1), p.clauseno(1), p[3])
 
 def p_statement_comment(p):
     'statement : expression COMMENT_THOUGHT ALICE'
@@ -135,7 +135,7 @@ def p_logical_clause_else(p):
 def p_ref_function(p):
     'ref_function : ID FUNCTION_CHANGED DEC_A type statement_list'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
-    argument = ASTNodes.ArgumentsNode( p.lineno(4), p.clauseno(4), p[4], factor )
+    argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), p[4], factor )
     arguments = ASTNodes.ArgumentsNode( p.lineno(4), p.clauseno(4), argument, None ) 
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], arguments, p[4], p[5], factor )
 
@@ -158,6 +158,7 @@ def p_arguments_single(p):
     
 def p_argument(p):
     'argument : type ID'
+    print "herrre", p[2]
     p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), p[1], p[2] )
 
 def p_argument_reference(p):

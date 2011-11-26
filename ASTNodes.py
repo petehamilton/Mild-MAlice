@@ -1,5 +1,6 @@
 # This module contains the nodes created by the parser.
 from grammarExceptions import SemanticException
+from SymbolTable import SymbolTable
 
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
@@ -107,6 +108,7 @@ class BinaryNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
             self.type = self.getLeftExpression().type
         else:
+            print "RAISE BINARY"
             raise SemanticException(self.lineno, self.clauseno)
 
 class LogicalNode(BinaryOperatorNode):
@@ -118,6 +120,7 @@ class LogicalNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type: # Don't need to be a specific type, just need to both be the same
             self.type = self.getLeftExpression().type
         else:
+            print "RAISE LOGICAL"
             raise SemanticException(self.lineno, self.clauseno)
     
 class UnaryNode(OperatorNode):
@@ -132,6 +135,7 @@ class UnaryNode(OperatorNode):
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
+            print "Raise UNARY"
             raise SemanticException(self.lineno, self.clauseno)
 
 class StatementNode(ASTNode):
@@ -152,15 +156,18 @@ class AssignmentNode(StatementNode):
         self.expression = expression
         
     def check(self, symbolTable):
-        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.variableName)
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.variableName.getValue())
         self.expression.check(symbolTable)
-        if  not V:
+        if not V:
+            print "RAISE ASSIGNMENT 1"
             raise SemanticException(self.lineno, self.clauseno)
         else:
             self.expression.check(symbolTable)
+            print V.type, self.expression
             if V.type == self.expression.type:
                 self.type = self.expression.type
             else:
+                print "RAISE ASSIGNMENT 2"
                 raise SemanticException(self.lineno, self.clauseno)
             
 class DeclarationNode(StatementNode):
@@ -174,6 +181,7 @@ class DeclarationNode(StatementNode):
         # if T == None:
             # error("Unknown Type")
         if V:    
+            print "RAISE DECLARATION"
             raise SemanticException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable)
@@ -188,12 +196,38 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self,symbolTable):
         self.length.check(symbolTable)
         if self.length.type != NUMBER:
+            print "RAISE ARRAY DECLARATION"
             raise SemanticException()
         super(ArrayDeclarationNode, self).check(symbolTable)
         
 class FunctionDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
-        super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, [ arguments, body, returnType, returnValue] )
+        super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, returnType )
+        self.arguments = arguments
+        self.body = body
+        self.returnValue = returnValue
+    
+    def getName(self):
+        return self.children[0]
+        
+    def getArguments(self):
+        return self.arguments
+        
+    def getBody(self):
+        return self.body
+    
+    def getReturnType(self):
+        return self.children[1]
+    
+    def getReturnValue(self):
+        return self.returnValue
+        
+    def check(self, symbolTable):    
+        super(FunctionDeclarationNode, self).check(symbolTable)
+        newSymbolTable = SymbolTable(symbolTable)
+        self.getArguments().check(newSymbolTable)
+        self.getBody.check(newSymbolTable)
+        self.getReturnValue().check(newSymbolTable)
 
 class StatementListNode(ASTNode):
     def __init__(self, lineno, clauseno, children ):
@@ -296,6 +330,7 @@ class InputNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
+        print self.getVariable()
         self.getVariable().check(symbolTable)
         self.type = self.getVariable().type
 
@@ -314,7 +349,8 @@ class ArrayAccessNode(ASTNode):
         
         # Can't raise out of upper bounds exception til runtime?
         if self.index < 0:
-            raiseSemanticException()
+            print "RAISE ARRAY ACCESS"
+            raise SemanticException()
 
 class ConditionalNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
@@ -389,10 +425,14 @@ class ArgumentsNode(ASTNode):
     
     def getArguments(self):
         return self.children[1]
+
+    def getArgumentLength(self):
+        return self.getArguments().length
     
     def check(self, symbolTable):
-        self.getArgument.check(symbolTable)
-        self.getArguments.check(symbolTable)
+        self.getArgument().check(symbolTable)
+        if self.getArguments():
+            self.getArguments.check(symbolTable)
 
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentType, identifier, reference = False):
@@ -406,27 +446,89 @@ class ArgumentNode(ASTNode):
     
     def check(self, symbolTable):
         self.getArgumentType().check(symbolTable)
+        print self.getIdentifier()
         self.getIdentifier().check(symbolTable)
 
         
 class FunctionArgumentsNode(ASTNode):
-    def __init__(self, lineno, clauseno, argument, arguments):
+    def __init__(self, lineno, clauseno, argument, arguments = None):
         super(FunctionArgumentsNode, self).__init__( FUNCTION_ARGUMENTS, lineno, clauseno, [argument, arguments] )
+        
+    def getArgument(self):
+        return self.children[0]
+        
+    def getArguments(self):
+        return self.children[1]
+        
+    def check(self, symbolTable):
+        self.getArgument().check(symbolTable)
+        if self.getArguments():
+            self.getArguments.check()
+        
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
         super(FunctionArgumentNode, self).__init__( FUNCTION_ARGUMENT, lineno, clauseno, [exp] )
+        
+    def getExpression(self):
+        return self.children[0]
+        
+    def check(self):
+        self.getExpression().check()
+        self.type = self.getExpression().type
     
     
 class FunctionCallNode(ASTNode):
     def __init__(self, lineno, clauseno, functionName, arguments):
         super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
-
+        
+    def getName(self):
+        return self.children[0]
+        
+    def getArguments(self):
+        return self.children[1]
+        
+    def check(self, symbolTable):
+        func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
+        if not func:
+            pass 
+            # RAISE EXCEPTION
+        elif func.getArguments().length != self.getArguments().length:
+            pass
+            # RAISE EXCEPTIOn
+        else:
+            self.getArguments().check()
+            # TODO CHECK COMPATABILITY
+            self.type = func.type
+        
 class FunctionsNode(ASTNode):
     def __init__(self, lineno, clauseno, function, functions):
         super(FunctionsNode, self).__init__( FUNCTIONS, lineno, clauseno, [function, functions])
+    
+    def getFunction(self):
+        return self.children[0]
+        
+    def getFunctions(self):
+        return self.children[1]    
+    
+    def check(self, symbolTable):
+        self.getFunction().check(symbolTable)
+        self.getFunctions().check(symbolTable)
         
         
 class CodeSeperatorNode(ASTNode):
-    def __init__(self, lineno, clauseno, statementList, functions):
+    def __init__(self, lineno, clauseno, statementList, functions = None ):
         super(CodeSeperatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])
+        
+    def getStatementList(self):
+        return self.children[0]
+        
+    def getFunctions(self):
+        return self.children[1]
+        
+    def check(self, symbolTable):
+        functions = self.getFunctions()
+        if functions:
+            functions.check(symbolTable)
+        
+        self.getStatementList().check(symbolTable)
