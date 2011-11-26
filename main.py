@@ -42,11 +42,11 @@ def parse_code(code):
         #     print tok
         parser = yacc.yacc()
         result = parser.parse(code)
-        result.display()
-        # if result:
-        #     symbolTable = {}
-        #     flags = defaultdict(set)
-        #     newAnalyse(result, flags)
+        # result.display()
+        if result:
+            symbolTable = {}
+            flags = defaultdict(set)
+            newAnalyse(result, flags)
             # analyse(symbolTable, result, flags)
             # cg = CodeGenerator(symbolTable, registers, flags)
             # code = cg.generate(result)
