@@ -31,6 +31,10 @@ class AssignmentTypeException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(AssignmentTypeException, self).__init__(lineno, clauseno, value)
 
+class DeclarationException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(AssignmentTypeException, self).__init__(lineno, clauseno, value)
+
 ################################################################################
 # SYNTAX EXCEPTIONS
 ################################################################################

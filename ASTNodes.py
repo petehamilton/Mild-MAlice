@@ -209,9 +209,8 @@ class DeclarationNode(StatementNode):
         V = symbolTable.lookupCurrLevelOnly(self.variableName)
         # if T == None:
             # error("Unknown Type")
-        if V:    
-            print "RAISE DECLARATION"
-            raise SemanticException(self.lineno, self.clauseno)
+        if V:
+            raise DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable)
             self.type = self.children[1].type
