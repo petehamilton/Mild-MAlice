@@ -357,8 +357,7 @@ class ArrayAccessNode(ASTNode):
         
         # Can't raise out of upper bounds exception til runtime?
         if self.index < 0:
-            print "RAISE ARRAY ACCESS"
-            raise SemanticException()
+            raise ArrayIndexOutOfBoundsException()
 
 class ArrayDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):
@@ -368,8 +367,7 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self,symbolTable):
         self.length.check(symbolTable)
         if self.length.type != NUMBER:
-            print "RAISE ARRAY DECLARATION"
-            raise SemanticException()
+            raise ArrayDeclarationException()
         super(ArrayDeclarationNode, self).check(symbolTable)
 
 

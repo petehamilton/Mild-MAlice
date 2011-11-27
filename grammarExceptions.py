@@ -35,6 +35,14 @@ class DeclarationException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(AssignmentTypeException, self).__init__(lineno, clauseno, value)
 
+class ArrayIndexOutOfBoundsException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(ArrayIndexOutOfBoundsException, self).__init__(lineno, clauseno, value)
+
+class ArrayDeclarationException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(ArrayDeclarationException, self).__init__(lineno, clauseno, value)
+
 ################################################################################
 # SYNTAX EXCEPTIONS
 ################################################################################
