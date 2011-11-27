@@ -418,7 +418,6 @@ class ElseNode(ASTNode):
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
         super(ArgumentsNode, self).__init__( ARGUMENTS, lineno, clauseno, [argument, arguments])
-        self.length = 1
         
     def getArgument(self):
         return self.children[0]
@@ -426,23 +425,24 @@ class ArgumentsNode(ASTNode):
     def getArguments(self):
         return self.children[1]
 
-    def getArgumentLength(self):
-        return self.getArguments().length
+    def getLength(self):
+        return 1 + self.getArguments().getLength()
     
     def check(self, symbolTable):
         self.getArgument().check(symbolTable)
         if self.getArguments():
             self.getArguments().check(symbolTable)
-            self.length += self.getArguments().length
 
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentDeclaration, reference = False):
         super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentDeclaration])
         self.reference = reference
-        self.length = 1
     
     def getArgument(self):
         return self.children[0]
+    
+    def getLength(self):
+        return 1
         
     def check(self, symbolTable):
         self.getArgument().check(symbolTable)
@@ -451,29 +451,30 @@ class ArgumentNode(ASTNode):
 class FunctionArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments = None):
         super(FunctionArgumentsNode, self).__init__( FUNCTION_ARGUMENTS, lineno, clauseno, [argument, arguments] )
-        self.length = 1
         
     def getArgument(self):
         return self.children[0]
         
     def getArguments(self):
         return self.children[1]
+    
+    def getLength(self):
+        return 1 + self.getArguments().getLength()
         
     def check(self, symbolTable):    
         self.getArgument().check(symbolTable)
         if self.getArguments():
-            self.getArguments().check(symbolTable)
-            print "LENGTH", self.getArguments()
-            self.length += self.getArguments().length
-        
+            self.getArguments().check(symbolTable)        
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
         super(FunctionArgumentNode, self).__init__( FUNCTION_ARGUMENT, lineno, clauseno, [exp] )
-        self.length = 1
         
     def getExpression(self):
         return self.children[0]
+    
+    def getLength(self):
+        return 1
         
     def check(self, symbolTable):
         self.getExpression().check(symbolTable)
@@ -496,9 +497,9 @@ class FunctionCallNode(ASTNode):
         if not func:
             print "RAISE NOT FUNC"
             raise SemanticException(self.lineno, self.clauseno)
-        elif func.getArguments().length != self.getArguments().length: 
+        elif func.getArguments().getLength() != self.getArguments().getLength():
             print "Arguments:", self.getArguments().children[0].children[0].children[0],self.getArguments().children[1].children[0].children[0]
-            print func.getArguments().length, self.getArguments().length
+            print func.getArguments().getLength() , self.getArguments().getLength() 
             print "RAISE WRONG ARGUMENTS FUNC"  
             raise SemanticException(self.lineno, self.clauseno)
         else:
