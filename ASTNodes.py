@@ -528,13 +528,9 @@ class FunctionCallNode(ASTNode):
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
         self.getArguments().check(symbolTable)
         if not func:
-            print "RAISE NOT FUNC"
-            raise SemanticException(self.lineno, self.clauseno)
+            raise FunctionMissingException(self.lineno, self.clauseno)
         elif func.getArguments().getLength() != self.getArguments().getLength():
-            print "Arguments:", self.getArguments().children[0].children[0].children[0],self.getArguments().children[1].children[0].children[0]
-            print func.getArguments().getLength() , self.getArguments().getLength() 
-            print "RAISE WRONG ARGUMENTS FUNC"  
-            raise SemanticException(self.lineno, self.clauseno)
+            raise FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
             
             # TODO CHECK COMPATABILITY

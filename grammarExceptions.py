@@ -43,6 +43,14 @@ class ArrayDeclarationException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(ArrayDeclarationException, self).__init__(lineno, clauseno, value)
 
+class FunctionMissingException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(FunctionMissingException, self).__init__(lineno, clauseno, value)
+
+class FunctionArgumentCountException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(FunctionArgumentCountException, self).__init__(lineno, clauseno, value)
+
 ################################################################################
 # SYNTAX EXCEPTIONS
 ################################################################################
