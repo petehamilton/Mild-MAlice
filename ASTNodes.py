@@ -47,7 +47,7 @@ class ASTNode(object):
         return self.nodeType
 
     def __str__(self):
-        return "Node(%s,%r,%s,%s)" % (self.nodeType,self.lineno,self.clauseno,self.children)
+        return "%s(%s,%r,%s,%s)" % (self.__class__.__name__, self.nodeType,self.lineno,self.clauseno,self.children)
     
     def display(self, depth = 0):
         print ("  " * (depth-1)) + \
