@@ -191,15 +191,13 @@ class AssignmentNode(StatementNode):
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.variableName.getValue())
         self.expression.check(symbolTable)
         if not V:
-            print "RAISE ASSIGNMENT 1"
-            raise SemanticException(self.lineno, self.clauseno)
+            raise AssignmentNullException(self.lineno, self.clauseno)
         else:
             self.expression.check(symbolTable)
             if V.type == self.expression.type:
                 self.type = self.expression.type
             else:
-                print "RAISE ASSIGNMENT 2"
-                raise SemanticException(self.lineno, self.clauseno)
+                raise AssignmentTypeException(self.lineno, self.clauseno)
 
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):

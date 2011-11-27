@@ -23,7 +23,13 @@ class UnaryException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(UnaryException, self).__init__(lineno, clauseno, value)
 
+class AssignmentNullException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(AssignmentNullException, self).__init__(lineno, clauseno, value)
 
+class AssignmentTypeException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(AssignmentTypeException, self).__init__(lineno, clauseno, value)
 
 ################################################################################
 # SYNTAX EXCEPTIONS
