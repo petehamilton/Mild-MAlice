@@ -118,8 +118,7 @@ class BinaryNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
             self.type = self.getLeftExpression().type
         else:
-            print "RAISE BINARY"
-            raise SemanticException(self.lineno, self.clauseno)
+            raise BinaryException(self.lineno, self.clauseno)
 
 class LogicalNode(BinaryOperatorNode):
     def __init__(self, lineno, clauseno, operator, children ):
@@ -130,8 +129,7 @@ class LogicalNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type: # Don't need to be a specific type, just need to both be the same
             self.type = self.getLeftExpression().type
         else:
-            print "RAISE LOGICAL"
-            raise SemanticException(self.lineno, self.clauseno)
+            raise LogicalException(self.lineno, self.clauseno)
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
@@ -145,8 +143,7 @@ class UnaryNode(OperatorNode):
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
-            print "Raise UNARY"
-            raise SemanticException(self.lineno, self.clauseno)
+            raise UnaryException(self.lineno, self.clauseno)
 
 
 
