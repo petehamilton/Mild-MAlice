@@ -33,7 +33,7 @@ class AssignmentTypeException(SemanticException):
 
 class DeclarationException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
-        super(AssignmentTypeException, self).__init__(lineno, clauseno, value)
+        super(DeclarationException, self).__init__(lineno, clauseno, value)
 
 class ArrayIndexOutOfBoundsException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
