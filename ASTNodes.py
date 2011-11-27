@@ -144,7 +144,7 @@ class UnaryNode(OperatorNode):
         return self.children[0]
 
     def check(self, symbolTable):
-        self.getExpression.check(symbolTable)
+        self.getExpression().check(symbolTable)
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
