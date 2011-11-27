@@ -62,7 +62,7 @@ class ASTNode(object):
 
 
 ################################################################################
-# OPERATOR NODES
+# OPERATOR NODES - Binary, Logical Binary and Unary
 ################################################################################
 
 class OperatorNode(ASTNode):
@@ -181,7 +181,7 @@ class StatementNode(ASTNode):
 
 
 ################################################################################
-# VARIABLE MODIFIER NODES
+# VARIABLE MODIFIER NODES - Assignment and declaration for id
 ################################################################################
 
 class AssignmentNode(StatementNode):
@@ -381,7 +381,7 @@ class ArrayDeclarationNode(DeclarationNode):
 
 
 ################################################################################
-# CONDITIONAL NODES
+# CONDITIONAL NODES - Loops and If statements
 ################################################################################
 
 class ConditionalNode(ASTNode):
