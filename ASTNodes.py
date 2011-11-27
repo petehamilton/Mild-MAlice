@@ -360,7 +360,7 @@ class ArrayAccessNode(ASTNode):
         # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
         
         if index < 0:
-            raise ArrayIndexOutOfBoundsException()
+            raise ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
 
 class ArrayDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):
@@ -370,7 +370,7 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self,symbolTable):
         self.length.check(symbolTable)
         if self.length.type != NUMBER:
-            raise ArrayDeclarationException()
+            raise ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable)
 
 
