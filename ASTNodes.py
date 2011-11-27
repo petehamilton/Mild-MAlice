@@ -2,6 +2,9 @@
 from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
 from SymbolTable import SymbolTable
 
+################################################################################
+# NODE TYPES
+################################################################################
 UNARY_OP = "unary_op"
 BINARY_OP = "binary_op"
 LOGICAL_OP = "logical_op"
@@ -30,6 +33,8 @@ FUNCTION_ARGUMENTS = 'f_arguments'
 FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
+
+
 
 ################################################################################
 # MAIN AST NODE
