@@ -18,5 +18,5 @@ class SymbolTable(object):
             obj = S.lookupCurrLevelOnly(name)
             if obj:
                 return obj
-                S = S.enclosingSymbolTable
-            return None
+            S = S.enclosingSymbolTable
+        return None
