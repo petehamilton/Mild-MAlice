@@ -580,9 +580,9 @@ class FunctionsNode(ASTNode):
 ################################################################################
 # CODE SEPERATOR NODE - Seperates code from the functions declared at the end
 ################################################################################
-class CodeSeperatorNode(ASTNode):
+class CodeSeparatorNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functions = None ):
-        super(CodeSeperatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])
+        super(CodeSeparatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])
         
     def getStatementList(self):
         return self.children[0]

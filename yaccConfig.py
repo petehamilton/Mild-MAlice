@@ -30,11 +30,11 @@ def p_statement_list_sep(p):
     
 def p_code_seperator(p):
     '''code_seperator : statement_list function_seperator functions'''
-    p[0] = ASTNodes.CodeSeperatorNode(p.lineno(1), p.clauseno(1), p[1], p[3])
+    p[0] = ASTNodes.CodeSeparatorNode(p.lineno(1), p.clauseno(1), p[1], p[3])
     
 def p_code_seperator_single(p):
     'code_seperator : statement_list'
-    p[0] = ASTNodes.CodeSeperatorNode(p.lineno(1), p.clauseno(1), p[1], None)
+    p[0] = ASTNodes.CodeSeparatorNode(p.lineno(1), p.clauseno(1), p[1], None)
     
     
 def p_functions_multiple(p):
