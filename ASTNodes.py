@@ -31,6 +31,7 @@ FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
 
+# Main AST Node class from which all other AST nodes inherit
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
         self.nodeType = nodeType
@@ -55,6 +56,9 @@ class ASTNode(object):
             else:
                 print ("  " * (depth)) + "|> '" + str(child) + "'"
 
+################################################################################
+# OPERATOR NODES
+################################################################################
 class OperatorNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, operator, children ):
         super(OperatorNode, self).__init__( nodeType, lineno, clauseno, children )
@@ -122,7 +126,7 @@ class LogicalNode(BinaryOperatorNode):
         else:
             print "RAISE LOGICAL"
             raise SemanticException(self.lineno, self.clauseno)
-    
+
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
         super(UnaryNode, self).__init__( UNARY_OP, lineno, clauseno, operator, [child] )
@@ -138,6 +142,29 @@ class UnaryNode(OperatorNode):
             print "Raise UNARY"
             raise SemanticException(self.lineno, self.clauseno)
 
+################################################################################
+# END OF OPERATOR NODES
+################################################################################
+
+
+
+################################################################################
+# STATEMENT/STATEMENT LIST NODES
+################################################################################
+class StatementListNode(ASTNode):
+    def __init__(self, lineno, clauseno, children ):
+        super(StatementListNode, self).__init__( STATEMENT_LIST, lineno, clauseno, children )
+    
+    def getStatement(self):
+        return self.children[0]
+        
+    def getStatementList(self):
+        return self.children[1]
+
+    def check(self, symbolTable):
+        self.getStatement().check(symbolTable)
+        self.getStatementList().check(symbolTable)
+
 class StatementNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
         super(StatementNode, self).__init__( nodeType, lineno, clauseno, children )
@@ -147,8 +174,10 @@ class StatementNode(ASTNode):
         
     def getExpression(self):
         return self.children[1]
-        
-        
+
+################################################################################
+# VARIABLE MODIFIER NODES
+################################################################################
 class AssignmentNode(StatementNode):
     def __init__(self, lineno, clauseno, varName, expression ):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [varName, expression] )
@@ -168,7 +197,7 @@ class AssignmentNode(StatementNode):
             else:
                 print "RAISE ASSIGNMENT 2"
                 raise SemanticException(self.lineno, self.clauseno)
-            
+
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
@@ -187,62 +216,10 @@ class DeclarationNode(StatementNode):
             self.type = self.children[1].type
             symbolTable.add(self.variableName, self)
 
-class ArrayDeclarationNode(DeclarationNode):
-    def __init__(self, lineno, clauseno, variableName, typeNode,  length):
-        super(ArrayDeclarationNode, self).__init__( lineno, clauseno, variableName, typeNode )
-        self.length = length
-    
-    def check(self,symbolTable):
-        self.length.check(symbolTable)
-        if self.length.type != NUMBER:
-            print "RAISE ARRAY DECLARATION"
-            raise SemanticException()
-        super(ArrayDeclarationNode, self).check(symbolTable)
-        
-class FunctionDeclarationNode(DeclarationNode):
-    def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
-        super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, returnType )
-        self.arguments = arguments
-        self.body = body
-        self.returnValue = returnValue
-    
-    def getName(self):
-        return self.children[0]
-        
-    def getArguments(self):
-        return self.arguments
-        
-    def getBody(self):
-        return self.body
-    
-    def getReturnType(self):
-        return self.children[1]
-    
-    def getReturnValue(self):
-        return self.returnValue
-        
-    def check(self, symbolTable):    
-        super(FunctionDeclarationNode, self).check(symbolTable)
-        newSymbolTable = SymbolTable(symbolTable)
-        self.getArguments().check(newSymbolTable)
-        if self.getBody():
-            self.getBody().check(newSymbolTable)
-        self.getReturnValue().check(newSymbolTable)
 
-class StatementListNode(ASTNode):
-    def __init__(self, lineno, clauseno, children ):
-        super(StatementListNode, self).__init__( STATEMENT_LIST, lineno, clauseno, children )
-    
-    def getStatement(self):
-        return self.children[0]
-        
-    def getStatementList(self):
-        return self.children[1]
-
-    def check(self, symbolTable):
-        self.getStatement().check(symbolTable)
-        self.getStatementList().check(symbolTable)
-        
+################################################################################
+# FACTOR/PRIMATIVE NODES
+################################################################################
 class Factor(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, child ):
         super(Factor, self).__init__( FACTOR, lineno, clauseno, [child] )
@@ -276,6 +253,10 @@ class IDNode(Factor):
     def check(self, symbolTable):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
 
+
+################################################################################
+# PRINT NODE
+################################################################################
 class SpokeNode(ASTNode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
@@ -286,7 +267,41 @@ class SpokeNode(ASTNode):
     def check(self, symbolTable):
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
+
+
+################################################################################
+# RETURN NODE
+################################################################################
+class ReturnNode(ASTNode):
+    def __init__(self, lineno, clauseno, exp ):
+        super(ReturnNode, self).__init__( RETURN, lineno, clauseno, [exp] )
         
+    def getReturnExpression(self):
+        return self.children[0]
+        
+    def check(self, symbolTable):
+        self.getReturnExpression().check(symbolTable)
+        self.type = self.getReturnExpression().type
+
+
+################################################################################
+# INPUT NODE
+################################################################################
+class InputNode(ASTNode):
+    def __init__(self, lineno, clauseno, variable ):
+        super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
+        
+    def getVariable(self):
+        return self.children[0]
+        
+    #TODO: CHECK IF ID    
+    def check(self, symbolTable):
+        self.getVariable().check(symbolTable)
+        self.type = self.getVariable().type
+
+################################################################################
+# TYPE NODES
+################################################################################
 class TypeNode(ASTNode):
     def __init__(self, lineno, clauseno, typeType ):
         super(TypeNode, self).__init__( TYPE, lineno, clauseno, [] )
@@ -310,29 +325,10 @@ class SentenceTypeNode(TypeNode):
     def __init__(self, lineno, clauseno ):
         super(SentenceTypeNode, self).__init__( lineno, clauseno, SENTENCE )
 
-class ReturnNode(ASTNode):
-    def __init__(self, lineno, clauseno, exp ):
-        super(ReturnNode, self).__init__( RETURN, lineno, clauseno, [exp] )
-        
-    def getReturnExpression(self):
-        return self.children[0]
-        
-    def check(self, symbolTable):
-        self.getReturnExpression().check(symbolTable)
-        self.type = self.getReturnExpression().type
-    
-class InputNode(ASTNode):
-    def __init__(self, lineno, clauseno, variable ):
-        super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
-        
-    def getVariable(self):
-        return self.children[0]
-        
-    #TODO: CHECK IF ID    
-    def check(self, symbolTable):
-        self.getVariable().check(symbolTable)
-        self.type = self.getVariable().type
 
+################################################################################
+# ARRAY NODES
+################################################################################
 class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, index ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
@@ -351,6 +347,22 @@ class ArrayAccessNode(ASTNode):
             print "RAISE ARRAY ACCESS"
             raise SemanticException()
 
+class ArrayDeclarationNode(DeclarationNode):
+    def __init__(self, lineno, clauseno, variableName, typeNode,  length):
+        super(ArrayDeclarationNode, self).__init__( lineno, clauseno, variableName, typeNode )
+        self.length = length
+    
+    def check(self,symbolTable):
+        self.length.check(symbolTable)
+        if self.length.type != NUMBER:
+            print "RAISE ARRAY DECLARATION"
+            raise SemanticException()
+        super(ArrayDeclarationNode, self).check(symbolTable)
+
+
+################################################################################
+# CONDITIONAL NODES
+################################################################################
 class ConditionalNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
         super(ConditionalNode, self).__init__(nodeType, lineno, clauseno, children) #Children always come in expr, body, other
@@ -382,6 +394,22 @@ class IfNode(ConditionalNode):
             if nextLogicalClause != None:
                 nextLogicalClause.check(symbolTable)
 
+class ElseIfNode(ConditionalNode):
+    def __init__(self, lineno, clauseno, exp, thenBody):
+        super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
+
+# Some way to inherit this from conditionalNode as well? Although I suppose it's
+# not that conditional in that there is no logical check?
+class ElseNode(ASTNode):
+    def __init__(self, lineno, clauseno, thenBody):
+        super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+    
+    def getBody(self):
+        return self.children[0]
+    
+    def check(self, symbolTable):
+        self.getBody().check(symbolTable)
+
 class LogicalClausesNode(ASTNode):
     def __init__(self, lineno, clauseno, logicalClause, logicalClauses):
         super(LogicalClausesNode, self).__init__(LOGICALCLAUSES, lineno, clauseno, [logicalClause, logicalClauses])
@@ -399,22 +427,40 @@ class LogicalClausesNode(ASTNode):
         if logicalClauses != None:
             logicalClauses.check(symbolTable)
 
-class ElseIfNode(ConditionalNode):
-    def __init__(self, lineno, clauseno, exp, thenBody):
-        super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
 
-# Some way to inherit this from conditionalNode as well? Although I suppose it's
-# not that conditional in that there is no logical check?
-class ElseNode(ASTNode):
-    def __init__(self, lineno, clauseno, thenBody):
-        super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+################################################################################
+# FUNCTION DECLARATION NODES
+################################################################################
+class FunctionDeclarationNode(DeclarationNode):
+    def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
+        super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, returnType )
+        self.arguments = arguments
+        self.body = body
+        self.returnValue = returnValue
     
-    def getBody(self):
+    def getName(self):
         return self.children[0]
-    
-    def check(self, symbolTable):
-        self.getBody().check(symbolTable)
         
+    def getArguments(self):
+        return self.arguments
+        
+    def getBody(self):
+        return self.body
+    
+    def getReturnType(self):
+        return self.children[1]
+    
+    def getReturnValue(self):
+        return self.returnValue
+        
+    def check(self, symbolTable):    
+        super(FunctionDeclarationNode, self).check(symbolTable)
+        newSymbolTable = SymbolTable(symbolTable)
+        self.getArguments().check(newSymbolTable)
+        if self.getBody():
+            self.getBody().check(newSymbolTable)
+        self.getReturnValue().check(newSymbolTable)
+
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
         super(ArgumentsNode, self).__init__( ARGUMENTS, lineno, clauseno, [argument, arguments])
@@ -447,7 +493,37 @@ class ArgumentNode(ASTNode):
     def check(self, symbolTable):
         self.getArgument().check(symbolTable)
 
+
+################################################################################
+# FUNCTION CALL NODES
+################################################################################
+    
+class FunctionCallNode(ASTNode):
+    def __init__(self, lineno, clauseno, functionName, arguments):
+        super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
         
+    def getName(self):
+        return self.children[0]
+        
+    def getArguments(self):
+        return self.children[1]
+        
+    def check(self, symbolTable):
+        func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
+        self.getArguments().check(symbolTable)
+        if not func:
+            print "RAISE NOT FUNC"
+            raise SemanticException(self.lineno, self.clauseno)
+        elif func.getArguments().getLength() != self.getArguments().getLength():
+            print "Arguments:", self.getArguments().children[0].children[0].children[0],self.getArguments().children[1].children[0].children[0]
+            print func.getArguments().getLength() , self.getArguments().getLength() 
+            print "RAISE WRONG ARGUMENTS FUNC"  
+            raise SemanticException(self.lineno, self.clauseno)
+        else:
+            
+            # TODO CHECK COMPATABILITY
+            self.type = func.type
+
 class FunctionArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments = None):
         super(FunctionArgumentsNode, self).__init__( FUNCTION_ARGUMENTS, lineno, clauseno, [argument, arguments] )
@@ -479,34 +555,12 @@ class FunctionArgumentNode(ASTNode):
     def check(self, symbolTable):
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
-    
-    
-class FunctionCallNode(ASTNode):
-    def __init__(self, lineno, clauseno, functionName, arguments):
-        super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
-        
-    def getName(self):
-        return self.children[0]
-        
-    def getArguments(self):
-        return self.children[1]
-        
-    def check(self, symbolTable):
-        func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
-        self.getArguments().check(symbolTable)
-        if not func:
-            print "RAISE NOT FUNC"
-            raise SemanticException(self.lineno, self.clauseno)
-        elif func.getArguments().getLength() != self.getArguments().getLength():
-            print "Arguments:", self.getArguments().children[0].children[0].children[0],self.getArguments().children[1].children[0].children[0]
-            print func.getArguments().getLength() , self.getArguments().getLength() 
-            print "RAISE WRONG ARGUMENTS FUNC"  
-            raise SemanticException(self.lineno, self.clauseno)
-        else:
-            
-            # TODO CHECK COMPATABILITY
-            self.type = func.type
-        
+
+
+
+################################################################################
+# FUNCTION LIST NODE - List of functions at end of file
+################################################################################
 class FunctionsNode(ASTNode):
     def __init__(self, lineno, clauseno, function, functions):
         super(FunctionsNode, self).__init__( FUNCTIONS, lineno, clauseno, [function, functions])
@@ -521,8 +575,11 @@ class FunctionsNode(ASTNode):
         self.getFunction().check(symbolTable)
         if self.getFunctions():
             self.getFunctions().check(symbolTable)
-        
-        
+
+
+################################################################################
+# CODE SEPERATOR NODE - Seperates code from the functions declared at the end
+################################################################################
 class CodeSeperatorNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functions = None ):
         super(CodeSeperatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])
