@@ -347,16 +347,19 @@ class ArrayAccessNode(ASTNode):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
         self.index = index
         
-    def getVariable(self):
+    def getValue(self):
         return self.children[0]
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
-        self.getVariable().check(symbolTable)
-        self.type = self.getVariable().type
+        self.getValue().check(symbolTable)
+        self.type = self.getValue().type
         
         # Can't raise out of upper bounds exception til runtime?
-        if self.index < 0:
+        # maybe just do all at runtime? This won't work since index is a node/factor
+        # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
+        
+        if index < 0:
             raise ArrayIndexOutOfBoundsException()
 
 class ArrayDeclarationNode(DeclarationNode):
