@@ -34,7 +34,7 @@ def p_code_seperator(p):
     
 def p_code_seperator_single(p):
     'code_seperator : statement_list'
-    p[0] = ASTNodes.CodeSeparatorNode(p.lineno(1), p.clauseno(1), p[1], None)
+    p[0] = p[1]
     
     
 def p_functions_multiple(p):
@@ -45,7 +45,7 @@ def p_functions_multiple(p):
 def p_functions_single(p):
     '''functions : ref_function
                  | function'''
-    p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], None )
+    p[0] = p[1]
 
 def p_statement_print(p):
     '''statement    : expression PRINT_SPOKE
@@ -76,7 +76,7 @@ def p_statement_input(p):
 
 def p_statement_comment(p):
     'statement : expression COMMENT_THOUGHT ALICE'
-    pass
+    p[0] = ASTNodes.CommentNode(p.lineno(1), p.clauseno(1), p[1])
 
 def p_statement_too(p):
     'statement : statement TOO'
@@ -96,8 +96,9 @@ def p_statement_array_has(p):
     'statement : ID ARRAY_HAD expression type'
     p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4], p[3])
 
+#TODO CHANGED TO FACTOR NOT SURE IF RIGHT
 def p_expression_array_access(p):
-    'expression : ID expression ARRAY_PIECE'
+    'expression : factor expression ARRAY_PIECE'
     p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_statement_loop(p):

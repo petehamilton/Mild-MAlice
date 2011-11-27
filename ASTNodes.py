@@ -33,6 +33,7 @@ FUNCTION_ARGUMENTS = 'f_arguments'
 FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
+COMMENT = 'comment'
 
 
 
@@ -123,6 +124,7 @@ class BinaryNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
             self.type = self.getLeftExpression().type
         else:
+            print "Binary Exception"
             raise BinaryException(self.lineno, self.clauseno)
 
 class LogicalNode(BinaryOperatorNode):
@@ -134,6 +136,7 @@ class LogicalNode(BinaryOperatorNode):
         if self.getLeftExpression().type == self.getRightExpression().type: # Don't need to be a specific type, just need to both be the same
             self.type = self.getLeftExpression().type
         else:
+            print "Logical Exception"
             raise LogicalException(self.lineno, self.clauseno)
 
 class UnaryNode(OperatorNode):
@@ -148,6 +151,7 @@ class UnaryNode(OperatorNode):
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
+            print "Unary Exception"
             raise UnaryException(self.lineno, self.clauseno)
 
 
@@ -202,6 +206,7 @@ class AssignmentNode(StatementNode):
             if V.type == self.expression.type:
                 self.type = self.expression.type
             else:
+                print "Assignment Exception"
                 raise AssignmentTypeException(self.lineno, self.clauseno)
 
 class DeclarationNode(StatementNode):
@@ -215,6 +220,7 @@ class DeclarationNode(StatementNode):
         # if T == None:
             # error("Unknown Type")
         if V:
+            print "Declaration Exception"
             raise DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable)
@@ -357,6 +363,7 @@ class ArrayAccessNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
+        # print self.getValue()
         self.getValue().check(symbolTable)
         self.type = self.getValue().type
         
@@ -364,7 +371,8 @@ class ArrayAccessNode(ASTNode):
         # maybe just do all at runtime? This won't work since index is a node/factor
         # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
         
-        if index < 0:
+        if self.index < 0:
+            print "Array Index Out Of Bounds"
             raise ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
 
 class ArrayDeclarationNode(DeclarationNode):
@@ -375,6 +383,7 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self,symbolTable):
         self.length.check(symbolTable)
         if self.length.type != NUMBER:
+            print "ARrray declaration exception"
             raise ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable)
 
@@ -536,8 +545,10 @@ class FunctionCallNode(ASTNode):
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
         self.getArguments().check(symbolTable)
         if not func:
+            print "Function not in symbol table"
             raise FunctionMissingException(self.lineno, self.clauseno)
         elif func.getArguments().getLength() != self.getArguments().getLength():
+            print "Function Argument Count Exception"
             raise FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
             
@@ -617,5 +628,17 @@ class CodeSeparatorNode(ASTNode):
         functions = self.getFunctions()
         if functions:
             functions.check(symbolTable)
-        
+        print self.getStatementList()
         self.getStatementList().check(symbolTable)
+        
+        
+class CommentNode(ASTNode):
+    def __init__(self, lineno, clauseno, comment):
+        super(CommentNode, self).__init__( COMMENT, lineno, clauseno, [comment])
+    
+    def getComment(self):
+        return self.children[0]
+        
+    def check(self, symbolTable):
+        pass    
+    
