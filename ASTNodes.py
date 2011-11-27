@@ -1,5 +1,5 @@
 # This module contains the nodes created by the parser.
-from grammarExceptions import SemanticException
+from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
 from SymbolTable import SymbolTable
 
 UNARY_OP = "unary_op"
