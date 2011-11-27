@@ -31,7 +31,10 @@ FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
 
-# Main AST Node class from which all other AST nodes inherit
+################################################################################
+# MAIN AST NODE
+################################################################################
+
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
         self.nodeType = nodeType
@@ -56,9 +59,12 @@ class ASTNode(object):
             else:
                 print ("  " * (depth)) + "|> '" + str(child) + "'"
 
+
+
 ################################################################################
 # OPERATOR NODES
 ################################################################################
+
 class OperatorNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, operator, children ):
         super(OperatorNode, self).__init__( nodeType, lineno, clauseno, children )
@@ -142,15 +148,12 @@ class UnaryNode(OperatorNode):
             print "Raise UNARY"
             raise SemanticException(self.lineno, self.clauseno)
 
-################################################################################
-# END OF OPERATOR NODES
-################################################################################
-
 
 
 ################################################################################
 # STATEMENT/STATEMENT LIST NODES
 ################################################################################
+
 class StatementListNode(ASTNode):
     def __init__(self, lineno, clauseno, children ):
         super(StatementListNode, self).__init__( STATEMENT_LIST, lineno, clauseno, children )
@@ -175,9 +178,12 @@ class StatementNode(ASTNode):
     def getExpression(self):
         return self.children[1]
 
+
+
 ################################################################################
 # VARIABLE MODIFIER NODES
 ################################################################################
+
 class AssignmentNode(StatementNode):
     def __init__(self, lineno, clauseno, varName, expression ):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [varName, expression] )
@@ -217,9 +223,11 @@ class DeclarationNode(StatementNode):
             symbolTable.add(self.variableName, self)
 
 
+
 ################################################################################
 # FACTOR/PRIMATIVE NODES
 ################################################################################
+
 class Factor(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, child ):
         super(Factor, self).__init__( FACTOR, lineno, clauseno, [child] )
@@ -254,9 +262,11 @@ class IDNode(Factor):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
 
 
+
 ################################################################################
 # PRINT NODE
 ################################################################################
+
 class SpokeNode(ASTNode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
@@ -269,9 +279,11 @@ class SpokeNode(ASTNode):
         self.type = self.getExpression().type
 
 
+
 ################################################################################
 # RETURN NODE
 ################################################################################
+
 class ReturnNode(ASTNode):
     def __init__(self, lineno, clauseno, exp ):
         super(ReturnNode, self).__init__( RETURN, lineno, clauseno, [exp] )
@@ -284,9 +296,11 @@ class ReturnNode(ASTNode):
         self.type = self.getReturnExpression().type
 
 
+
 ################################################################################
 # INPUT NODE
 ################################################################################
+
 class InputNode(ASTNode):
     def __init__(self, lineno, clauseno, variable ):
         super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
@@ -299,9 +313,12 @@ class InputNode(ASTNode):
         self.getVariable().check(symbolTable)
         self.type = self.getVariable().type
 
+
+
 ################################################################################
 # TYPE NODES
 ################################################################################
+
 class TypeNode(ASTNode):
     def __init__(self, lineno, clauseno, typeType ):
         super(TypeNode, self).__init__( TYPE, lineno, clauseno, [] )
@@ -326,9 +343,11 @@ class SentenceTypeNode(TypeNode):
         super(SentenceTypeNode, self).__init__( lineno, clauseno, SENTENCE )
 
 
+
 ################################################################################
 # ARRAY NODES
 ################################################################################
+
 class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, index ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
@@ -360,9 +379,11 @@ class ArrayDeclarationNode(DeclarationNode):
         super(ArrayDeclarationNode, self).check(symbolTable)
 
 
+
 ################################################################################
 # CONDITIONAL NODES
 ################################################################################
+
 class ConditionalNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
         super(ConditionalNode, self).__init__(nodeType, lineno, clauseno, children) #Children always come in expr, body, other
@@ -428,9 +449,11 @@ class LogicalClausesNode(ASTNode):
             logicalClauses.check(symbolTable)
 
 
+
 ################################################################################
 # FUNCTION DECLARATION NODES
 ################################################################################
+
 class FunctionDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
         super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, returnType )
@@ -494,10 +517,11 @@ class ArgumentNode(ASTNode):
         self.getArgument().check(symbolTable)
 
 
+
 ################################################################################
 # FUNCTION CALL NODES
 ################################################################################
-    
+
 class FunctionCallNode(ASTNode):
     def __init__(self, lineno, clauseno, functionName, arguments):
         super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
@@ -561,6 +585,7 @@ class FunctionArgumentNode(ASTNode):
 ################################################################################
 # FUNCTION LIST NODE - List of functions at end of file
 ################################################################################
+
 class FunctionsNode(ASTNode):
     def __init__(self, lineno, clauseno, function, functions):
         super(FunctionsNode, self).__init__( FUNCTIONS, lineno, clauseno, [function, functions])
@@ -577,9 +602,11 @@ class FunctionsNode(ASTNode):
             self.getFunctions().check(symbolTable)
 
 
+
 ################################################################################
 # CODE SEPERATOR NODE - Seperates code from the functions declared at the end
 ################################################################################
+
 class CodeSeparatorNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functions = None ):
         super(CodeSeparatorNode, self).__init__( CODE_SEP, lineno, clauseno, [statementList, functions])
