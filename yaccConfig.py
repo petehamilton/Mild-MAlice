@@ -86,19 +86,26 @@ def p_statement_wasa(p):
     'statement : ID DEC_WAS DEC_A type'
     p[0] = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4])
 
-#TODO Had to change to expression to get arrays to work
-def p_statement_became(p):
-    'statement : expression ASSIGNMENT expression'
+def p_statement_became_id(p):
+    'statement : ID ASSIGNMENT expression'
     p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), p[1], p[3])
+
+def p_statement_became_array_access(p):
+    'statement : array_access ASSIGNMENT expression'
+    p[0] = ASTNodes.ArrayAssignmentNode(p.lineno(1), p.clauseno(1), p[1], p[3])
 
 #TODO: SHOULD WE ONLY MATCH ON NUMBERS e.g "a has 'a' number" readable but catch later?
 def p_statement_array_has(p):
     'statement : ID ARRAY_HAD expression type'
     p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4], p[3])
 
-#TODO CHANGED TO FACTOR NOT SURE IF RIGHT
 def p_expression_array_access(p):
-    'expression : factor expression ARRAY_PIECE'
+    'expression : array_access'
+    p[0] = p[1]
+
+#TODO CHANGED TO FACTOR NOT SURE IF RIGHT
+def p_array_access(p):
+    'array_access : factor expression ARRAY_PIECE'
     p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_statement_loop(p):

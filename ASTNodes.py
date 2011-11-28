@@ -190,24 +190,33 @@ class StatementNode(ASTNode):
 # VARIABLE MODIFIER NODES - Assignment and declaration for id
 ################################################################################
 
+#TODO: Maybe not dest, use something more appropriate
 class AssignmentNode(StatementNode):
-    def __init__(self, lineno, clauseno, varName, expression ):
-        super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [varName, expression] )
-        self.variableName = varName
-        self.expression = expression
+    def __init__(self, lineno, clauseno, dest, expression ):
+        super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [dest, expression] )
+    
+    def getDestination(self):
+        return self.children[0]
+    
+    def getExpression(self):
+        return self.children[1]
         
-    def check(self, symbolTable):
-        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.variableName.getValue())
-        self.expression.check(symbolTable)
+    def variableCheck(self, symbolTable, variable):
+        expr = self.getExpression()
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(variable)
+        expr.check(symbolTable)
         if not V:
             raise AssignmentNullException(self.lineno, self.clauseno)
         else:
-            self.expression.check(symbolTable)
-            if V.type == self.expression.type:
-                self.type = self.expression.type
+            expr.check(symbolTable)
+            if V.type == expr.type:
+                self.type = expr.type
             else:
                 print "Assignment Exception"
                 raise AssignmentTypeException(self.lineno, self.clauseno)
+
+    def check(self, symbolTable):
+        self.variableCheck(symbolTable, self.getDestination())
 
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
@@ -374,6 +383,14 @@ class ArrayAccessNode(ASTNode):
         if self.index < 0:
             print "Array Index Out Of Bounds"
             raise ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
+
+class ArrayAssignmentNode(AssignmentNode):
+    def __init__(self, lineno, clauseno, array_access, expression ):
+        super(ArrayAssignmentNode, self).__init__(lineno, clauseno, array_access, expression)
+        
+    def check(self, symbolTable):
+        idNode = self.getDestination().getValue()
+        self.variableCheck(symbolTable, idNode.getValue())
 
 class ArrayDeclarationNode(DeclarationNode):
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):
