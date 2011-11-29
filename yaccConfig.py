@@ -143,7 +143,8 @@ def p_logical_clause_else(p):
 def p_ref_function(p):
     'ref_function : ID FUNCTION_CHANGED DEC_A type statement_list'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
-    argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), p[4], factor )
+    declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
+    argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], p[5], factor )
 
     
@@ -179,7 +180,8 @@ def p_expression_call_function(p):
 
 def p_expression_call_pbr_function(p):
     'expression : ID FUNCTION_WENT FUNCTION_THROUGH ID'
-    argument = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), p[1] )
+    factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
+    argument = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), factor )
     p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], argument)
 
 

@@ -372,7 +372,6 @@ class ArrayAccessNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
-        # print self.getValue()
         self.getValue().check(symbolTable)
         self.type = self.getValue().type
         
@@ -502,7 +501,7 @@ class FunctionDeclarationNode(DeclarationNode):
     def getReturnValue(self):
         return self.returnValue
         
-    def check(self, symbolTable):    
+    def check(self, symbolTable):        
         super(FunctionDeclarationNode, self).check(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         self.getArguments().check(newSymbolTable)
@@ -600,7 +599,7 @@ class FunctionArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
-    def check(self, symbolTable):
+    def check(self, symbolTable):    
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
 
@@ -645,7 +644,6 @@ class CodeSeparatorNode(ASTNode):
         functions = self.getFunctions()
         if functions:
             functions.check(symbolTable)
-        print self.getStatementList()
         self.getStatementList().check(symbolTable)
         
         
