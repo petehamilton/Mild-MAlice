@@ -67,7 +67,7 @@ def p_function_seperator(p):
     pass 
 
 def p_statement_return(p):
-    'statement    : expression RETURN_FOUND'
+    'statement    : ALICE RETURN_FOUND expression'
     p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
 
 def p_statement_input(p):
@@ -150,11 +150,11 @@ def p_ref_function(p):
 
     
 def p_function(p):
-    'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list ALICE RETURN_FOUND expression seperator'
+    'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list'
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], p[8], p[11])
     
 def p_function_no_body(p):
-    'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type ALICE RETURN_FOUND expression seperator'
+    'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type'
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], None, p[10])
 
 def p_arguments_multiple(p):
