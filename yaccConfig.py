@@ -105,8 +105,9 @@ def p_expression_array_access(p):
 
 #TODO CHANGED TO FACTOR NOT SURE IF RIGHT
 def p_array_access(p):
-    'array_access : factor expression ARRAY_PIECE'
-    p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), p[1], p[2])
+    'array_access : ID expression ARRAY_PIECE'
+    factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
+    p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), factor, p[2])
 
 def p_statement_loop(p):
     'statement : LOOP_EVENTUALLY L_PAREN expression_logical R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
