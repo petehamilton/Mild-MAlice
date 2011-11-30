@@ -427,6 +427,10 @@ class LoopNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, body ):
         super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
         
+    def check(self, symbolTable):
+        newSymbolTable = SymbolTable(symbolTable)
+        super(LoopNode, self).check(newSymbolTable)
+        
 class IfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody, nextLogicalClause = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, nextLogicalClause])
@@ -435,10 +439,11 @@ class IfNode(ConditionalNode):
             return self.children[2]
 
         def check(self, symbolTable):
-            super(IfNode, self).check(symbolTable)
+            newSymbolTable = SymbolTable(symbolTable)
+            super(IfNode, self).check(newSymbolTable)
             nextLogicalClause = self.getNextLogicalClause();
             if nextLogicalClause != None:
-                nextLogicalClause.check(symbolTable)
+                nextLogicalClause.check(newSymbolTable)
 
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
