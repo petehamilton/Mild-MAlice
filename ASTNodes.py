@@ -28,6 +28,7 @@ LOGICALCLAUSE = "logical_clause"
 LOGICALCLAUSES = "logical_clauses"
 ARGUMENT = 'argument'
 ARGUMENTS = 'arguments'
+FUNCTION_BODY = 'function_body'
 FUNCTION_ARGUMENT = 'f_argument'
 FUNCTION_ARGUMENTS = 'f_arguments'
 FUNCTION_CALL = 'f_call'
@@ -485,11 +486,10 @@ class LogicalClausesNode(ASTNode):
 ################################################################################
 
 class FunctionDeclarationNode(DeclarationNode):
-    def __init__(self, lineno, clauseno, functionName, arguments, returnType, body, returnValue ):
+    def __init__(self, lineno, clauseno, functionName, arguments, returnType, body ):
         super(FunctionDeclarationNode, self).__init__( lineno, clauseno, functionName, returnType )
         self.arguments = arguments
         self.body = body
-        self.returnValue = returnValue
     
     def getName(self):
         return self.children[0]
@@ -503,16 +503,14 @@ class FunctionDeclarationNode(DeclarationNode):
     def getReturnType(self):
         return self.children[1]
     
-    def getReturnValue(self):
-        return self.returnValue
-        
+    # TODO CHECK RETURN VALUE SAME AS RETURN TYPE
     def check(self, symbolTable):        
         super(FunctionDeclarationNode, self).check(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         self.getArguments().check(newSymbolTable)
         if self.getBody():
             self.getBody().check(newSymbolTable)
-        self.getReturnValue().check(newSymbolTable)
+        # self.getReturnValue().check(newSymbolTable)
 
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
@@ -608,6 +606,20 @@ class FunctionArgumentNode(ASTNode):
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
 
+class FunctionBodyNode(ASTNode):
+    def __init__(self, lineno, clauseno, statementList, functionBody):
+        super(FunctionBodyNode, self).__init__( FUNCTION_BODY, lineno, clauseno, [statementList, functionBody])
+    
+    def getStatementList(self):
+        return self.children[0]
+        
+    def getFunctionBody(self):
+        return self.children[1]
+        
+    def check(self, symbolTable):
+        self.getStatementList().check(symbolTable)
+        self.getFunctionBody().check(symbolTable)
+        
 
 
 ################################################################################
