@@ -65,19 +65,6 @@ def p_function_seperator(p):
     '''function_seperator : FUNCTION_THE FUNCTION_ROOM
                           | FUNCTION_THE FUNCTION_LOOKING_GLASS'''
     pass 
-<<<<<<< HEAD
-    
-# TODO: IF YOU REMOVE ALICE SHIFT/REDUCE GOES AND ALL IF'S AND LOOPS WORK. HMMMM
-def p_statement_return(p):
-<<<<<<< HEAD
-    'statement    : ALICE RETURN_FOUND expression'
-    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[3])
-=======
-    'statement : ALICE RETURN_FOUND expression'
-    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
->>>>>>> Found big error in code but not yet sure how to fix it so added a note about p_statement_return. If you remove Alice things mysteriously work. Shift/reduce is on Alice...
-=======
->>>>>>> Fixed one bug with function returning. Now no longer have shift/reduce issues. Made function return its own type. However this wont work for loops and ifs where they're expecting a statement list and might get a return in a function. Not sure what to do
 
 def p_statement_input(p):
     'statement : INPUT_WHAT DEC_WAS expression'
