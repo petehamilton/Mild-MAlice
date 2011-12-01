@@ -68,7 +68,7 @@ def p_function_seperator(p):
 
 def p_statement_return(p):
     'statement    : ALICE RETURN_FOUND expression'
-    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[1])
+    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[3])
 
 def p_statement_input(p):
     'statement : INPUT_WHAT DEC_WAS expression'
