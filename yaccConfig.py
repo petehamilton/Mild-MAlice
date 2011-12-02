@@ -182,7 +182,15 @@ def p_expression_binary(p):
                     | expression B_AND expression
                     | expression PLUS expression
                     | expression MINUS expression
-                    | expression MULTIPLY expression'''
+                    | expression MULTIPLY expression
+                    | expression L_EQUAL expression
+                    | expression L_LESS_THAN expression
+                    | expression L_GREATER_THAN expression
+                    | expression L_GREATER_THAN_EQUAL expression
+                    | expression L_LESS_THAN_EQUAL expression
+                    | expression L_NOT_EQUAL expression
+                    | expression L_AND expression
+                    | expression L_OR expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 
@@ -202,17 +210,6 @@ def p_expression_uminus(p):
 def p_expression_factor(p):
     'expression : factor'
     p[0] = p[1]
-
-def p_expression_logical(p):
-    '''expression   : expression L_EQUAL expression
-                    | expression L_LESS_THAN expression
-                    | expression L_GREATER_THAN expression
-                    | expression L_GREATER_THAN_EQUAL expression
-                    | expression L_LESS_THAN_EQUAL expression
-                    | expression L_NOT_EQUAL expression
-                    | expression L_AND expression
-                    | expression L_OR expression'''
-    p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
 ################################################################################
 # ARRAY ACCESS
