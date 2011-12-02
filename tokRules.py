@@ -169,11 +169,6 @@ def t_ID(t):
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     return t
 
-# TODO: IS THERE A BETTER WAY? Will match on t_ID first
-def t_ARRAY_APOSTROPHE(t):
-    r'\'s'
-    pass
-
 def t_TOO(t):
     r'\too'
     pass
