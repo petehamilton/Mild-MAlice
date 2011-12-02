@@ -98,11 +98,11 @@ def p_statement_loop(p):
 
 
 def p_statement_if_either(p):
-    'statement    : IF_EITHER L_PAREN expression_logical R_PAREN IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    'statement    : IF_EITHER L_PAREN expression_logical R_PAREN IF_SO statement_list IF_OR statement_list logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
 
 def p_statement_if_perhaps(p):
-    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
+    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
 
 def p_statement_if_perhaps_multiple(p):
@@ -128,10 +128,14 @@ def p_logical_clauses_many(p):
   'logical_clauses  : logical_clause logical_clauses'
   p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
-def p_logical_clauses_none(p):
-  '''logical_clauses  : ALICE DEC_WAS IF_UNSURE
-                      | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
+def p_logical_clauses_end(p):
+  'logical_clauses  : logical_ending'
   pass
+
+def p_logical_ending(p):
+    '''logical_ending  : ALICE DEC_WAS IF_UNSURE
+                       | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
+    pass
 
 ################################################################################
 # LOGICAL CLAUSE
