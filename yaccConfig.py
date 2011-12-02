@@ -116,10 +116,6 @@ def p_statement_return(p):
 def p_statement_expression(p):
     'statement : expression'
     p[0] = p[1]
-    
-def p_expression_array_access(p):
-    'expression : array_access'
-    p[0] = p[1]
 
 ################################################################################
 # LOGICAL CLAUSES
@@ -151,6 +147,7 @@ def p_logical_clause_else(p):
 ################################################################################
 # EXPRESSION
 ################################################################################
+
 def p_expression_call_function(p):
     'expression : ID L_PAREN function_arguments R_PAREN'
     p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[1], p[3])
@@ -206,6 +203,10 @@ def p_expression_divide(p):
 def p_expression_uminus(p):
     'expression : MINUS expression %prec UMINUS'
     p[0] = ASTNodes.UnaryNode(p.lineno(1), p.clauseno(1), p[1], p[2])
+
+def p_expression_array_access(p):
+    'expression : array_access'
+    p[0] = p[1]
 
 def p_expression_factor(p):
     'expression : factor'
