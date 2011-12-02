@@ -32,6 +32,7 @@ tokens = [
         'R_PAREN',
         'FUNCTION_LOOKING_GLASS',
         'ALICE_FOUND',
+        'APOSTROPHE',
     ]
 
 reserved = {          
@@ -96,6 +97,7 @@ t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
+t_APOSTROPHE = r'\'s'
 # t_ALICE = r'Alice'
 
 
