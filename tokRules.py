@@ -30,14 +30,15 @@ tokens = [
         'ID',
         'L_PAREN',
         'R_PAREN',
-        'FUNCTION_LOOKING_GLASS'
+        'FUNCTION_LOOKING_GLASS',
+        'ALICE_FOUND',
+        'APOSTROPHE',
     ]
 
 reserved = {          
     'Alice'         : 'ALICE',
     'spoke'         : 'PRINT_SPOKE',
     'said'          : 'PRINT_SAID',
-    'found'         : 'RETURN_FOUND',
     'drank'         : 'DECREMENT',
     'ate'           : 'INCREMENT', 
     'and'           : 'SEP_AND',
@@ -70,10 +71,8 @@ reserved = {
     'The'           : 'FUNCTION_THE',
     'contained'     : 'FUNCTION_CONTAINED',
     'changed'       : 'FUNCTION_CHANGED',
-    # 'it'            : 'FUNCTION_IT',
     'room'          : 'FUNCTION_ROOM',
     'spider'        : 'FUNCTION_SPIDER',
-    
 }
 
 # Tokens 
@@ -98,20 +97,28 @@ t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
+t_APOSTROPHE = r'\'s'
+# t_ALICE = r'Alice'
 
 
-@TOKEN('Looking' + t_MINUS + 'Glass')
-def t_FUNCTION_LOOKING_GLASS(t):
-    return t
 
 # tokens.extend(reserved.values())
 tokens = reserved.values() + tokens
 # A string containing ignored characters.
 t_ignore  = ' \t\r'
 
+@TOKEN('Alice[\s\t\n]+found')
+def t_ALICE_FOUND(t):
+    return t
+
+@TOKEN('Looking' + t_MINUS + 'Glass')
+def t_FUNCTION_LOOKING_GLASS(t):
+    return t
+
+
 # A regular expression rule with some action code
 def t_NUMBER(t):
-    r'-?\d+'
+    r'\d+'
     t.value = int(t.value)    
     return t
 
@@ -161,11 +168,6 @@ def t_ID(t):
     r'[a-zA-Z][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     return t
-
-# TODO: IS THERE A BETTER WAY? Will match on t_ID first
-def t_ARRAY_APOSTROPHE(t):
-    r'\'s'
-    pass
 
 def t_TOO(t):
     r'\too'

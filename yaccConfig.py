@@ -16,7 +16,7 @@ precedence = (
     ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
+    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT', 'UMINUS'),
     ('left', 'L_PAREN', 'R_PAREN'),
 )
 
@@ -93,36 +93,61 @@ def p_statement_array_has(p):
     p[0] = ASTNodes.ArrayDeclarationNode(p.lineno(1), p.clauseno(1), p[1], p[4], p[3])
 
 def p_statement_loop(p):
-    'statement : LOOP_EVENTUALLY L_PAREN expression_logical R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
+    'statement : LOOP_EVENTUALLY L_PAREN expression R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
     p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[3], p[6])
 
+
 def p_statement_if_either(p):
-    'statement    : IF_EITHER L_PAREN expression_logical R_PAREN IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
+    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list IF_OR statement_list logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
 
 def p_statement_if_perhaps(p):
-    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list ALICE DEC_WAS IF_UNSURE'
+    'statement    : IF_PERHAPS L_PAREN expression R_PAREN IF_SO statement_list logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
 
 def p_statement_if_perhaps_multiple(p):
-    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_clauses'
+    'statement    : IF_PERHAPS L_PAREN expression R_PAREN IF_SO statement_list logical_clauses logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7])
 
 def p_statement_return(p):
-    'statement : ALICE RETURN_FOUND expression'
-    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[3])
+    'statement : ALICE_FOUND expression'
+    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[2])
 
 def p_statement_expression(p):
     'statement : expression'
     p[0] = p[1]
-    
-def p_expression_array_access(p):
-    'expression : array_access'
-    p[0] = p[1]
+
+################################################################################
+# LOGICAL CLAUSES
+################################################################################
+def p_logical_clauses_many(p):
+  'logical_clauses  : logical_clause logical_clauses'
+  p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
+
+def p_logical_clauses_single(p):
+  'logical_clauses  : logical_clause'
+  p[0] = p[1]
+
+def p_logical_ending(p):
+    '''logical_ending  : ALICE DEC_WAS IF_UNSURE
+                       | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
+    pass
+
+################################################################################
+# LOGICAL CLAUSE
+################################################################################
+def p_logical_clause_elif(p):
+  'logical_clause   : IF_OR IF_MAYBE L_PAREN expression R_PAREN IF_SO statement_list'
+  p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
+
+def p_logical_clause_else(p):
+  'logical_clause   : IF_OR statement_list'
+  p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])
 
 ################################################################################
 # EXPRESSION
 ################################################################################
+
 def p_expression_call_function(p):
     'expression : ID L_PAREN function_arguments R_PAREN'
     p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[1], p[3])
@@ -141,6 +166,7 @@ def p_expression_not(p):
     'expression : B_NOT expression'
     p[0] = ASTNodes.UnaryNode(p.lineno(2), p.clauseno(2), p[1], p[2])
 
+
 def p_expression_inc_dec(p):
     '''expression   : ID DECREMENT
                     | ID INCREMENT'''
@@ -153,8 +179,17 @@ def p_expression_binary(p):
                     | expression B_AND expression
                     | expression PLUS expression
                     | expression MINUS expression
-                    | expression MULTIPLY expression'''
+                    | expression MULTIPLY expression
+                    | expression L_EQUAL expression
+                    | expression L_LESS_THAN expression
+                    | expression L_GREATER_THAN expression
+                    | expression L_GREATER_THAN_EQUAL expression
+                    | expression L_LESS_THAN_EQUAL expression
+                    | expression L_NOT_EQUAL expression
+                    | expression L_AND expression
+                    | expression L_OR expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
+
 
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
 # DIV/0 CHECK INTO ASTNODE CHECK FUNCTION
@@ -165,30 +200,23 @@ def p_expression_divide(p):
         raise e.DivisionByZeroException(p.lineno(1), p.clauseno(1))
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
-def p_expression_expression_logical(p):
-    'expression : expression_logical'
+def p_expression_uminus(p):
+    'expression : MINUS expression %prec UMINUS'
+    p[0] = ASTNodes.UnaryNode(p.lineno(1), p.clauseno(1), p[1], p[2])
+
+def p_expression_array_access(p):
+    'expression : array_access'
     p[0] = p[1]
 
 def p_expression_factor(p):
     'expression : factor'
     p[0] = p[1]
 
-def p_expression_logical(p):
-    '''expression_logical   : expression L_EQUAL expression
-                            | expression L_LESS_THAN expression
-                            | expression L_GREATER_THAN expression
-                            | expression L_GREATER_THAN_EQUAL expression
-                            | expression L_LESS_THAN_EQUAL expression
-                            | expression L_NOT_EQUAL expression
-                            | expression L_AND expression
-                            | expression L_OR expression'''
-    p[0] = ASTNodes.LogicalNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
-
 ################################################################################
 # ARRAY ACCESS
 ################################################################################  
 def p_array_access(p):
-    'array_access : ID expression ARRAY_PIECE'
+    'array_access : ID APOSTROPHE expression ARRAY_PIECE'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
     p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), factor, p[2])
 
@@ -264,29 +292,7 @@ def p_function_reference(p):
   functionBodyNode = ASTNodes.FunctionBodyNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
   declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
   argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
-  p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], functionBodyNode )    
-
-################################################################################
-# LOGICAL CLAUSES
-################################################################################
-def p_logical_clauses_many(p):
-  'logical_clauses  : logical_clause logical_clauses'
-  p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
-
-def p_logical_clauses_none(p):
-  'logical_clauses  : ALICE DEC_WAS IF_UNSURE IF_WHICH'
-  pass
-
-################################################################################
-# LOGICAL CLAUSE
-################################################################################
-def p_logical_clause_elif(p):
-  'logical_clause   : IF_OR IF_MAYBE L_PAREN expression_logical R_PAREN IF_SO statement_list'
-  p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
-
-def p_logical_clause_else(p):
-  'logical_clause   : IF_OR statement_list'
-  p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])    
+  p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], functionBodyNode )
 
 ################################################################################
 # ARGUMENTS
@@ -316,7 +322,7 @@ def p_argument_reference(p):
 # FUNCTION ARGUMENTS
 ################################################################################
 def p_function_arguments_multiple(p):
-    'function_arguments : function_argument SEP_COMMA function_arguments'
+    'function_arguments : function_argument seperator function_arguments'
     p[0] = ASTNodes.FunctionArgumentsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
 
 def p_function_arguments_single(p):
@@ -334,5 +340,5 @@ def p_error(p):
     if p == None:
         raise e.NoMatchException()
     else:
-        print p
+        # print p
         raise e.SyntaxException(p.lineno, p.clauseno)

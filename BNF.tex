@@ -58,7 +58,6 @@
 
     statement & \ensuremath{\to} &  expression  \textbf{`spoke'}  | \\
     & &  expression  \textbf{`said'} \textbf{`Alice'}  | \\
-    & & \textbf{`Alice'} \textbf{`found'} expression   | \\
     & &  \textbf{`what'} \textbf{`was'} expression   | \\
     & &  expression  \textbf{`thought'} \textbf{`Alice'}  | \\
     & &  statement  \textbf{`too'}  | \\
@@ -67,9 +66,10 @@
     & &  array\_access  \textbf{`became'} expression   | \\
     & &  id \textbf{`had'} expression  type |\\
     & &  \textbf{`eventually'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`because'} statement\_list  \textbf{`enough'} \textbf{`times'}  |\\
-    & &  \textbf{`either'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  \textbf{`or'} statement\_list  \textbf{`Alice'} \textbf{`was'} \textbf{`unsure'} \textbf{`which'}  | \\
-    & &  \textbf{`perhaps'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  \textbf{`Alice'} \textbf{`was'} \textbf{`unsure'}  | \\
-    & &  \textbf{`perhaps'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  logical\_clauses |   \\
+    & &  \textbf{`either'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  \textbf{`or'} statement\_list logical\_ending | \\
+    & &  \textbf{`perhaps'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  logical\_ending  | \\
+    & &  \textbf{`perhaps'} \textbf{`('} expression\_logical  \textbf{`)'} \textbf{`so'} statement\_list  logical\_clauses logical\_ending |   \\
+    & & \textbf{`Alice found'} expression   | \\
     & & expression \\
 
     \\
@@ -87,7 +87,8 @@
     & &  expression  \textbf{`-'} expression   | \\
     & &  expression  \textbf{`*'} expression   | \\
     & &  expression  \textbf{`/'} expression   | \\
-    & &  expression  \textbf{`\%'} expression    \\
+    & &  expression  \textbf{`\%'} expression |\\
+    & &  \textbf{`-'} expression | \scriptsize{\textit{(Uses UMINUS precedence)}}\\
     & &  expression\_logical |   \\
     & &  array\_access | \\
     & &  factor    \\
@@ -105,7 +106,7 @@
 
     \\
 
-    array\_access & \ensuremath{\to} &  id expression  \textbf{`piece'}  \\
+    array\_access & \ensuremath{\to} &  id\textbf{`\'s'} expression  \textbf{`piece'}  \\
 
     \\
 
@@ -173,7 +174,7 @@
     ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
+    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT', 'UMINUS'),
     ('left', 'L_PAREN', 'R_PAREN'),
     )
   \end{verbatim}
