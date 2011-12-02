@@ -106,7 +106,7 @@ def p_statement_if_perhaps(p):
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6]) 
 
 def p_statement_if_perhaps_multiple(p):
-    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_clauses'
+    'statement    : IF_PERHAPS L_PAREN expression_logical R_PAREN IF_SO statement_list logical_clauses logical_ending'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7])
 
 def p_statement_return(p):
@@ -128,9 +128,9 @@ def p_logical_clauses_many(p):
   'logical_clauses  : logical_clause logical_clauses'
   p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
-def p_logical_clauses_end(p):
-  'logical_clauses  : logical_ending'
-  pass
+def p_logical_clauses_single(p):
+  'logical_clauses  : logical_clause'
+  p[0] = p[1]
 
 def p_logical_ending(p):
     '''logical_ending  : ALICE DEC_WAS IF_UNSURE
