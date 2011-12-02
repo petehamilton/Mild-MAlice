@@ -281,7 +281,8 @@ def p_logical_clauses_many(p):
   p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_logical_clauses_none(p):
-  'logical_clauses  : ALICE DEC_WAS IF_UNSURE IF_WHICH'
+  '''logical_clauses  : ALICE DEC_WAS IF_UNSURE
+                      | ALICE DEC_WAS IF_UNSURE IF_WHICH'''
   pass
 
 ################################################################################
