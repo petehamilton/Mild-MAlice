@@ -72,7 +72,6 @@ reserved = {
     'changed'       : 'FUNCTION_CHANGED',
     'room'          : 'FUNCTION_ROOM',
     'spider'        : 'FUNCTION_SPIDER',
-    
 }
 
 # Tokens 
@@ -117,7 +116,7 @@ def t_FUNCTION_LOOKING_GLASS(t):
 
 # A regular expression rule with some action code
 def t_NUMBER(t):
-    r'-?\d+'
+    r'\d+'
     t.value = int(t.value)    
     return t
 

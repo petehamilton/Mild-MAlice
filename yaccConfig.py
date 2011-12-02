@@ -16,7 +16,7 @@ precedence = (
     ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
+    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT', 'UMINUS'),
     ('left', 'L_PAREN', 'R_PAREN'),
 )
 
@@ -142,6 +142,7 @@ def p_expression_not(p):
     'expression : B_NOT expression'
     p[0] = ASTNodes.UnaryNode(p.lineno(2), p.clauseno(2), p[1], p[2])
 
+
 def p_expression_inc_dec(p):
     '''expression   : ID DECREMENT
                     | ID INCREMENT'''
@@ -157,6 +158,7 @@ def p_expression_binary(p):
                     | expression MULTIPLY expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
 
+
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
 # DIV/0 CHECK INTO ASTNODE CHECK FUNCTION
 def p_expression_divide(p):
@@ -169,6 +171,10 @@ def p_expression_divide(p):
 def p_expression_expression_logical(p):
     'expression : expression_logical'
     p[0] = p[1]
+    
+def p_expression_uminus(p):
+    'expression : MINUS expression %prec UMINUS'
+    p[0] = ASTNodes.UnaryNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_expression_factor(p):
     'expression : factor'
@@ -335,5 +341,5 @@ def p_error(p):
     if p == None:
         raise e.NoMatchException()
     else:
-        print p
+        # print p
         raise e.SyntaxException(p.lineno, p.clauseno)
