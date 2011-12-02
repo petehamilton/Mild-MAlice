@@ -111,7 +111,7 @@ def p_statement_if_perhaps_multiple(p):
 
 def p_statement_return(p):
     'statement : ALICE_FOUND expression'
-    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[3])
+    p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[2])
 
 def p_statement_expression(p):
     'statement : expression'

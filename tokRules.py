@@ -31,11 +31,12 @@ tokens = [
         'L_PAREN',
         'R_PAREN',
         'FUNCTION_LOOKING_GLASS',
-        'ALICE_FOUND'
+        'ALICE_FOUND',
+        'ALICE',
     ]
 
 reserved = {          
-    'Alice'         : 'ALICE',
+    # 'Alice'         : 'ALICE',
     'spoke'         : 'PRINT_SPOKE',
     'said'          : 'PRINT_SAID',
     'drank'         : 'DECREMENT',
@@ -97,17 +98,25 @@ t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
-t_ALICE_FOUND = r'ALICE[\s\t\n]+FOUND'
+t_ALICE = r'Alice'
 
 
-@TOKEN('Looking' + t_MINUS + 'Glass')
-def t_FUNCTION_LOOKING_GLASS(t):
-    return t
 
 # tokens.extend(reserved.values())
 tokens = reserved.values() + tokens
 # A string containing ignored characters.
 t_ignore  = ' \t\r'
+
+print tokens
+
+@TOKEN(t_ALICE + r'[\s\t\n]+found')
+def t_ALICE_FOUND(t):
+    return t
+
+@TOKEN('Looking' + t_MINUS + 'Glass')
+def t_FUNCTION_LOOKING_GLASS(t):
+    return t
+
 
 # A regular expression rule with some action code
 def t_NUMBER(t):
