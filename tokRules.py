@@ -30,14 +30,14 @@ tokens = [
         'ID',
         'L_PAREN',
         'R_PAREN',
-        'FUNCTION_LOOKING_GLASS'
+        'FUNCTION_LOOKING_GLASS',
+        'ALICE_FOUND'
     ]
 
 reserved = {          
     'Alice'         : 'ALICE',
     'spoke'         : 'PRINT_SPOKE',
     'said'          : 'PRINT_SAID',
-    'found'         : 'RETURN_FOUND',
     'drank'         : 'DECREMENT',
     'ate'           : 'INCREMENT', 
     'and'           : 'SEP_AND',
@@ -70,7 +70,6 @@ reserved = {
     'The'           : 'FUNCTION_THE',
     'contained'     : 'FUNCTION_CONTAINED',
     'changed'       : 'FUNCTION_CHANGED',
-    # 'it'            : 'FUNCTION_IT',
     'room'          : 'FUNCTION_ROOM',
     'spider'        : 'FUNCTION_SPIDER',
     
@@ -98,6 +97,7 @@ t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
+t_ALICE_FOUND = r'ALICE[\s\t\n]+FOUND'
 
 
 @TOKEN('Looking' + t_MINUS + 'Glass')

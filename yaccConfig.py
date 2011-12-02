@@ -96,6 +96,7 @@ def p_statement_loop(p):
     'statement : LOOP_EVENTUALLY L_PAREN expression_logical R_PAREN LOOP_BECAUSE statement_list LOOP_ENOUGH LOOP_TIMES'
     p[0] = ASTNodes.LoopNode(p.lineno(2), p.clauseno(2), p[3], p[6])
 
+
 def p_statement_if_either(p):
     'statement    : IF_EITHER L_PAREN expression_logical R_PAREN IF_SO statement_list IF_OR statement_list ALICE DEC_WAS IF_UNSURE IF_WHICH'
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
@@ -109,7 +110,7 @@ def p_statement_if_perhaps_multiple(p):
     p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7])
 
 def p_statement_return(p):
-    'statement : ALICE RETURN_FOUND expression'
+    'statement : ALICE_FOUND expression'
     p[0] = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), p[3])
 
 def p_statement_expression(p):
