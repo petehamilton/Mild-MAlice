@@ -58,7 +58,7 @@
 
     statement & \ensuremath{\to} &  expression  \textbf{`spoke'}  | \\
     & &  expression  \textbf{`said'} \textbf{`Alice'}  | \\
-    & & \textbf{`Alice'} \textbf{`found'} expression   | \\
+    & & \textbf{`Alice found'} expression   | \\
     & &  \textbf{`what'} \textbf{`was'} expression   | \\
     & &  expression  \textbf{`thought'} \textbf{`Alice'}  | \\
     & &  statement  \textbf{`too'}  | \\
@@ -87,7 +87,8 @@
     & &  expression  \textbf{`-'} expression   | \\
     & &  expression  \textbf{`*'} expression   | \\
     & &  expression  \textbf{`/'} expression   | \\
-    & &  expression  \textbf{`\%'} expression    \\
+    & &  expression  \textbf{`\%'} expression |\\
+    & &  \textbf{`-'} expression | \scriptsize{\textit{(Uses UMINUS precedence)}}\\
     & &  expression\_logical |   \\
     & &  array\_access | \\
     & &  factor    \\
@@ -173,7 +174,7 @@
     ('left', 'B_AND'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
-    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT'),
+    ('right', 'INCREMENT', 'DECREMENT', 'B_NOT', 'UMINUS'),
     ('left', 'L_PAREN', 'R_PAREN'),
     )
   \end{verbatim}
