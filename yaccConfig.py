@@ -20,6 +20,10 @@ precedence = (
     ('left', 'L_PAREN', 'R_PAREN'),
 )
 
+################################################################################
+# CODE SEPERATOR
+################################################################################
+
 def p_code_seperator(p):
     '''code_seperator : statement_list function_seperator functions'''
     p[0] = ASTNodes.CodeSeparatorNode(p.lineno(1), p.clauseno(1), p[1], p[3])
@@ -28,6 +32,9 @@ def p_code_seperator_single(p):
     'code_seperator : statement_list'
     p[0] = p[1]
 
+################################################################################
+# STATEMENT LIST
+################################################################################
 def p_statement_list_statement(p):
     'statement_list : statement seperator'
     p[0] = p[1]
@@ -35,7 +42,10 @@ def p_statement_list_statement(p):
 def p_statement_list_sep(p):
     '''statement_list   : statement seperator statement_list'''
     p[0] = ASTNodes.StatementListNode(p.lineno(1), p.clauseno(1), [p[1], p[3]])
-    
+
+################################################################################
+# SEPERATOR
+################################################################################
 def p_seperator(p):
     '''seperator : SEP_AND
                  | SEP_BUT
@@ -44,7 +54,10 @@ def p_seperator(p):
                  | SEP_QUESTION
                  | SEP_PERIOD'''
     pass
-  
+ 
+################################################################################
+# STATEMENT
+################################################################################ 
 def p_statement_print(p):
     '''statement    : expression PRINT_SPOKE
                     | expression PRINT_SAID ALICE'''
@@ -107,6 +120,9 @@ def p_expression_array_access(p):
     'expression : array_access'
     p[0] = p[1]
 
+################################################################################
+# EXPRESSION
+################################################################################
 def p_expression_call_function(p):
     'expression : ID L_PAREN function_arguments R_PAREN'
     p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[1], p[3])
@@ -117,7 +133,7 @@ def p_expression_call_pbr_function(p):
     argument = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), factor )
     p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], argument)
 
-    def p_expression_parenthesis(p):
+def p_expression_parenthesis(p):
     'expression : L_PAREN expression R_PAREN'
     p[0] = p[2]
 
@@ -167,12 +183,18 @@ def p_expression_logical(p):
                             | expression L_AND expression
                             | expression L_OR expression'''
     p[0] = ASTNodes.LogicalNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
-   
+
+################################################################################
+# ARRAY ACCESS
+################################################################################  
 def p_array_access(p):
     'array_access : ID expression ARRAY_PIECE'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
     p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), factor, p[2])
 
+################################################################################
+# FACTOR
+################################################################################
 def p_factor_number(p):
     'factor : NUMBER'
     p[0] = ASTNodes.NumberNode(p.lineno(1), p.clauseno(1), p[1])
@@ -188,7 +210,10 @@ def p_factor_id(p):
 def p_factor_sentence(p):
     'factor : SENTENCE'
     p[0] =  ASTNodes.SentenceNode(p.lineno(1), p.clauseno(1), p[1])
-
+    
+################################################################################
+# TYPE
+################################################################################
 def p_type_number(p):
     'type : TYPE_NUMBER'
     p[0] = ASTNodes.NumberTypeNode(p.lineno(1), p.clauseno(1))
@@ -200,7 +225,10 @@ def p_type_letter(p):
 def p_type_sentence(p):
     'type : TYPE_SENTENCE'
     p[0] = ASTNodes.SentenceTypeNode(p.lineno(1), p.clauseno(1))
-
+   
+################################################################################
+# FUNCTIONS
+################################################################################
 def p_functions_multiple(p):
   '''functions : function function_seperator functions
                | ref_function function_seperator functions'''
@@ -211,11 +239,17 @@ def p_functions_single(p):
                | function'''
   p[0] = p[1]
 
+################################################################################
+# FUNCTION SEPERATOR
+################################################################################
 def p_function_seperator(p):
   '''function_seperator : FUNCTION_THE FUNCTION_ROOM
                         | FUNCTION_THE FUNCTION_LOOKING_GLASS'''
   pass
-   
+
+################################################################################
+# FUNCTION
+################################################################################   
 def p_function(p):
   'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list'
   p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], p[8])
@@ -223,7 +257,8 @@ def p_function(p):
 def p_function_no_body(p):
   'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type'
   p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], None, p[10])    
-    
+
+#     TODO CHANGE THIS TO FUNCTION
 def p_ref_function(p):
   'ref_function : ID FUNCTION_CHANGED DEC_A type statement_list'
   factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
@@ -233,6 +268,9 @@ def p_ref_function(p):
   argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
   p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], functionBodyNode )    
 
+################################################################################
+# LOGICAL CLAUSES
+################################################################################
 def p_logical_clauses_many(p):
   'logical_clauses  : logical_clause logical_clauses'
   p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
@@ -241,6 +279,9 @@ def p_logical_clauses_none(p):
   'logical_clauses  : ALICE DEC_WAS IF_UNSURE IF_WHICH'
   pass
 
+################################################################################
+# LOGICAL CLAUSE
+################################################################################
 def p_logical_clause_elif(p):
   'logical_clause   : IF_OR IF_MAYBE L_PAREN expression_logical R_PAREN IF_SO statement_list'
   p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
@@ -249,6 +290,9 @@ def p_logical_clause_else(p):
   'logical_clause   : IF_OR statement_list'
   p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])    
 
+################################################################################
+# ARGUMENTS
+################################################################################
 def p_arguments_multiple(p):
     'arguments : argument SEP_COMMA arguments'
     p[0] = ASTNodes.ArgumentsNode( p.lineno(1), p.clauseno(1), p[1], p[3])
@@ -256,7 +300,10 @@ def p_arguments_multiple(p):
 def p_arguments_single(p):
     'arguments : argument'
     p[0] = p[1]
-    
+
+################################################################################
+# ARGUMENT
+################################################################################    
 def p_argument(p):
     'argument : type ID'
     declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[2], p[1])
@@ -267,6 +314,9 @@ def p_argument_reference(p):
     declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), p[3], p[2])
     p[0] = ASTNodes.ArgumentNode( p.lineno(1), p.clauseno(1), declarationNode, True)
 
+################################################################################
+# FUNCTION ARGUMENTS
+################################################################################
 def p_function_arguments_multiple(p):
     'function_arguments : function_argument SEP_COMMA function_arguments'
     p[0] = ASTNodes.FunctionArgumentsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
@@ -274,7 +324,10 @@ def p_function_arguments_multiple(p):
 def p_function_arguments_single(p):
     'function_arguments : function_argument'
     p[0] = p[1]
-
+    
+################################################################################
+# FUNCTION ARGUMENT
+################################################################################
 def p_function_argument(p):
     'function_argument : expression'
     p[0] = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), p[1] )
