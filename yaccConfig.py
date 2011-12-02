@@ -230,13 +230,11 @@ def p_type_sentence(p):
 # FUNCTIONS
 ################################################################################
 def p_functions_multiple(p):
-  '''functions : function function_seperator functions
-               | ref_function function_seperator functions'''
+  'functions : function function_seperator functions'
   p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
 
 def p_functions_single(p):
-  '''functions : ref_function
-               | function'''
+  'functions : function'
   p[0] = p[1]
 
 ################################################################################
@@ -259,8 +257,8 @@ def p_function_no_body(p):
   p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], None, p[10])    
 
 #     TODO CHANGE THIS TO FUNCTION
-def p_ref_function(p):
-  'ref_function : ID FUNCTION_CHANGED DEC_A type statement_list'
+def p_function_reference(p):
+  'function : ID FUNCTION_CHANGED DEC_A type statement_list'
   factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
   returnNode = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), factor)
   functionBodyNode = ASTNodes.FunctionBodyNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
