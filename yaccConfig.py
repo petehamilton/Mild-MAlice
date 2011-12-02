@@ -328,7 +328,7 @@ def p_argument_reference(p):
 # FUNCTION ARGUMENTS
 ################################################################################
 def p_function_arguments_multiple(p):
-    'function_arguments : function_argument SEP_COMMA function_arguments'
+    'function_arguments : function_argument seperator function_arguments'
     p[0] = ASTNodes.FunctionArgumentsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
 
 def p_function_arguments_single(p):
