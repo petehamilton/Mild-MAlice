@@ -8,7 +8,6 @@ import ply.yacc as yacc
 import tokRules
 from yaccConfig import *
 from semanticAnalysis import analyse
-from semanticAnalysis import newAnalyse
 from codeGenerator import CodeGenerator
 import grammarExceptions as e
 
@@ -46,8 +45,7 @@ def parse_code(code):
         if result:
             symbolTable = {}
             flags = defaultdict(set)
-            newAnalyse(result, flags)
-            # analyse(symbolTable, result, flags)
+            analyse(result, flags)
             # cg = CodeGenerator(symbolTable, registers, flags)
             # code = cg.generate(result)
             # return code
