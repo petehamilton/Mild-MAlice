@@ -133,7 +133,7 @@ class CodeGenerator(object):
             return code
             
             
-        reg, intermediateNodes, parents = self.transExp( node, {}, 0, [] )
+        reg, intermediateNodes, parents = node.translate( node, {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish()
