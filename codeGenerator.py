@@ -63,6 +63,7 @@ class CodeGenerator(object):
                             return unusedSet.pop(), maxColor
                         else:
                             return maxColor, maxColor + 1
+                    
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
                             return color, maxColor
@@ -133,7 +134,7 @@ class CodeGenerator(object):
             return code
             
             
-        reg, intermediateNodes, parents = node.translate( node, {}, 0, [] )
+        reg, intermediateNodes, parents = node.translate( {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish()
