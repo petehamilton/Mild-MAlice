@@ -1,6 +1,8 @@
 # This module contains the nodes created by the parser.
 from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
 from SymbolTable import SymbolTable
+import tokRules
+import intermediateNodes as INodes
 
 ################################################################################
 # NODE TYPES
@@ -154,7 +156,26 @@ class UnaryNode(OperatorNode):
         else:
             print "Unary Exception"
             raise UnaryException(self.lineno, self.clauseno)
-
+    
+    def translate( self, registersDict, reg, parents ):
+        def transUnOp(op, destReg, node, registersDict, parents):
+            if re.match( "ate", op ):
+                intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
+                parents = intermediateNode
+            elif re.match( "drank", op ):
+                intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
+                parents = intermediateNode
+            elif re.match( tokRules.t_B_NOT, op ):
+                reg1, exp, parents = self.transExp( node, registersDict, destReg, parents )
+                intermediateNode = [INodes.NotNode(destReg, parents)]
+                parents = intermediateNode
+                intermediateNode = exp + intermediateNode
+            return destReg, intermediateNode, parents
+            
+        reg, exp2, parents = transUnOp( self.getOperator(), reg, self.getExpression(), registersDict, parents )
+        return reg, exp2, parents
+        
+        
 
 
 ################################################################################
@@ -218,7 +239,13 @@ class AssignmentNode(StatementNode):
 
     def check(self, symbolTable):
         self.variableCheck(symbolTable, self.getDestination())
-
+        
+    def translate(self, registersDict, reg, parents):    
+        assignmentReg = reg
+        reg, exp, parents = node.getExpression().translate(registersDict, reg, parents)
+        registersDict[self.getVariable()] = assignmentReg
+        return reg, exp, parents
+        
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
@@ -236,7 +263,9 @@ class DeclarationNode(StatementNode):
             self.children[1].check(symbolTable)
             self.type = self.children[1].type
             symbolTable.add(self.variableName, self)
-
+    
+    def translate( self, registersDict, reg, parents ):
+        return reg, [], parents
 
 
 ################################################################################
