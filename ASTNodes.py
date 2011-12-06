@@ -103,9 +103,18 @@ class BinaryOperatorNode(ASTNode):
         return self.children[1]
     
     def check(self, symbolTable):
-        self.getLeftExpression().check(symbolTable)
-        self.getRightExpression().check(symbolTable)
-
+        leftExpression = self.getLeftExpression()
+        rightExpression = self.getRightExpression()
+        
+        leftExpression.check(symbolTable)
+        rightExpression.check(symbolTable)
+        
+        if leftExpression.type == rightExpression.type == NUMBER:
+            self.type = leftExpression.type
+        else:
+            print "Binary Exception"
+            raise BinaryException(self.lineno, self.clauseno)
+    
     def getOperator(self):
         return self.operator
     
@@ -117,30 +126,6 @@ class BinaryOperatorNode(ASTNode):
               child.display(depth + 1)
             else:
               print ("  " * (depth)) + "|> '" + str(child) + "'"
-
-class BinaryNode(BinaryOperatorNode):
-    def __init__(self, lineno, clauseno, operator, children ):
-        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
-
-    def check(self, symbolTable):
-        super(BinaryNode, self).check( symbolTable )
-        if self.getLeftExpression().type == self.getRightExpression().type == NUMBER:
-            self.type = self.getLeftExpression().type
-        else:
-            print "Binary Exception"
-            raise BinaryException(self.lineno, self.clauseno)
-
-class LogicalNode(BinaryOperatorNode):
-    def __init__(self, lineno, clauseno, operator, children ):
-        super(LogicalNode, self).__init__( LOGICAL_OP, lineno, clauseno, operator, children )
-            
-    def check(self, symbolTable):
-        super(LogicalNode, self).check( symbolTable )
-        if self.getLeftExpression().type == self.getRightExpression().type: # Don't need to be a specific type, just need to both be the same
-            self.type = self.getLeftExpression().type
-        else:
-            print "Logical Exception"
-            raise LogicalException(self.lineno, self.clauseno)
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
