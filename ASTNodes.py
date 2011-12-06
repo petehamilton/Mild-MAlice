@@ -113,9 +113,6 @@ class BinaryNode(OperatorNode):
         else:
             print "Binary Exception"
             raise BinaryException(self.lineno, self.clauseno)
-    
-    def getOperator(self):
-        return self.operator
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
