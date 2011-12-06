@@ -128,6 +128,7 @@ class BinaryNode(OperatorNode):
             op = self.getOperator()
             if re.match( tokRules.t_PLUS, op ):
                 intermediateNode = INodes.AddNode(destReg, nextReg, parents)
+            
             elif re.match( tokRules.t_MINUS, op ):
                 intermediateNode = INodes.SubNode(destReg, nextReg, parents)
 
@@ -145,9 +146,12 @@ class BinaryNode(OperatorNode):
 
             elif re.match( tokRules.t_B_XOR, op ):
                 intermediateNode = INodes.XORNode(destReg, nextReg, parents)
-
+                
             elif re.match( tokRules.t_B_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+            
+            #TODO, ADD LOGICAL OPERATIONS HERE
+            
             return destReg, [intermediateNode], [intermediateNode]
             
             
@@ -388,6 +392,8 @@ class SpokeNode(ASTNode):
         if idType == NUMBER:
             formatting = "intfmt"
         elif idType == LETTER:
+            formatting = "charfmt"
+        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
             formatting = "charfmt"
         
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
