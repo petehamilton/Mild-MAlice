@@ -1,0 +1,1381 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> statement_list
+Rule 1     statement_list -> statement SEP_COMMA statement_list
+Rule 2     statement_list -> statement SEP_PERIOD statement_list
+Rule 3     statement_list -> statement SEP_PERIOD
+Rule 4     statement_list -> statement SEP_AND statement_list
+Rule 5     statement_list -> statement SEP_BUT statement_list
+Rule 6     statement_list -> statement SEP_THEN statement_list
+Rule 7     statement -> expression PRINT_SPOKE
+Rule 8     statement -> statement TOO
+Rule 9     statement -> ID DEC_WAS DEC_A type
+Rule 10    statement -> ID ASSIGNMENT expression
+Rule 11    statement -> expression
+Rule 12    type -> TYPE_NUMBER
+Rule 13    type -> TYPE_LETTER
+Rule 14    expression -> B_NOT expression
+Rule 15    expression -> ID DECREMENT
+Rule 16    expression -> ID INCREMENT
+Rule 17    expression -> MINUS expression
+Rule 18    expression -> expression B_OR expression
+Rule 19    expression -> expression B_XOR expression
+Rule 20    expression -> expression B_AND expression
+Rule 21    expression -> expression PLUS expression
+Rule 22    expression -> expression MINUS expression
+Rule 23    expression -> expression MULTIPLY expression
+Rule 24    expression -> expression DIVIDE expression
+Rule 25    expression -> expression MOD expression
+Rule 26    expression -> factor
+Rule 27    factor -> NUMBER
+Rule 28    factor -> LETTER
+Rule 29    factor -> ID
+
+Terminals, with rules where they appear
+
+ASSIGNMENT           : 10
+B_AND                : 20
+B_NOT                : 14
+B_OR                 : 18
+B_XOR                : 19
+DECREMENT            : 15
+DEC_A                : 9
+DEC_WAS              : 9
+DIVIDE               : 24
+ID                   : 9 10 15 16 29
+INCREMENT            : 16
+LETTER               : 28
+MINUS                : 17 22
+MOD                  : 25
+MULTIPLY             : 23
+NUMBER               : 27
+PLUS                 : 21
+PRINT_SPOKE          : 7
+SEP_AND              : 4
+SEP_BUT              : 5
+SEP_COMMA            : 1
+SEP_PERIOD           : 2 3
+SEP_THEN             : 6
+TOO                  : 8
+TYPE_LETTER          : 13
+TYPE_NUMBER          : 12
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 7 10 11 14 17 18 18 19 19 20 20 21 21 22 22 23 23 24 24 25 25
+factor               : 26
+statement            : 1 2 3 4 5 6 8
+statement_list       : 1 2 4 5 6 0
+type                 : 9
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . statement_list
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 8
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 1
+
+    (27) factor -> NUMBER .
+
+    PRINT_SPOKE     reduce using rule 27 (factor -> NUMBER .)
+    B_OR            reduce using rule 27 (factor -> NUMBER .)
+    B_XOR           reduce using rule 27 (factor -> NUMBER .)
+    B_AND           reduce using rule 27 (factor -> NUMBER .)
+    PLUS            reduce using rule 27 (factor -> NUMBER .)
+    MINUS           reduce using rule 27 (factor -> NUMBER .)
+    MULTIPLY        reduce using rule 27 (factor -> NUMBER .)
+    DIVIDE          reduce using rule 27 (factor -> NUMBER .)
+    MOD             reduce using rule 27 (factor -> NUMBER .)
+    SEP_COMMA       reduce using rule 27 (factor -> NUMBER .)
+    SEP_PERIOD      reduce using rule 27 (factor -> NUMBER .)
+    SEP_AND         reduce using rule 27 (factor -> NUMBER .)
+    SEP_BUT         reduce using rule 27 (factor -> NUMBER .)
+    SEP_THEN        reduce using rule 27 (factor -> NUMBER .)
+    TOO             reduce using rule 27 (factor -> NUMBER .)
+
+
+state 2
+
+    (14) expression -> B_NOT . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 10
+    factor                         shift and go to state 4
+
+state 3
+
+    (17) expression -> MINUS . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 12
+    factor                         shift and go to state 4
+
+state 4
+
+    (26) expression -> factor .
+
+    B_OR            reduce using rule 26 (expression -> factor .)
+    B_XOR           reduce using rule 26 (expression -> factor .)
+    B_AND           reduce using rule 26 (expression -> factor .)
+    PLUS            reduce using rule 26 (expression -> factor .)
+    MINUS           reduce using rule 26 (expression -> factor .)
+    MULTIPLY        reduce using rule 26 (expression -> factor .)
+    DIVIDE          reduce using rule 26 (expression -> factor .)
+    MOD             reduce using rule 26 (expression -> factor .)
+    PRINT_SPOKE     reduce using rule 26 (expression -> factor .)
+    SEP_COMMA       reduce using rule 26 (expression -> factor .)
+    SEP_PERIOD      reduce using rule 26 (expression -> factor .)
+    SEP_AND         reduce using rule 26 (expression -> factor .)
+    SEP_BUT         reduce using rule 26 (expression -> factor .)
+    SEP_THEN        reduce using rule 26 (expression -> factor .)
+    TOO             reduce using rule 26 (expression -> factor .)
+
+
+state 5
+
+    (1) statement_list -> statement . SEP_COMMA statement_list
+    (2) statement_list -> statement . SEP_PERIOD statement_list
+    (3) statement_list -> statement . SEP_PERIOD
+    (4) statement_list -> statement . SEP_AND statement_list
+    (5) statement_list -> statement . SEP_BUT statement_list
+    (6) statement_list -> statement . SEP_THEN statement_list
+    (8) statement -> statement . TOO
+
+    SEP_COMMA       shift and go to state 16
+    SEP_PERIOD      shift and go to state 15
+    SEP_AND         shift and go to state 13
+    SEP_BUT         shift and go to state 18
+    SEP_THEN        shift and go to state 17
+    TOO             shift and go to state 14
+
+
+state 6
+
+    (28) factor -> LETTER .
+
+    PRINT_SPOKE     reduce using rule 28 (factor -> LETTER .)
+    B_OR            reduce using rule 28 (factor -> LETTER .)
+    B_XOR           reduce using rule 28 (factor -> LETTER .)
+    B_AND           reduce using rule 28 (factor -> LETTER .)
+    PLUS            reduce using rule 28 (factor -> LETTER .)
+    MINUS           reduce using rule 28 (factor -> LETTER .)
+    MULTIPLY        reduce using rule 28 (factor -> LETTER .)
+    DIVIDE          reduce using rule 28 (factor -> LETTER .)
+    MOD             reduce using rule 28 (factor -> LETTER .)
+    SEP_COMMA       reduce using rule 28 (factor -> LETTER .)
+    SEP_PERIOD      reduce using rule 28 (factor -> LETTER .)
+    SEP_AND         reduce using rule 28 (factor -> LETTER .)
+    SEP_BUT         reduce using rule 28 (factor -> LETTER .)
+    SEP_THEN        reduce using rule 28 (factor -> LETTER .)
+    TOO             reduce using rule 28 (factor -> LETTER .)
+
+
+state 7
+
+    (9) statement -> ID . DEC_WAS DEC_A type
+    (10) statement -> ID . ASSIGNMENT expression
+    (15) expression -> ID . DECREMENT
+    (16) expression -> ID . INCREMENT
+    (29) factor -> ID .
+
+    DEC_WAS         shift and go to state 20
+    ASSIGNMENT      shift and go to state 19
+    DECREMENT       shift and go to state 22
+    INCREMENT       shift and go to state 21
+    PRINT_SPOKE     reduce using rule 29 (factor -> ID .)
+    B_OR            reduce using rule 29 (factor -> ID .)
+    B_XOR           reduce using rule 29 (factor -> ID .)
+    B_AND           reduce using rule 29 (factor -> ID .)
+    PLUS            reduce using rule 29 (factor -> ID .)
+    MINUS           reduce using rule 29 (factor -> ID .)
+    MULTIPLY        reduce using rule 29 (factor -> ID .)
+    DIVIDE          reduce using rule 29 (factor -> ID .)
+    MOD             reduce using rule 29 (factor -> ID .)
+    SEP_COMMA       reduce using rule 29 (factor -> ID .)
+    SEP_PERIOD      reduce using rule 29 (factor -> ID .)
+    SEP_AND         reduce using rule 29 (factor -> ID .)
+    SEP_BUT         reduce using rule 29 (factor -> ID .)
+    SEP_THEN        reduce using rule 29 (factor -> ID .)
+    TOO             reduce using rule 29 (factor -> ID .)
+
+
+state 8
+
+    (0) S' -> statement_list .
+
+
+
+state 9
+
+    (7) statement -> expression . PRINT_SPOKE
+    (11) statement -> expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    PRINT_SPOKE     shift and go to state 25
+    SEP_COMMA       reduce using rule 11 (statement -> expression .)
+    SEP_PERIOD      reduce using rule 11 (statement -> expression .)
+    SEP_AND         reduce using rule 11 (statement -> expression .)
+    SEP_BUT         reduce using rule 11 (statement -> expression .)
+    SEP_THEN        reduce using rule 11 (statement -> expression .)
+    TOO             reduce using rule 11 (statement -> expression .)
+    B_OR            shift and go to state 29
+    B_XOR           shift and go to state 27
+    B_AND           shift and go to state 24
+    PLUS            shift and go to state 26
+    MINUS           shift and go to state 30
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+
+state 10
+
+    (14) expression -> B_NOT expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 14 (expression -> B_NOT expression .)
+    B_XOR           reduce using rule 14 (expression -> B_NOT expression .)
+    B_AND           reduce using rule 14 (expression -> B_NOT expression .)
+    PLUS            reduce using rule 14 (expression -> B_NOT expression .)
+    MINUS           reduce using rule 14 (expression -> B_NOT expression .)
+    MULTIPLY        reduce using rule 14 (expression -> B_NOT expression .)
+    DIVIDE          reduce using rule 14 (expression -> B_NOT expression .)
+    MOD             reduce using rule 14 (expression -> B_NOT expression .)
+    PRINT_SPOKE     reduce using rule 14 (expression -> B_NOT expression .)
+    SEP_COMMA       reduce using rule 14 (expression -> B_NOT expression .)
+    SEP_PERIOD      reduce using rule 14 (expression -> B_NOT expression .)
+    SEP_AND         reduce using rule 14 (expression -> B_NOT expression .)
+    SEP_BUT         reduce using rule 14 (expression -> B_NOT expression .)
+    SEP_THEN        reduce using rule 14 (expression -> B_NOT expression .)
+    TOO             reduce using rule 14 (expression -> B_NOT expression .)
+
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+  ! MULTIPLY        [ shift and go to state 28 ]
+  ! DIVIDE          [ shift and go to state 23 ]
+  ! MOD             [ shift and go to state 31 ]
+
+
+state 11
+
+    (15) expression -> ID . DECREMENT
+    (16) expression -> ID . INCREMENT
+    (29) factor -> ID .
+
+    DECREMENT       shift and go to state 22
+    INCREMENT       shift and go to state 21
+    B_OR            reduce using rule 29 (factor -> ID .)
+    B_XOR           reduce using rule 29 (factor -> ID .)
+    B_AND           reduce using rule 29 (factor -> ID .)
+    PLUS            reduce using rule 29 (factor -> ID .)
+    MINUS           reduce using rule 29 (factor -> ID .)
+    MULTIPLY        reduce using rule 29 (factor -> ID .)
+    DIVIDE          reduce using rule 29 (factor -> ID .)
+    MOD             reduce using rule 29 (factor -> ID .)
+    PRINT_SPOKE     reduce using rule 29 (factor -> ID .)
+    SEP_COMMA       reduce using rule 29 (factor -> ID .)
+    SEP_PERIOD      reduce using rule 29 (factor -> ID .)
+    SEP_AND         reduce using rule 29 (factor -> ID .)
+    SEP_BUT         reduce using rule 29 (factor -> ID .)
+    SEP_THEN        reduce using rule 29 (factor -> ID .)
+    TOO             reduce using rule 29 (factor -> ID .)
+
+
+state 12
+
+    (17) expression -> MINUS expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 17 (expression -> MINUS expression .)
+    B_XOR           reduce using rule 17 (expression -> MINUS expression .)
+    B_AND           reduce using rule 17 (expression -> MINUS expression .)
+    PLUS            reduce using rule 17 (expression -> MINUS expression .)
+    MINUS           reduce using rule 17 (expression -> MINUS expression .)
+    MULTIPLY        reduce using rule 17 (expression -> MINUS expression .)
+    DIVIDE          reduce using rule 17 (expression -> MINUS expression .)
+    MOD             reduce using rule 17 (expression -> MINUS expression .)
+    PRINT_SPOKE     reduce using rule 17 (expression -> MINUS expression .)
+    SEP_COMMA       reduce using rule 17 (expression -> MINUS expression .)
+    SEP_PERIOD      reduce using rule 17 (expression -> MINUS expression .)
+    SEP_AND         reduce using rule 17 (expression -> MINUS expression .)
+    SEP_BUT         reduce using rule 17 (expression -> MINUS expression .)
+    SEP_THEN        reduce using rule 17 (expression -> MINUS expression .)
+    TOO             reduce using rule 17 (expression -> MINUS expression .)
+
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+  ! MULTIPLY        [ shift and go to state 28 ]
+  ! DIVIDE          [ shift and go to state 23 ]
+  ! MOD             [ shift and go to state 31 ]
+
+
+state 13
+
+    (4) statement_list -> statement SEP_AND . statement_list
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 32
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 14
+
+    (8) statement -> statement TOO .
+
+    SEP_COMMA       reduce using rule 8 (statement -> statement TOO .)
+    SEP_PERIOD      reduce using rule 8 (statement -> statement TOO .)
+    SEP_AND         reduce using rule 8 (statement -> statement TOO .)
+    SEP_BUT         reduce using rule 8 (statement -> statement TOO .)
+    SEP_THEN        reduce using rule 8 (statement -> statement TOO .)
+    TOO             reduce using rule 8 (statement -> statement TOO .)
+
+
+state 15
+
+    (2) statement_list -> statement SEP_PERIOD . statement_list
+    (3) statement_list -> statement SEP_PERIOD .
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    $end            reduce using rule 3 (statement_list -> statement SEP_PERIOD .)
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 33
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 16
+
+    (1) statement_list -> statement SEP_COMMA . statement_list
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 34
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 17
+
+    (6) statement_list -> statement SEP_THEN . statement_list
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 35
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 18
+
+    (5) statement_list -> statement SEP_BUT . statement_list
+    (1) statement_list -> . statement SEP_COMMA statement_list
+    (2) statement_list -> . statement SEP_PERIOD statement_list
+    (3) statement_list -> . statement SEP_PERIOD
+    (4) statement_list -> . statement SEP_AND statement_list
+    (5) statement_list -> . statement SEP_BUT statement_list
+    (6) statement_list -> . statement SEP_THEN statement_list
+    (7) statement -> . expression PRINT_SPOKE
+    (8) statement -> . statement TOO
+    (9) statement -> . ID DEC_WAS DEC_A type
+    (10) statement -> . ID ASSIGNMENT expression
+    (11) statement -> . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    ID              shift and go to state 7
+    B_NOT           shift and go to state 2
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    statement_list                 shift and go to state 36
+    expression                     shift and go to state 9
+    statement                      shift and go to state 5
+    factor                         shift and go to state 4
+
+state 19
+
+    (10) statement -> ID ASSIGNMENT . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 37
+    factor                         shift and go to state 4
+
+state 20
+
+    (9) statement -> ID DEC_WAS . DEC_A type
+
+    DEC_A           shift and go to state 38
+
+
+state 21
+
+    (16) expression -> ID INCREMENT .
+
+    B_OR            reduce using rule 16 (expression -> ID INCREMENT .)
+    B_XOR           reduce using rule 16 (expression -> ID INCREMENT .)
+    B_AND           reduce using rule 16 (expression -> ID INCREMENT .)
+    PLUS            reduce using rule 16 (expression -> ID INCREMENT .)
+    MINUS           reduce using rule 16 (expression -> ID INCREMENT .)
+    MULTIPLY        reduce using rule 16 (expression -> ID INCREMENT .)
+    DIVIDE          reduce using rule 16 (expression -> ID INCREMENT .)
+    MOD             reduce using rule 16 (expression -> ID INCREMENT .)
+    PRINT_SPOKE     reduce using rule 16 (expression -> ID INCREMENT .)
+    SEP_COMMA       reduce using rule 16 (expression -> ID INCREMENT .)
+    SEP_PERIOD      reduce using rule 16 (expression -> ID INCREMENT .)
+    SEP_AND         reduce using rule 16 (expression -> ID INCREMENT .)
+    SEP_BUT         reduce using rule 16 (expression -> ID INCREMENT .)
+    SEP_THEN        reduce using rule 16 (expression -> ID INCREMENT .)
+    TOO             reduce using rule 16 (expression -> ID INCREMENT .)
+
+
+state 22
+
+    (15) expression -> ID DECREMENT .
+
+    B_OR            reduce using rule 15 (expression -> ID DECREMENT .)
+    B_XOR           reduce using rule 15 (expression -> ID DECREMENT .)
+    B_AND           reduce using rule 15 (expression -> ID DECREMENT .)
+    PLUS            reduce using rule 15 (expression -> ID DECREMENT .)
+    MINUS           reduce using rule 15 (expression -> ID DECREMENT .)
+    MULTIPLY        reduce using rule 15 (expression -> ID DECREMENT .)
+    DIVIDE          reduce using rule 15 (expression -> ID DECREMENT .)
+    MOD             reduce using rule 15 (expression -> ID DECREMENT .)
+    PRINT_SPOKE     reduce using rule 15 (expression -> ID DECREMENT .)
+    SEP_COMMA       reduce using rule 15 (expression -> ID DECREMENT .)
+    SEP_PERIOD      reduce using rule 15 (expression -> ID DECREMENT .)
+    SEP_AND         reduce using rule 15 (expression -> ID DECREMENT .)
+    SEP_BUT         reduce using rule 15 (expression -> ID DECREMENT .)
+    SEP_THEN        reduce using rule 15 (expression -> ID DECREMENT .)
+    TOO             reduce using rule 15 (expression -> ID DECREMENT .)
+
+
+state 23
+
+    (24) expression -> expression DIVIDE . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 39
+    factor                         shift and go to state 4
+
+state 24
+
+    (20) expression -> expression B_AND . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 40
+    factor                         shift and go to state 4
+
+state 25
+
+    (7) statement -> expression PRINT_SPOKE .
+
+    SEP_COMMA       reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+    SEP_PERIOD      reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+    SEP_AND         reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+    SEP_BUT         reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+    SEP_THEN        reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+    TOO             reduce using rule 7 (statement -> expression PRINT_SPOKE .)
+
+
+state 26
+
+    (21) expression -> expression PLUS . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 41
+    factor                         shift and go to state 4
+
+state 27
+
+    (19) expression -> expression B_XOR . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 42
+    factor                         shift and go to state 4
+
+state 28
+
+    (23) expression -> expression MULTIPLY . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 43
+    factor                         shift and go to state 4
+
+state 29
+
+    (18) expression -> expression B_OR . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 44
+    factor                         shift and go to state 4
+
+state 30
+
+    (22) expression -> expression MINUS . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 45
+    factor                         shift and go to state 4
+
+state 31
+
+    (25) expression -> expression MOD . expression
+    (14) expression -> . B_NOT expression
+    (15) expression -> . ID DECREMENT
+    (16) expression -> . ID INCREMENT
+    (17) expression -> . MINUS expression
+    (18) expression -> . expression B_OR expression
+    (19) expression -> . expression B_XOR expression
+    (20) expression -> . expression B_AND expression
+    (21) expression -> . expression PLUS expression
+    (22) expression -> . expression MINUS expression
+    (23) expression -> . expression MULTIPLY expression
+    (24) expression -> . expression DIVIDE expression
+    (25) expression -> . expression MOD expression
+    (26) expression -> . factor
+    (27) factor -> . NUMBER
+    (28) factor -> . LETTER
+    (29) factor -> . ID
+
+    B_NOT           shift and go to state 2
+    ID              shift and go to state 11
+    MINUS           shift and go to state 3
+    NUMBER          shift and go to state 1
+    LETTER          shift and go to state 6
+
+    expression                     shift and go to state 46
+    factor                         shift and go to state 4
+
+state 32
+
+    (4) statement_list -> statement SEP_AND statement_list .
+
+    $end            reduce using rule 4 (statement_list -> statement SEP_AND statement_list .)
+
+
+state 33
+
+    (2) statement_list -> statement SEP_PERIOD statement_list .
+
+    $end            reduce using rule 2 (statement_list -> statement SEP_PERIOD statement_list .)
+
+
+state 34
+
+    (1) statement_list -> statement SEP_COMMA statement_list .
+
+    $end            reduce using rule 1 (statement_list -> statement SEP_COMMA statement_list .)
+
+
+state 35
+
+    (6) statement_list -> statement SEP_THEN statement_list .
+
+    $end            reduce using rule 6 (statement_list -> statement SEP_THEN statement_list .)
+
+
+state 36
+
+    (5) statement_list -> statement SEP_BUT statement_list .
+
+    $end            reduce using rule 5 (statement_list -> statement SEP_BUT statement_list .)
+
+
+state 37
+
+    (10) statement -> ID ASSIGNMENT expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    SEP_COMMA       reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    SEP_PERIOD      reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    SEP_AND         reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    SEP_BUT         reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    SEP_THEN        reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    TOO             reduce using rule 10 (statement -> ID ASSIGNMENT expression .)
+    B_OR            shift and go to state 29
+    B_XOR           shift and go to state 27
+    B_AND           shift and go to state 24
+    PLUS            shift and go to state 26
+    MINUS           shift and go to state 30
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+
+state 38
+
+    (9) statement -> ID DEC_WAS DEC_A . type
+    (12) type -> . TYPE_NUMBER
+    (13) type -> . TYPE_LETTER
+
+    TYPE_NUMBER     shift and go to state 48
+    TYPE_LETTER     shift and go to state 47
+
+    type                           shift and go to state 49
+
+state 39
+
+    (24) expression -> expression DIVIDE expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 24 (expression -> expression DIVIDE expression .)
+    B_XOR           reduce using rule 24 (expression -> expression DIVIDE expression .)
+    B_AND           reduce using rule 24 (expression -> expression DIVIDE expression .)
+    PLUS            reduce using rule 24 (expression -> expression DIVIDE expression .)
+    MINUS           reduce using rule 24 (expression -> expression DIVIDE expression .)
+    MULTIPLY        reduce using rule 24 (expression -> expression DIVIDE expression .)
+    DIVIDE          reduce using rule 24 (expression -> expression DIVIDE expression .)
+    MOD             reduce using rule 24 (expression -> expression DIVIDE expression .)
+    PRINT_SPOKE     reduce using rule 24 (expression -> expression DIVIDE expression .)
+    SEP_COMMA       reduce using rule 24 (expression -> expression DIVIDE expression .)
+    SEP_PERIOD      reduce using rule 24 (expression -> expression DIVIDE expression .)
+    SEP_AND         reduce using rule 24 (expression -> expression DIVIDE expression .)
+    SEP_BUT         reduce using rule 24 (expression -> expression DIVIDE expression .)
+    SEP_THEN        reduce using rule 24 (expression -> expression DIVIDE expression .)
+    TOO             reduce using rule 24 (expression -> expression DIVIDE expression .)
+
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+  ! MULTIPLY        [ shift and go to state 28 ]
+  ! DIVIDE          [ shift and go to state 23 ]
+  ! MOD             [ shift and go to state 31 ]
+
+
+state 40
+
+    (20) expression -> expression B_AND expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 20 (expression -> expression B_AND expression .)
+    B_XOR           reduce using rule 20 (expression -> expression B_AND expression .)
+    B_AND           reduce using rule 20 (expression -> expression B_AND expression .)
+    PRINT_SPOKE     reduce using rule 20 (expression -> expression B_AND expression .)
+    SEP_COMMA       reduce using rule 20 (expression -> expression B_AND expression .)
+    SEP_PERIOD      reduce using rule 20 (expression -> expression B_AND expression .)
+    SEP_AND         reduce using rule 20 (expression -> expression B_AND expression .)
+    SEP_BUT         reduce using rule 20 (expression -> expression B_AND expression .)
+    SEP_THEN        reduce using rule 20 (expression -> expression B_AND expression .)
+    TOO             reduce using rule 20 (expression -> expression B_AND expression .)
+    PLUS            shift and go to state 26
+    MINUS           shift and go to state 30
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+  ! PLUS            [ reduce using rule 20 (expression -> expression B_AND expression .) ]
+  ! MINUS           [ reduce using rule 20 (expression -> expression B_AND expression .) ]
+  ! MULTIPLY        [ reduce using rule 20 (expression -> expression B_AND expression .) ]
+  ! DIVIDE          [ reduce using rule 20 (expression -> expression B_AND expression .) ]
+  ! MOD             [ reduce using rule 20 (expression -> expression B_AND expression .) ]
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+
+
+state 41
+
+    (21) expression -> expression PLUS expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 21 (expression -> expression PLUS expression .)
+    B_XOR           reduce using rule 21 (expression -> expression PLUS expression .)
+    B_AND           reduce using rule 21 (expression -> expression PLUS expression .)
+    PLUS            reduce using rule 21 (expression -> expression PLUS expression .)
+    MINUS           reduce using rule 21 (expression -> expression PLUS expression .)
+    PRINT_SPOKE     reduce using rule 21 (expression -> expression PLUS expression .)
+    SEP_COMMA       reduce using rule 21 (expression -> expression PLUS expression .)
+    SEP_PERIOD      reduce using rule 21 (expression -> expression PLUS expression .)
+    SEP_AND         reduce using rule 21 (expression -> expression PLUS expression .)
+    SEP_BUT         reduce using rule 21 (expression -> expression PLUS expression .)
+    SEP_THEN        reduce using rule 21 (expression -> expression PLUS expression .)
+    TOO             reduce using rule 21 (expression -> expression PLUS expression .)
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+  ! MULTIPLY        [ reduce using rule 21 (expression -> expression PLUS expression .) ]
+  ! DIVIDE          [ reduce using rule 21 (expression -> expression PLUS expression .) ]
+  ! MOD             [ reduce using rule 21 (expression -> expression PLUS expression .) ]
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+
+
+state 42
+
+    (19) expression -> expression B_XOR expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 19 (expression -> expression B_XOR expression .)
+    B_XOR           reduce using rule 19 (expression -> expression B_XOR expression .)
+    PRINT_SPOKE     reduce using rule 19 (expression -> expression B_XOR expression .)
+    SEP_COMMA       reduce using rule 19 (expression -> expression B_XOR expression .)
+    SEP_PERIOD      reduce using rule 19 (expression -> expression B_XOR expression .)
+    SEP_AND         reduce using rule 19 (expression -> expression B_XOR expression .)
+    SEP_BUT         reduce using rule 19 (expression -> expression B_XOR expression .)
+    SEP_THEN        reduce using rule 19 (expression -> expression B_XOR expression .)
+    TOO             reduce using rule 19 (expression -> expression B_XOR expression .)
+    B_AND           shift and go to state 24
+    PLUS            shift and go to state 26
+    MINUS           shift and go to state 30
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+  ! B_AND           [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! PLUS            [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! MINUS           [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! MULTIPLY        [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! DIVIDE          [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! MOD             [ reduce using rule 19 (expression -> expression B_XOR expression .) ]
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+
+
+state 43
+
+    (23) expression -> expression MULTIPLY expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    B_XOR           reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    B_AND           reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    PLUS            reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    MINUS           reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    MULTIPLY        reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    DIVIDE          reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    MOD             reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    PRINT_SPOKE     reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    SEP_COMMA       reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    SEP_PERIOD      reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    SEP_AND         reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    SEP_BUT         reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    SEP_THEN        reduce using rule 23 (expression -> expression MULTIPLY expression .)
+    TOO             reduce using rule 23 (expression -> expression MULTIPLY expression .)
+
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+  ! MULTIPLY        [ shift and go to state 28 ]
+  ! DIVIDE          [ shift and go to state 23 ]
+  ! MOD             [ shift and go to state 31 ]
+
+
+state 44
+
+    (18) expression -> expression B_OR expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 18 (expression -> expression B_OR expression .)
+    PRINT_SPOKE     reduce using rule 18 (expression -> expression B_OR expression .)
+    SEP_COMMA       reduce using rule 18 (expression -> expression B_OR expression .)
+    SEP_PERIOD      reduce using rule 18 (expression -> expression B_OR expression .)
+    SEP_AND         reduce using rule 18 (expression -> expression B_OR expression .)
+    SEP_BUT         reduce using rule 18 (expression -> expression B_OR expression .)
+    SEP_THEN        reduce using rule 18 (expression -> expression B_OR expression .)
+    TOO             reduce using rule 18 (expression -> expression B_OR expression .)
+    B_XOR           shift and go to state 27
+    B_AND           shift and go to state 24
+    PLUS            shift and go to state 26
+    MINUS           shift and go to state 30
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+  ! B_XOR           [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! B_AND           [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! PLUS            [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! MINUS           [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! MULTIPLY        [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! DIVIDE          [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! MOD             [ reduce using rule 18 (expression -> expression B_OR expression .) ]
+  ! B_OR            [ shift and go to state 29 ]
+
+
+state 45
+
+    (22) expression -> expression MINUS expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 22 (expression -> expression MINUS expression .)
+    B_XOR           reduce using rule 22 (expression -> expression MINUS expression .)
+    B_AND           reduce using rule 22 (expression -> expression MINUS expression .)
+    PLUS            reduce using rule 22 (expression -> expression MINUS expression .)
+    MINUS           reduce using rule 22 (expression -> expression MINUS expression .)
+    PRINT_SPOKE     reduce using rule 22 (expression -> expression MINUS expression .)
+    SEP_COMMA       reduce using rule 22 (expression -> expression MINUS expression .)
+    SEP_PERIOD      reduce using rule 22 (expression -> expression MINUS expression .)
+    SEP_AND         reduce using rule 22 (expression -> expression MINUS expression .)
+    SEP_BUT         reduce using rule 22 (expression -> expression MINUS expression .)
+    SEP_THEN        reduce using rule 22 (expression -> expression MINUS expression .)
+    TOO             reduce using rule 22 (expression -> expression MINUS expression .)
+    MULTIPLY        shift and go to state 28
+    DIVIDE          shift and go to state 23
+    MOD             shift and go to state 31
+
+  ! MULTIPLY        [ reduce using rule 22 (expression -> expression MINUS expression .) ]
+  ! DIVIDE          [ reduce using rule 22 (expression -> expression MINUS expression .) ]
+  ! MOD             [ reduce using rule 22 (expression -> expression MINUS expression .) ]
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+
+
+state 46
+
+    (25) expression -> expression MOD expression .
+    (18) expression -> expression . B_OR expression
+    (19) expression -> expression . B_XOR expression
+    (20) expression -> expression . B_AND expression
+    (21) expression -> expression . PLUS expression
+    (22) expression -> expression . MINUS expression
+    (23) expression -> expression . MULTIPLY expression
+    (24) expression -> expression . DIVIDE expression
+    (25) expression -> expression . MOD expression
+
+    B_OR            reduce using rule 25 (expression -> expression MOD expression .)
+    B_XOR           reduce using rule 25 (expression -> expression MOD expression .)
+    B_AND           reduce using rule 25 (expression -> expression MOD expression .)
+    PLUS            reduce using rule 25 (expression -> expression MOD expression .)
+    MINUS           reduce using rule 25 (expression -> expression MOD expression .)
+    MULTIPLY        reduce using rule 25 (expression -> expression MOD expression .)
+    DIVIDE          reduce using rule 25 (expression -> expression MOD expression .)
+    MOD             reduce using rule 25 (expression -> expression MOD expression .)
+    PRINT_SPOKE     reduce using rule 25 (expression -> expression MOD expression .)
+    SEP_COMMA       reduce using rule 25 (expression -> expression MOD expression .)
+    SEP_PERIOD      reduce using rule 25 (expression -> expression MOD expression .)
+    SEP_AND         reduce using rule 25 (expression -> expression MOD expression .)
+    SEP_BUT         reduce using rule 25 (expression -> expression MOD expression .)
+    SEP_THEN        reduce using rule 25 (expression -> expression MOD expression .)
+    TOO             reduce using rule 25 (expression -> expression MOD expression .)
+
+  ! B_OR            [ shift and go to state 29 ]
+  ! B_XOR           [ shift and go to state 27 ]
+  ! B_AND           [ shift and go to state 24 ]
+  ! PLUS            [ shift and go to state 26 ]
+  ! MINUS           [ shift and go to state 30 ]
+  ! MULTIPLY        [ shift and go to state 28 ]
+  ! DIVIDE          [ shift and go to state 23 ]
+  ! MOD             [ shift and go to state 31 ]
+
+
+state 47
+
+    (13) type -> TYPE_LETTER .
+
+    SEP_COMMA       reduce using rule 13 (type -> TYPE_LETTER .)
+    SEP_PERIOD      reduce using rule 13 (type -> TYPE_LETTER .)
+    SEP_AND         reduce using rule 13 (type -> TYPE_LETTER .)
+    SEP_BUT         reduce using rule 13 (type -> TYPE_LETTER .)
+    SEP_THEN        reduce using rule 13 (type -> TYPE_LETTER .)
+    TOO             reduce using rule 13 (type -> TYPE_LETTER .)
+
+
+state 48
+
+    (12) type -> TYPE_NUMBER .
+
+    SEP_COMMA       reduce using rule 12 (type -> TYPE_NUMBER .)
+    SEP_PERIOD      reduce using rule 12 (type -> TYPE_NUMBER .)
+    SEP_AND         reduce using rule 12 (type -> TYPE_NUMBER .)
+    SEP_BUT         reduce using rule 12 (type -> TYPE_NUMBER .)
+    SEP_THEN        reduce using rule 12 (type -> TYPE_NUMBER .)
+    TOO             reduce using rule 12 (type -> TYPE_NUMBER .)
+
+
+state 49
+
+    (9) statement -> ID DEC_WAS DEC_A type .
+
+    SEP_COMMA       reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+    SEP_PERIOD      reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+    SEP_AND         reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+    SEP_BUT         reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+    SEP_THEN        reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+    TOO             reduce using rule 9 (statement -> ID DEC_WAS DEC_A type .)
+

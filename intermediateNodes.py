@@ -146,6 +146,11 @@ class DecNode(UnOpNode):
 class NotNode(UnOpNode):
     def __init__(self, reg, parents):
         super(NotNode, self).__init__("not", reg, parents)
+   
+# TODO: Added on the fly, review later.
+class NegativeNode(UnOpNode):
+    def __init__(self, reg, parents):
+        super(NegativeNode, self).__init__("negative", reg, parents)
 
 class SpokeNode(IntermediateNode):
     def __init__(self, reg, parents, formatting):

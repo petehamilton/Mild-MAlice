@@ -3,6 +3,7 @@ from grammarExceptions import SemanticException, BinaryException, LogicalExcepti
 from SymbolTable import SymbolTable
 import tokRules
 import intermediateNodes as INodes
+import re
 
 ################################################################################
 # NODE TYPES
@@ -51,6 +52,10 @@ class ASTNode(object):
         self.clauseno = clauseno
         self.children = children
         self.type = None
+        self.symbolTable = None
+        
+    def setSymbolTable(self, symbolTable):
+        self.symbolTable = symbolTable
         
     def getNodeType(self):
         return self.nodeType
@@ -105,6 +110,7 @@ class BinaryNode(OperatorNode):
         return self.children[1]
     
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         leftExpression = self.getLeftExpression()
         rightExpression = self.getRightExpression()
         
@@ -118,11 +124,10 @@ class BinaryNode(OperatorNode):
             raise BinaryException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
-        def translateOperation(reg1, reg2, parents):
+        def translateOperation(destReg, nextReg, parents):
             op = self.getOperator()
             if re.match( tokRules.t_PLUS, op ):
                 intermediateNode = INodes.AddNode(destReg, nextReg, parents)
-
             elif re.match( tokRules.t_MINUS, op ):
                 intermediateNode = INodes.SubNode(destReg, nextReg, parents)
 
@@ -148,20 +153,9 @@ class BinaryNode(OperatorNode):
             
         reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, parents)
         reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, parents)
-<<<<<<< HEAD
-        
-        reg, exp3, parents = self.translateOperation(self.getOperator(), reg, reg1, parents)
-        
-        
+        reg, exp3, parents = translateOperation(reg, reg1, parents)
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
-=======
-        reg, exp3, parents = self.translateOperation(reg, reg1, parents)
-        reg = reg + (reg2 - reg1)
-        return reg + 1, (exp1 + exp2 + exp3), parents
-    
-    
->>>>>>> Fixed some bugs from moving code. No longer pass operator into unary and binary node auxillary functions.
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
@@ -171,6 +165,7 @@ class UnaryNode(OperatorNode):
         return self.children[0]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getExpression().check(symbolTable)
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
@@ -188,8 +183,13 @@ class UnaryNode(OperatorNode):
                 intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
                 parents = intermediateNode
             elif re.match( tokRules.t_B_NOT, op ):
-                reg1, exp, parents = self.transExp( node, registersDict, destReg, parents )
+                reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NotNode(destReg, parents)]
+                parents = intermediateNode
+                intermediateNode = exp + intermediateNode
+            elif re.match( tokRules.t_MINUS, op ):
+                reg1, exp, parents = node.translate(registersDict, destReg, parents)
+                intermediateNode = [INodes.NegativeNode(destReg, parents)]
                 parents = intermediateNode
                 intermediateNode = exp + intermediateNode
             return destReg, intermediateNode, parents
@@ -215,6 +215,7 @@ class StatementListNode(ASTNode):
         return self.children[1]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getStatement().check(symbolTable)
         self.getStatementList().check(symbolTable)
     
@@ -265,6 +266,7 @@ class AssignmentNode(StatementNode):
                 raise AssignmentTypeException(self.lineno, self.clauseno)
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.variableCheck(symbolTable, self.getDestination())
         
     def translate(self, registersDict, reg, parents):    
@@ -277,8 +279,13 @@ class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
         self.variableName = variableName
+        
+    # Returns type node's type.
+    def getType(self):
+        return self.children[1].getType()
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
         V = symbolTable.lookupCurrLevelOnly(self.variableName)
         # if T == None:
@@ -311,6 +318,7 @@ class Factor(ASTNode):
         return self.children[0]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.type = self.factorType
     
     def translate(self, registersDict, reg, parents):
@@ -334,6 +342,7 @@ class IDNode(Factor):
         super(IDNode, self).__init__( ID, lineno, clauseno, child )
     
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
     
     def translate(self, registersDict, reg, parents):
@@ -354,26 +363,29 @@ class SpokeNode(ASTNode):
         return self.children[0]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
+        self.symbolTable = symbolTable
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
     
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
-        reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents)
+        reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
-        if spokeExpression.getNodeType() == ASTNodes.Factor:
-            if spokeExpression.getFactorType() == ASTNodes.ID:
-                (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
+        if spokeExpression.getNodeType() == FACTOR:
+            if spokeExpression.getFactorType() == ID:
+                node = self.symbolTable.lookupCurrLevelAndEnclosingLevels(spokeExpression.getValue())
+                idType = node.getType()
             else:
                 idType = spokeExpression.getFactorType()
         else:
             # If not a factor, must be of type number since letters are only 
             # valid as factors and not as part of operations or expressions
-            idType = ASTNodes.NUMBER
+            idType = NUMBER
         
-        if idType == ASTNodes.NUMBER:
+        if idType == NUMBER:
             formatting = "intfmt"
-        elif idType == ASTNodes.LETTER:
+        elif idType == LETTER:
             formatting = "charfmt"
         
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
@@ -394,6 +406,7 @@ class ReturnNode(ASTNode):
         return self.children[0]
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getReturnExpression().check(symbolTable)
         self.type = self.getReturnExpression().type
 
@@ -412,6 +425,7 @@ class InputNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable)
         self.type = self.getVariable().type
 
@@ -430,6 +444,7 @@ class TypeNode(ASTNode):
         return self.typeType
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.type = self.typeType
         
 class NumberTypeNode(TypeNode):
@@ -460,6 +475,7 @@ class ArrayAccessNode(ASTNode):
     
     #TODO: CHECK IF ID
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getValue().check(symbolTable)
         self.type = self.getValue().type
         
@@ -476,6 +492,7 @@ class ArrayAssignmentNode(AssignmentNode):
         super(ArrayAssignmentNode, self).__init__(lineno, clauseno, array_access, expression)
     
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         idNode = self.getDestination().getValue()
         self.variableCheck(symbolTable, idNode.getValue())
 
@@ -508,6 +525,7 @@ class ConditionalNode(ASTNode):
         return self.children[1]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getExpression().check(symbolTable)
         self.getBody().check(symbolTable)
         
@@ -516,6 +534,7 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).__init__(LOOP, lineno, clauseno, [exp, body])
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         super(LoopNode, self).check(newSymbolTable)
         
@@ -527,6 +546,7 @@ class IfNode(ConditionalNode):
             return self.children[2]
 
         def check(self, symbolTable):
+            self.setSymbolTable(symbolTable)
             newSymbolTable = SymbolTable(symbolTable)
             super(IfNode, self).check(newSymbolTable)
             nextLogicalClause = self.getNextLogicalClause();
@@ -547,6 +567,7 @@ class ElseNode(ASTNode):
         return self.children[0]
     
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getBody().check(symbolTable)
 
 class LogicalClausesNode(ASTNode):
@@ -560,6 +581,7 @@ class LogicalClausesNode(ASTNode):
         return self.children[1]
 
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getLogicalClause().check(symbolTable)
         
         logicalClauses = self.getLogicalClauses();
@@ -591,7 +613,8 @@ class FunctionDeclarationNode(DeclarationNode):
         return self.children[1]
     
     # TODO CHECK RETURN VALUE SAME AS RETURN TYPE
-    def check(self, symbolTable):        
+    def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)        
         super(FunctionDeclarationNode, self).check(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         self.getArguments().check(newSymbolTable)
@@ -613,6 +636,7 @@ class ArgumentsNode(ASTNode):
         return 1 + self.getArguments().getLength()
     
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getArgument().check(symbolTable)
         if self.getArguments():
             self.getArguments().check(symbolTable)
@@ -629,6 +653,7 @@ class ArgumentNode(ASTNode):
         return 1
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getArgument().check(symbolTable)
 
 
@@ -648,6 +673,7 @@ class FunctionCallNode(ASTNode):
         return self.children[1]
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
         self.getArguments().check(symbolTable)
         if not func:
@@ -674,7 +700,8 @@ class FunctionArgumentsNode(ASTNode):
     def getLength(self):
         return 1 + self.getArguments().getLength()
         
-    def check(self, symbolTable):    
+    def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)    
         self.getArgument().check(symbolTable)
         if self.getArguments():
             self.getArguments().check(symbolTable)        
@@ -689,7 +716,8 @@ class FunctionArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
-    def check(self, symbolTable):    
+    def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)    
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
 
@@ -704,6 +732,7 @@ class FunctionBodyNode(ASTNode):
         return self.children[1]
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         self.getStatementList().check(symbolTable)
         self.getFunctionBody().check(symbolTable)
         
@@ -723,7 +752,8 @@ class FunctionsNode(ASTNode):
     def getFunctions(self):
         return self.children[1]    
     
-    def check(self, symbolTable):  
+    def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)  
         self.getFunction().check(symbolTable)
         if self.getFunctions():
             self.getFunctions().check(symbolTable)
@@ -745,6 +775,7 @@ class CodeSeparatorNode(ASTNode):
         return self.children[1]
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         functions = self.getFunctions()
         if functions:
             functions.check(symbolTable)
@@ -759,5 +790,6 @@ class CommentNode(ASTNode):
         return self.children[0]
         
     def check(self, symbolTable):
+        self.setSymbolTable(symbolTable)
         pass    
     
