@@ -113,6 +113,41 @@ class BinaryNode(OperatorNode):
         else:
             print "Binary Exception"
             raise BinaryException(self.lineno, self.clauseno)
+    
+    def translate(self, registersDict, reg, parents):
+        reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, parents)
+        reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, parents)
+        
+        reg, exp3, parents = self.translateOperation(self.getOperator(), reg, reg1, parents)
+        
+        reg = reg + (reg2 - reg1)
+        return reg + 1, (exp1 + exp2 + exp3), parents
+    
+    def translateOperation(op, reg1, reg2, parents):
+        if re.match( tokRules.t_PLUS, op ):
+            intermediateNode = INodes.AddNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_MINUS, op ):
+            intermediateNode = INodes.SubNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_MULTIPLY, op ):
+            intermediateNode = INodes.MulNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_DIVIDE, op ):
+            intermediateNode = INodes.DivNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_MOD, op ):
+            intermediateNode = INodes.ModNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_B_OR, op ):
+            intermediateNode = INodes.OrNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_B_XOR, op ):
+            intermediateNode = INodes.XORNode(destReg, nextReg, parents)
+        
+        elif re.match( tokRules.t_B_AND, op ):
+            intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+        return destReg, [intermediateNode], [intermediateNode]
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
@@ -167,6 +202,11 @@ class StatementListNode(ASTNode):
     def check(self, symbolTable):
         self.getStatement().check(symbolTable)
         self.getStatementList().check(symbolTable)
+    
+    def translate(self, registersDict, reg, parents):
+        reg, exp1, parents = self.getStatement().translate(registersDict, reg, parents)
+        reg, exp2, parents = self.getStatementList().translate(registersDict, reg, parents)
+        return reg, exp1 + exp2, parents
 
 class StatementNode(ASTNode):
     def __init__(self, nodeType, lineno, clauseno, children ):
@@ -257,6 +297,10 @@ class Factor(ASTNode):
 
     def check(self, symbolTable):
         self.type = self.factorType
+    
+    def translate(self, registersDict, reg, parents):
+        intermediateNode = INodes.ImmMovNode(reg, str(self.getValue()), parents)    
+        return reg + 1, [intermediateNode], [intermediateNode]
         
 class NumberNode(Factor):
     def __init__(self, lineno, clauseno, child ):
@@ -276,6 +320,10 @@ class IDNode(Factor):
     
     def check(self, symbolTable):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
+    
+    def translate(self, registersDict, reg, parents):
+        intermediateNode = INodes.MovNode(reg, registersDict[self.getValue()], parents)
+        return reg + 1, [intermediateNode], [intermediateNode]
 
 
 
@@ -293,6 +341,29 @@ class SpokeNode(ASTNode):
     def check(self, symbolTable):
         self.getExpression().check(symbolTable)
         self.type = self.getExpression().type
+    
+    def translate(self, registersDict, reg, parents):
+        spokeExpression = self.getExpression()
+        reg1, exp, parents = self.transExp( spokeExpression, registersDict, reg, parents)
+        
+        if spokeExpression.getNodeType() == ASTNodes.Factor:
+            if spokeExpression.getFactorType() == ASTNodes.ID:
+                (idType, lineNo, assigned) = self.symbolTable[spokeExpression.getValue()]
+            else:
+                idType = spokeExpression.getFactorType()
+        else:
+            # If not a factor, must be of type number since letters are only 
+            # valid as factors and not as part of operations or expressions
+            idType = ASTNodes.NUMBER
+        
+        if idType == ASTNodes.NUMBER:
+            formatting = "intfmt"
+        elif idType == ASTNodes.LETTER:
+            formatting = "charfmt"
+        
+        intermediateNode = INodes.SpokeNode(reg, parents, formatting)
+        
+        return reg1, exp + [intermediateNode], [intermediateNode]
 
 
 
