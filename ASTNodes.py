@@ -118,14 +118,50 @@ class BinaryNode(OperatorNode):
             raise BinaryException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
+        def translateOperation(reg1, reg2, parents):
+            op = self.getOperator()
+            if re.match( tokRules.t_PLUS, op ):
+                intermediateNode = INodes.AddNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_MINUS, op ):
+                intermediateNode = INodes.SubNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_MULTIPLY, op ):
+                intermediateNode = INodes.MulNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_DIVIDE, op ):
+                intermediateNode = INodes.DivNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_MOD, op ):
+                intermediateNode = INodes.ModNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_B_OR, op ):
+                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_B_XOR, op ):
+                intermediateNode = INodes.XORNode(destReg, nextReg, parents)
+
+            elif re.match( tokRules.t_B_AND, op ):
+                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+            return destReg, [intermediateNode], [intermediateNode]
+            
+            
         reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, parents)
         reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, parents)
+<<<<<<< HEAD
         
         reg, exp3, parents = self.translateOperation(self.getOperator(), reg, reg1, parents)
         
         
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
+=======
+        reg, exp3, parents = self.translateOperation(reg, reg1, parents)
+        reg = reg + (reg2 - reg1)
+        return reg + 1, (exp1 + exp2 + exp3), parents
+    
+    
+>>>>>>> Fixed some bugs from moving code. No longer pass operator into unary and binary node auxillary functions.
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
@@ -143,7 +179,8 @@ class UnaryNode(OperatorNode):
             raise UnaryException(self.lineno, self.clauseno)
     
     def translate( self, registersDict, reg, parents ):
-        def transUnOp(op, destReg, node, registersDict, parents):
+        def transUnOp(destReg, node, registersDict, parents):
+            op = self.getOperator()
             if re.match( "ate", op ):
                 intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
                 parents = intermediateNode
@@ -157,7 +194,7 @@ class UnaryNode(OperatorNode):
                 intermediateNode = exp + intermediateNode
             return destReg, intermediateNode, parents
             
-        reg, exp2, parents = transUnOp( self.getOperator(), reg, self.getExpression(), registersDict, parents )
+        reg, exp2, parents = transUnOp( reg, self.getExpression(), registersDict, parents )
         return reg, exp2, parents
         
         
@@ -232,7 +269,7 @@ class AssignmentNode(StatementNode):
         
     def translate(self, registersDict, reg, parents):    
         assignmentReg = reg
-        reg, exp, parents = node.getExpression().translate(registersDict, reg, parents)
+        reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
         registersDict[self.getVariable()] = assignmentReg
         return reg, exp, parents
         
