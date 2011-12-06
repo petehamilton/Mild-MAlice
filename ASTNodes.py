@@ -67,6 +67,9 @@ class ASTNode(object):
                 child.display(depth + 1)
             else:
                 print ("  " * (depth)) + "|> '" + str(child) + "'"
+    
+    def translate(self, registersDict, reg, parents):
+        return reg, [], parents
 
 
 
@@ -120,34 +123,9 @@ class BinaryNode(OperatorNode):
         
         reg, exp3, parents = self.translateOperation(self.getOperator(), reg, reg1, parents)
         
+        
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
-    
-    def translateOperation(op, reg1, reg2, parents):
-        if re.match( tokRules.t_PLUS, op ):
-            intermediateNode = INodes.AddNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_MINUS, op ):
-            intermediateNode = INodes.SubNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_MULTIPLY, op ):
-            intermediateNode = INodes.MulNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_DIVIDE, op ):
-            intermediateNode = INodes.DivNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_MOD, op ):
-            intermediateNode = INodes.ModNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_B_OR, op ):
-            intermediateNode = INodes.OrNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_B_XOR, op ):
-            intermediateNode = INodes.XORNode(destReg, nextReg, parents)
-        
-        elif re.match( tokRules.t_B_AND, op ):
-            intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-        return destReg, [intermediateNode], [intermediateNode]
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
