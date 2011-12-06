@@ -186,11 +186,13 @@ class UnaryNode(OperatorNode):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NotNode(destReg, parents)]
                 parents = intermediateNode
+                destReg = reg1
                 intermediateNode = exp + intermediateNode
             elif re.match( tokRules.t_MINUS, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NegativeNode(destReg, parents)]
                 parents = intermediateNode
+                destReg = reg1
                 intermediateNode = exp + intermediateNode
             return destReg, intermediateNode, parents
             
