@@ -91,10 +91,9 @@ class OperatorNode(ASTNode):
             else:
                 print ("  " * (depth)) + "|> '" + str(child) + "'"
 
-class BinaryOperatorNode(ASTNode):
-    def __init__(self, nodeType, lineno, clauseno, operator, children ):
-        super(BinaryOperatorNode, self).__init__( nodeType, lineno, clauseno, children )
-        self.operator = operator
+class BinaryNode(OperatorNode):
+    def __init__(self, lineno, clauseno, operator, children ):
+        super(BinaryNode, self).__init__( BINARY_OP, lineno, clauseno, operator, children )
     
     def getLeftExpression(self):
         return self.children[0]
@@ -117,15 +116,6 @@ class BinaryOperatorNode(ASTNode):
     
     def getOperator(self):
         return self.operator
-    
-    def display(self, depth = 0):
-        print ("  " * (depth-1)) + \
-              ("|> " if (depth > 0) else "") + self.nodeType
-        for child in [self.children[0], self.operator, self.children[1]]:
-            if isinstance(child, ASTNode):
-              child.display(depth + 1)
-            else:
-              print ("  " * (depth)) + "|> '" + str(child) + "'"
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
