@@ -396,11 +396,11 @@ class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, index ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
         self.index = index
-        
+    
     def getValue(self):
         return self.children[0]
-        
-    #TODO: CHECK IF ID    
+    
+    #TODO: CHECK IF ID
     def check(self, symbolTable):
         self.getValue().check(symbolTable)
         self.type = self.getValue().type
@@ -416,7 +416,7 @@ class ArrayAccessNode(ASTNode):
 class ArrayAssignmentNode(AssignmentNode):
     def __init__(self, lineno, clauseno, array_access, expression ):
         super(ArrayAssignmentNode, self).__init__(lineno, clauseno, array_access, expression)
-        
+    
     def check(self, symbolTable):
         idNode = self.getDestination().getValue()
         self.variableCheck(symbolTable, idNode.getValue())
@@ -429,7 +429,7 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self,symbolTable):
         self.length.check(symbolTable)
         if self.length.type != NUMBER:
-            print "ARrray declaration exception"
+            print "Array declaration exception"
             raise ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable)
 
