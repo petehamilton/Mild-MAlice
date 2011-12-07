@@ -128,7 +128,46 @@ class XORNode(BinOpNode):
          
 class AndNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
-        super(AndNode, self).__init__("and", reg1, reg2, parents)  
+        super(AndNode, self).__init__("and", reg1, reg2, parents)          
+        
+class LogicalNode(InstructionNode):
+    # Could/should(?) use nested nodes instead of labels?
+    # Also, instruction not used really so should probably inherit from intermediateNode?
+    def __init__(self, instruction, reg1, reg2, tLabel, fLabel, parents):
+        super(LogicalNode, self).__init__(instruction, parents)
+        self.registers = [reg1, reg2]
+        self.tLabel = tLabel
+        self.fLabel = fLabel
+        self.jump_instruction = '' # unconditional jump - don't really like this!
+        
+    def uses(self):
+        return [self.registers[1]]
+    
+    def generateCode(self, registerMap):
+        # Need to save registers used to pull form memory if we do this?
+        # destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+        # 
+        # regsToPreserve = []
+        # if self.isInMemory(nextReg):
+        #     regsToPreserve += [nextReg]
+        # if self.isInMemory(destReg):
+        #     regsToPreserve += [nextReg]
+        # 
+        # registersToPreserve = list(set(self.idivRegisters) - set([destReg]))
+        # registersToPreserveReverse = registersToPreserve[0:]
+        # registersToPreserveReverse.reverse()
+        
+        if self.jump_instruction not '':
+            return [
+                
+            ]
+        else:
+            return [] # Can't evaluate!
+        
+class EqualNode(LogicalNode):
+    def __init__(self, reg1, reg2, tLabel, fLabel, parents):
+        super(LogicalNode, self).__init__('==', reg1, reg2, tLabel, fLabel, parents)
+        self. 
 
 class UnOpNode(InstructionNode):
     def __init__(self, instruction, reg, parents):
