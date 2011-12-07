@@ -152,6 +152,16 @@ class BinaryNode(OperatorNode):
             
             #TODO, ADD LOGICAL OPERATIONS HERE
             
+            elif re.match( tokRules.t_EQUAL, op ):
+            elif re.match( tokRules.t_LESS_THAN, op ):
+            elif re.match( tokRules.t_GREATER_THAN, op ):
+            elif re.match( tokRules.t_GREATER_THAN_EQUAL, op ):
+            elif re.match( tokRules.t_LESS_THAN_EQUAL, op ):
+            elif re.match( tokRules.t_NOT_EQUAL, op ):
+            elif re.match( tokRules.t_L_AND, op ):
+            elif re.match( tokRules.t_L_OR, op ):
+            
+            
             return destReg, [intermediateNode], [intermediateNode]
             
             
