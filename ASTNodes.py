@@ -180,7 +180,7 @@ class BinaryNode(OperatorNode):
             
             
         reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, parents)
-        reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, parents)
+        reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, parents)
         reg, exp3, parents = translateOperation(reg, reg1, parents)
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
@@ -578,20 +578,62 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).check(newSymbolTable, flags)
         
 class IfNode(ConditionalNode):
-    def __init__(self, lineno, clauseno, exp, thenBody, nextLogicalClause = None ):
-        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, nextLogicalClause])
-
-        def getNextLogicalClause(self):
+    def __init__(self, lineno, clauseno, exp, thenBody, logicalClauses = None ):
+        super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, logicalClauses])
+        
+        def getExpression(self):
+            return self.children[0]
+        
+        def getThenBody(self):
+            return self.children[1]
+        
+        def getLogicalClauses(self):
             return self.children[2]
 
         def check(self, symbolTable, flags):
             self.setSymbolTable(symbolTable)
             newSymbolTable = SymbolTable(symbolTable)
             super(IfNode, self).check(newSymbolTable)
-            nextLogicalClause = self.getNextLogicalClause();
+            nextLogicalClause = self.getLogicalClauses();
             if nextLogicalClause != None:
                 nextLogicalClause.check(newSymbolTable)
+        
+        def translate(self, registersDict, reg, parents):
+            logicalClause = self
+            logicalClauses = self.getLogicalClauses()
+            nextLogicalClause = None
+            
+            endLabel = "end_" + uniqueID
 
+            code = []
+            code += ["conditional_" + uniqueID]
+            
+            while(logicalClause != None):
+                logicalClauses = logicalClause.getLogicalClauses()
+                
+                if logicalClauses != None:
+                    nextLogicalClause = logicalClauses.getLogicalClause()
+                    logicalClauses = logicalClauses.getLogicalClauses()
+                
+                if(nextLogicalClause != None):
+                    falseLabel = "conditional_next" + uniqueID
+                else:
+                    falseLabel = endLabel
+                
+                reg1, code, parents = self.getExpression().translate(registersDict, reg, parents)
+                
+                code += ["cmp %s, 0" % reg,
+                         "jle %s" % falseLabel]
+                
+                reg2, code, parents = self.getThenBody().translate(registersDict, reg1, parents)
+                
+                if falseLabel != endLabel:
+                    code += ["jmp %s" % endLabel]
+                code += [falseLabel + ":"]
+                
+                logicalClause = nextLogicalClause
+            return reg2, code, parents
+            
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
         super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
