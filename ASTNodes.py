@@ -66,7 +66,6 @@ class ASTNode(object):
     def display(self, depth = 0):
         print ("  " * (depth-1)) + \
               ("|> " if (depth > 0) else "") + self.nodeType
-        
         for child in self.children:
             if isinstance(child, ASTNode):
                 child.display(depth + 1)
@@ -93,7 +92,10 @@ class OperatorNode(ASTNode):
     def display(self, depth = 0):
         print ("  " * (depth-1)) + \
               ("|> " if (depth > 0) else "") + self.nodeType
-        for child in [self.children[0], self.operator]:
+        children = [self.children[0], self.operator]
+        if self.children[1]:
+            children += [self.children[1]]
+        for child in children:
             if isinstance(child, ASTNode):
                 child.display(depth + 1)
             else:
