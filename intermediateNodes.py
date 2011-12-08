@@ -133,42 +133,108 @@ class AndNode(BinOpNode):
 class LogicalNode(InstructionNode):
     # Could/should(?) use nested nodes instead of labels?
     # Also, instruction not used really so should probably inherit from intermediateNode?
-    def __init__(self, instruction, reg1, reg2, tLabel, fLabel, parents):
+    def __init__(self, instruction, reg1, reg2, parents):
         super(LogicalNode, self).__init__(instruction, parents)
         self.registers = [reg1, reg2]
-        self.tLabel = tLabel
-        self.fLabel = fLabel
-        self.jump_instruction = '' # unconditional jump - don't really like this!
         
     def uses(self):
         return [self.registers[1]]
     
     def generateCode(self, registerMap):
-        # Need to save registers used to pull form memory if we do this?
-        # destReg, nextReg = map(lambda x: registerMap[x], self.registers)
-        # 
-        # regsToPreserve = []
-        # if self.isInMemory(nextReg):
-        #     regsToPreserve += [nextReg]
-        # if self.isInMemory(destReg):
-        #     regsToPreserve += [nextReg]
-        # 
-        # registersToPreserve = list(set(self.idivRegisters) - set([destReg]))
-        # registersToPreserveReverse = registersToPreserve[0:]
-        # registersToPreserveReverse.reverse()
+        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
         
-        if self.jump_instruction not '':
-            return [
-                
-            ]
-        else:
-            return [] # Can't evaluate!
+        destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+        
+        # What happens if they're memory addresses?
+        start_label = "logical_eval_start" + uniqueIdentifier
+        true_label = "logical_eval_true" + uniqueIdentifier
+        end_label = "logical_eval_end" + uniqueIdentifier
+        return [
+                start_label + ":",
+                "cmp %s, %s" % (destReg, nextReg),
+                self.instruction true_label,
+                "mov %s, 0" % destReg,
+                "jmp " + end_label,
+                true_label + ":",
+                "mov %s, 1" % destReg,
+                end_label + ":"
+        ]
         
 class EqualNode(LogicalNode):
-    def __init__(self, reg1, reg2, tLabel, fLabel, parents):
-        super(LogicalNode, self).__init__('==', reg1, reg2, tLabel, fLabel, parents)
-        self. 
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('je', reg1, reg2, parents)
 
+class NotEqualNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jne', reg1, reg2, parents)
+        
+class LessThanNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jl', reg1, reg2, parents)
+        
+class LessThanEqualNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jle', reg1, reg2, parents)
+        
+class GreaterThanNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jg', reg1, reg2, parents)
+        
+class GreaterThanEqualNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+        
+class AndNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+
+    def generateCode(self, registerMap):
+    uniqueIdentifier = "_1" # This should be next available from a pool/global I think
+
+    destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+    
+    # What happens if they're memory addresses?
+    start_label = "logical_eval_and_start" + uniqueIdentifier
+    false_label = "logical_eval_and_false" + uniqueIdentifier
+    end_label = "logical_eval_and_end" + uniqueIdentifier
+    return [
+        start_label + ":",
+        "cmp %s, 1" % destReg,
+        "jne " + false_label,
+        "cmp %s, 1" % nextReg,
+        "jne " + false_label,
+        "mov %s, 1" % destReg,
+        "jmp " + end_label,
+        false_label + ":",
+        "mov %s, 0" % destReg,
+        end_label + ":"
+    ]
+        
+class OrNode(LogicalNode):
+    def __init__(self, reg1, reg2, parents):
+        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+
+    def generateCode(self, registerMap):
+        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
+
+        destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+    
+        # What happens if they're memory addresses?
+        start_label = "logical_eval_or_start" + uniqueIdentifier
+        true_label = "logical_eval_or_true" + uniqueIdentifier
+        end_label = "logical_eval_or_end" + uniqueIdentifier
+        return [
+            start_label + ":",
+            "cmp %s, 1" % destReg,
+            "je " + true_label,
+            "cmp %s, 1" % nextReg,
+            "je " + true_label,
+            "mov %s, 0" % destReg,
+            "jmp " + end_label,
+            true_label + ":",
+            "mov %s, 1" % destReg,
+            end_label + ":"
+        ]
 class UnOpNode(InstructionNode):
     def __init__(self, instruction, reg, parents):
         super(UnOpNode, self).__init__(instruction, parents)  
