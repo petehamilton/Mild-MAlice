@@ -130,15 +130,11 @@ class AndNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
         super(AndNode, self).__init__("and", reg1, reg2, parents)          
         
-class LogicalNode(InstructionNode):
+class LogicalOpNode(BinOpNode):
     # Could/should(?) use nested nodes instead of labels?
     # Also, instruction not used really so should probably inherit from intermediateNode?
     def __init__(self, instruction, reg1, reg2, parents):
         super(LogicalNode, self).__init__(instruction, parents)
-        self.registers = [reg1, reg2]
-        
-    def uses(self):
-        return [self.registers[1]]
     
     def generateCode(self, registerMap):
         uniqueIdentifier = "_1" # This should be next available from a pool/global I think
@@ -160,31 +156,31 @@ class LogicalNode(InstructionNode):
                 end_label + ":"
         ]
         
-class EqualNode(LogicalNode):
+class EqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(EqualNode, self).__init__('je', reg1, reg2, parents)
 
-class NotEqualNode(LogicalNode):
+class NotEqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(NotEqualNode, self).__init__('jne', reg1, reg2, parents)
         
-class LessThanNode(LogicalNode):
+class LessThanNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(LessThanNode, self).__init__('jl', reg1, reg2, parents)
         
-class LessThanEqualNode(LogicalNode):
+class LessThanEqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(LessThanEqualNode, self).__init__('jle', reg1, reg2, parents)
         
-class GreaterThanNode(LogicalNode):
+class GreaterThanNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(GreaterThanNode, self).__init__('jg', reg1, reg2, parents)
         
-class GreaterThanEqualNode(LogicalNode):
+class GreaterThanEqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(GreaterThanEqualNode, self).__init__('jge', reg1, reg2, parents)
         
-class AndNode(LogicalNode):
+class AndNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(AndNode, self).__init__('jge', reg1, reg2, parents)
 
@@ -210,7 +206,7 @@ class AndNode(LogicalNode):
             end_label + ":"
         ]
         
-class OrNode(LogicalNode):
+class OrNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(OrNode, self).__init__('jge', reg1, reg2, parents)
 
