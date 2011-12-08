@@ -150,22 +150,22 @@ class BinaryNode(OperatorNode):
             elif re.match( tokRules.t_B_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
             
-            elif re.match( tokRules.t_EQUAL, op ):
+            elif re.match( tokRules.t_L_EQUAL, op ):
                 intermediateNode = INodes.EqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_LESS_THAN, op ):
+            elif re.match( tokRules.t_L_LESS_THAN, op ):
                 intermediateNode = INodes.LessThanNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_LESS_THAN_EQUAL, op ):
+            elif re.match( tokRules.t_L_LESS_THAN_EQUAL, op ):
                 intermediateNode = INodes.LessThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_GREATER_THAN, op ):
+            elif re.match( tokRules.t_L_GREATER_THAN, op ):
                 intermediateNode = INodes.GreaterThanNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_GREATER_THAN_EQUAL, op ):
+            elif re.match( tokRules.t_L_GREATER_THAN_EQUAL, op ):
                 intermediateNode = INodes.GreaterThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_NOT_EQUAL, op ):
+            elif re.match( tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
                 
             elif re.match( tokRules.t_L_AND, op ):
