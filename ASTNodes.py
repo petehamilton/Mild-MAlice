@@ -411,6 +411,12 @@ class SpokeNode(ASTNode):
             # If not a factor, must be of type number since letters are only 
             # valid as factors and not as part of operations or expressions
             idType = NUMBER
+    
+    def translate(self, registersDict, reg, parents):
+        spokeExpression = self.getExpression()
+        reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
+        
+        idType = self.getIDType()
         
         if idType == NUMBER:
             formatting = "intfmt"
@@ -418,12 +424,6 @@ class SpokeNode(ASTNode):
             formatting = "charfmt"
         elif idType == SENTENCE: #TODO, IS THIS RIGHT?
             formatting = "charfmt"
-    
-    def translate(self, registersDict, reg, parents):
-        spokeExpression = self.getExpression()
-        reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
-        
-        idType = self.getIDType()
         
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
         
