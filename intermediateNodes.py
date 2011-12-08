@@ -152,7 +152,7 @@ class LogicalNode(InstructionNode):
         return [
                 start_label + ":",
                 "cmp %s, %s" % (destReg, nextReg),
-                self.instruction + true_label,
+                self.instruction + " " + true_label,
                 "mov %s, 0" % destReg,
                 "jmp " + end_label,
                 true_label + ":",

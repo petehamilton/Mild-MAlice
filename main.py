@@ -22,7 +22,7 @@ def run():
             base, ext = os.path.splitext(os.path.basename(fName))
             if ext == ".alice":
                 code = parse_code(maliceprogram)
-                # writeASM( code, base )
+                writeASM( code, base )
             else:
                 print "Error! Filetype is not of format .alice."
                 return 1
@@ -48,7 +48,7 @@ def parse_code(code):
             analyse(result, flags)
             cg = CodeGenerator(symbolTable, registers, flags)
             code = cg.generate(result)
-            # return code
+            return code
         return None
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
         print exception.value 
