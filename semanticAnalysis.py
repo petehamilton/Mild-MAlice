@@ -2,4 +2,4 @@ from SymbolTable import SymbolTable
 
 
 def analyse( node, flags ):
-    node.check(SymbolTable())
+    node.check(SymbolTable(), flags)

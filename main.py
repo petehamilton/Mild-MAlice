@@ -46,8 +46,8 @@ def parse_code(code):
             symbolTable = {}
             flags = defaultdict(set)
             analyse(result, flags)
-            cg = CodeGenerator(symbolTable, registers, flags)
-            code = cg.generate(result)
+            # cg = CodeGenerator(symbolTable, registers, flags)
+            # code = cg.generate(result)
             # return code
         return None
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
