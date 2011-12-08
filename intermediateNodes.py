@@ -134,7 +134,7 @@ class LogicalOpNode(BinOpNode):
     # Could/should(?) use nested nodes instead of labels?
     # Also, instruction not used really so should probably inherit from intermediateNode?
     def __init__(self, instruction, reg1, reg2, parents):
-        super(LogicalOpNode, self).__init__(instruction, parents)
+        super(LogicalOpNode, self).__init__(instruction, reg1, reg2, parents)
     
     def generateCode(self, registerMap):
         uniqueIdentifier = "_1" # This should be next available from a pool/global I think
