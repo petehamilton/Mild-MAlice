@@ -411,13 +411,13 @@ class SpokeNode(ASTNode):
             # If not a factor, must be of type number since letters are only 
             # valid as factors and not as part of operations or expressions
             idType = NUMBER
+        return idType
     
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
         idType = self.getIDType()
-        
         formatting = ""
         if idType == NUMBER:
             formatting = "intfmt"
