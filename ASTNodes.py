@@ -418,6 +418,7 @@ class SpokeNode(ASTNode):
         
         idType = self.getIDType()
         
+        formatting = ""
         if idType == NUMBER:
             formatting = "intfmt"
         elif idType == LETTER:
@@ -425,6 +426,7 @@ class SpokeNode(ASTNode):
         elif idType == SENTENCE: #TODO, IS THIS RIGHT?
             formatting = "charfmt"
         
+        # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
         
         return reg1, exp + [intermediateNode], [intermediateNode]
