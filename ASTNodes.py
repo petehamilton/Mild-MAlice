@@ -599,6 +599,9 @@ class IfNode(ConditionalNode):
                 nextLogicalClause.check(newSymbolTable)
         
         def translate(self, registersDict, reg, parents):
+            # TODO!!!
+            # Create If INode with nested elseif/else nodes and do a nicer iteration implementation!
+            # Should be returning iNodes here, not code, duh!
             logicalClause = self
             logicalClauses = self.getLogicalClauses()
             nextLogicalClause = None
