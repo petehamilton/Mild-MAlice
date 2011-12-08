@@ -152,7 +152,7 @@ class LogicalNode(InstructionNode):
         return [
                 start_label + ":",
                 "cmp %s, %s" % (destReg, nextReg),
-                self.instruction true_label,
+                self.instruction + true_label,
                 "mov %s, 0" % destReg,
                 "jmp " + end_label,
                 true_label + ":",
@@ -162,57 +162,57 @@ class LogicalNode(InstructionNode):
         
 class EqualNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('je', reg1, reg2, parents)
+        super(EqualNode, self).__init__('je', reg1, reg2, parents)
 
 class NotEqualNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jne', reg1, reg2, parents)
+        super(NotEqualNode, self).__init__('jne', reg1, reg2, parents)
         
 class LessThanNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jl', reg1, reg2, parents)
+        super(LessThanNode, self).__init__('jl', reg1, reg2, parents)
         
 class LessThanEqualNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jle', reg1, reg2, parents)
+        super(LessThanEqualNode, self).__init__('jle', reg1, reg2, parents)
         
 class GreaterThanNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jg', reg1, reg2, parents)
+        super(GreaterThanNode, self).__init__('jg', reg1, reg2, parents)
         
 class GreaterThanEqualNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+        super(GreaterThanEqualNode, self).__init__('jge', reg1, reg2, parents)
         
 class AndNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+        super(AndNode, self).__init__('jge', reg1, reg2, parents)
 
     def generateCode(self, registerMap):
-    uniqueIdentifier = "_1" # This should be next available from a pool/global I think
+        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
 
-    destReg, nextReg = map(lambda x: registerMap[x], self.registers)
+        destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
-    # What happens if they're memory addresses?
-    start_label = "logical_eval_and_start" + uniqueIdentifier
-    false_label = "logical_eval_and_false" + uniqueIdentifier
-    end_label = "logical_eval_and_end" + uniqueIdentifier
-    return [
-        start_label + ":",
-        "cmp %s, 1" % destReg,
-        "jne " + false_label,
-        "cmp %s, 1" % nextReg,
-        "jne " + false_label,
-        "mov %s, 1" % destReg,
-        "jmp " + end_label,
-        false_label + ":",
-        "mov %s, 0" % destReg,
-        end_label + ":"
-    ]
+        # What happens if they're memory addresses?
+        start_label = "logical_eval_and_start" + uniqueIdentifier
+        false_label = "logical_eval_and_false" + uniqueIdentifier
+        end_label = "logical_eval_and_end" + uniqueIdentifier
+        return [
+            start_label + ":",
+            "cmp %s, 1" % destReg,
+            "jne " + false_label,
+            "cmp %s, 1" % nextReg,
+            "jne " + false_label,
+            "mov %s, 1" % destReg,
+            "jmp " + end_label,
+            false_label + ":",
+            "mov %s, 0" % destReg,
+            end_label + ":"
+        ]
         
 class OrNode(LogicalNode):
     def __init__(self, reg1, reg2, parents):
-        super(LogicalNode, self).__init__('jge', reg1, reg2, parents)
+        super(OrNode, self).__init__('jge', reg1, reg2, parents)
 
     def generateCode(self, registerMap):
         uniqueIdentifier = "_1" # This should be next available from a pool/global I think
