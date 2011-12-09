@@ -40,17 +40,23 @@ CODE_SEP = 'c_sep'
 COMMENT = 'comment'
 
 
+
 ################################################################################
 # UNIQUE LABEL ID GENERATOR
 ################################################################################
+currentUniqueID = 1
+
 def makeUniqueLabel(label):
-    return "%s_%d" % (label, 1) #TODO: This is a disgrace I know, please take pity and change me.
+    global currentUniqueID
+    uniqueID = currentUniqueID
+    currentUniqueID += 1
+    return "%s_%d" % (label, uniqueID)
+
 
 
 ################################################################################
 # MAIN AST NODE
 ################################################################################
-
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
         self.nodeType = nodeType
@@ -608,10 +614,11 @@ class IfNode(ConditionalNode):
         logicalClause = self
         logicalClauses = self.getLogicalClauses()
         
-        endLabelNode = INodes.LabelNode(makeUniqueLabel("end"), parents)
 
         iNodes = []
         iNodes.append(INodes.LabelNode(makeUniqueLabel("conditional"), parents))
+        
+        endLabelNode = INodes.LabelNode(makeUniqueLabel("end"), parents)
         
         logicalNodes = []
         
