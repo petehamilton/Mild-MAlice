@@ -1,8 +1,8 @@
 var was a number and var became 6.
 perhaps (var == 0) so
   0 said Alice.
-or maybe (var > -2 && var < 0) so
-  -1 said Alice.
+or maybe (var < 5 && var < 0) so
+  "-" said Alice.
 or
   "?" said Alice.
 Alice was unsure which.
