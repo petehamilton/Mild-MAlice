@@ -40,6 +40,12 @@ CODE_SEP = 'c_sep'
 COMMENT = 'comment'
 
 
+################################################################################
+# UNIQUE LABEL ID GENERATOR
+################################################################################
+def makeUniqueLabel(label):
+    return "%s_%d" % (label, 1) #TODO: This is a disgrace I know, please take pity and change me.
+
 
 ################################################################################
 # MAIN AST NODE
@@ -581,61 +587,63 @@ class IfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody, logicalClauses = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, logicalClauses])
         
-        def getExpression(self):
-            return self.children[0]
-        
-        def getThenBody(self):
-            return self.children[1]
-        
-        def getLogicalClauses(self):
-            return self.children[2]
+    def getExpression(self):
+        return self.children[0]
+    
+    def getThenBody(self):
+        return self.children[1]
+    
+    def getLogicalClauses(self):
+        return self.children[2]
 
-        def check(self, symbolTable, flags):
-            self.setSymbolTable(symbolTable)
-            newSymbolTable = SymbolTable(symbolTable)
-            super(IfNode, self).check(newSymbolTable)
-            nextLogicalClause = self.getLogicalClauses();
-            if nextLogicalClause != None:
-                nextLogicalClause.check(newSymbolTable)
+    def check(self, symbolTable, flags):
+        self.setSymbolTable(symbolTable)
+        newSymbolTable = SymbolTable(symbolTable)
+        super(IfNode, self).check(newSymbolTable, flags)
+        nextLogicalClause = self.getLogicalClauses();
+        if nextLogicalClause != None:
+            nextLogicalClause.check(newSymbolTable, flags)
+    
+    def translate(self, registersDict, reg, parents):
+        logicalClause = self
+        logicalClauses = self.getLogicalClauses()
         
-        def translate(self, registersDict, reg, parents):
-            # TODO!!!
-            # Create If INode with nested elseif/else nodes and do a nicer iteration implementation!
-            # Should be returning iNodes here, not code, duh!
-            logicalClause = self
-            logicalClauses = self.getLogicalClauses()
+        endLabelNode = INodes.LabelNode(makeUniqueLabel("end"), parents)
+
+        iNodes = []
+        iNodes.append(INodes.LabelNode(makeUniqueLabel("conditional"), parents))
+        
+        logicalNodes = []
+        
+        while(logicalClause != None):
+            logicalClauses = logicalClause.getLogicalClauses()
+            
             nextLogicalClause = None
+            if logicalClauses != None:
+                nextLogicalClause = logicalClauses.getLogicalClause()
+                logicalClauses = logicalClauses.getLogicalClauses()
             
-            endLabel = "end_" + uniqueID
-
-            code = []
-            code += ["conditional_" + uniqueID]
+            if(nextLogicalClause != None):
+                falseLabelNode = INodes.LabelNode(makeUniqueLabel("conditional_next"), parents)
+            else:
+                falseLabelNode = endLabelNode
             
-            while(logicalClause != None):
-                logicalClauses = logicalClause.getLogicalClauses()
-                
-                if logicalClauses != None:
-                    nextLogicalClause = logicalClauses.getLogicalClause()
-                    logicalClauses = logicalClauses.getLogicalClauses()
-                
-                if(nextLogicalClause != None):
-                    falseLabel = "conditional_next" + uniqueID
-                else:
-                    falseLabel = endLabel
-                
-                reg1, code, parents = self.getExpression().translate(registersDict, reg, parents)
-                
-                code += ["cmp %s, 0" % reg,
-                         "jle %s" % falseLabel]
-                
-                reg2, code, parents = self.getThenBody().translate(registersDict, reg1, parents)
-                
-                if falseLabel != endLabel:
-                    code += ["jmp %s" % endLabel]
-                code += [falseLabel + ":"]
-                
-                logicalClause = nextLogicalClause
-            return reg2, code, parents
+            expression = logicalClause.getExpression()
+            if expression != None:
+                reg, newINodes, parents = expression.translate(registersDict, reg, parents)
+                iNodes += newINodes
+                iNodes.append(INodes.TrueCheckNode(reg, falseLabelNode, parents))
+            
+            reg2, newINodes, parents = self.getThenBody().translate(registersDict, reg, parents)
+            iNodes += newINodes
+        
+            if falseLabelNode != endLabelNode:
+                iNodes.append(INodes.JumpNode(endLabel, parents))
+            iNodes.append(falseLabelNode)
+            
+            logicalClause = nextLogicalClause
+            
+        return reg2, iNodes, parents
             
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
@@ -646,6 +654,9 @@ class ElseIfNode(ConditionalNode):
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+    
+    def getExpression(self):
+        return None
     
     def getBody(self):
         return self.children[0]

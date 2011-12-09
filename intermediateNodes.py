@@ -258,8 +258,52 @@ class LabelNode(IntermediateNode):
         super(LabelNode, self).__init__(parents)
         self.label = label
     
+    def uses(self):
+        return []
+    
+    def alteredRegisters(self):
+        return []
+    
+    def getLabel(self):
+        return self.label
+    
     def generateCode(self, registerMap):
         return ["%s:" % self.label]
+
+class TrueCheckNode(IntermediateNode):
+    def __init__(self, reg, falseLabelNode, parents):
+        super(TrueCheckNode, self).__init__(parents)
+        self.falseLabelNode = falseLabelNode
+        self.registers = [reg]
+    
+    def uses(self):
+        return [self.registers[0]]
+    
+    def alteredRegisters(self):
+        return []
+        
+    def getFalseLabel(self):
+        return self.falseLabelNode.getLabel()
+    
+    def generateCode(self, registerMap):
+        return ["cmp %s, 0" % self.registers[0], "jle %s" % self.getFalseLabel()]
+
+class JumpNode(IntermediateNode):
+    def __init__(self, labelNode):
+        super(LabelNode, self).__init__(parents)
+        self.labelNode = labelNode
+    
+    def uses(self):
+        return []
+    
+    def alteredRegisters(self):
+        return []
+        
+    def getLabel(self):
+        return self.labelNode.getLabel()
+    
+    def generateCode(self, registerMap):
+        return ["jmp %s" % self.getLabel()]
     
 class SpokeNode(IntermediateNode):
     def __init__(self, reg, parents, formatting):
