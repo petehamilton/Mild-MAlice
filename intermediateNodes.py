@@ -158,8 +158,6 @@ class LogicalOpNode(BinOpNode):
         super(LogicalOpNode, self).__init__(instruction, reg1, reg2, parents)
     
     def generateCode(self, registerMap):
-        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
-        
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
         
         # What happens if they're memory addresses?
@@ -201,13 +199,11 @@ class GreaterThanEqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(GreaterThanEqualNode, self).__init__('jge', reg1, reg2, parents)
         
-class AndNode(LogicalOpNode):
+class LAndNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(AndNode, self).__init__('jge', reg1, reg2, parents)
 
     def generateCode(self, registerMap):
-        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
-
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
         # What happens if they're memory addresses?
@@ -227,13 +223,11 @@ class AndNode(LogicalOpNode):
             end_label + ":"
         ]
         
-class OrNode(LogicalOpNode):
+class LOrNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
         super(OrNode, self).__init__('jge', reg1, reg2, parents)
 
     def generateCode(self, registerMap):
-        uniqueIdentifier = "_1" # This should be next available from a pool/global I think
-
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
         # What happens if they're memory addresses?
