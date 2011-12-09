@@ -596,7 +596,6 @@ class IfNode(ConditionalNode):
         endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("end"), parents)
         
         # Get a list of all logical sections
-        
         logicalClause = self
         logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
         logicalNodes = [logicalClause]
@@ -606,8 +605,8 @@ class IfNode(ConditionalNode):
             logicalNodes.append(logicalClause)
         if logicalClauses != None:
             logicalNodes.append(logicalClauses)
-        print logicalNodes
-        #Iterate over the logical statements
+        
+        #Iterate over the logical sections
         numLogicalNodes = len(logicalNodes)
         for i, logicalNode in enumerate(logicalNodes):
             if(i < numLogicalNodes - 1):
@@ -617,18 +616,19 @@ class IfNode(ConditionalNode):
             
             expression = logicalNode.getExpression()
             if expression != None:
-                reg, newINodes, parents = expression.translate(registersDict, reg, parents)
+                reg1, newINodes, parents = expression.translate(registersDict, reg, parents)
                 iNodes += newINodes
                 iNodes.append(INodes.TrueCheckNode(reg, falseLabelNode, parents))
+                reg = reg1
             
-            reg2, newINodes, parents = logicalNode.getBody().translate(registersDict, reg, parents)
+            reg, newINodes, parents = logicalNode.getBody().translate(registersDict, reg, parents)
             iNodes += newINodes
-        
+            
             if falseLabelNode != endLabelNode:
                 iNodes.append(INodes.JumpNode(endLabelNode, parents))
             iNodes.append(falseLabelNode)
             
-        return reg2, iNodes, parents
+        return reg, iNodes, parents
             
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
