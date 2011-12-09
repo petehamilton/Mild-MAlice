@@ -301,7 +301,8 @@ class TrueCheckNode(IntermediateNode):
         return self.falseLabelNode.getLabel()
     
     def generateCode(self, registerMap):
-        return ["cmp %s, 0" % self.registers[0], "jle %s" % self.getFalseLabel()]
+        reg = registerMap[self.registers[0]]
+        return ["cmp %s, 0" % reg, "jle %s" % self.getFalseLabel()]
 
 class JumpNode(IntermediateNode):
     def __init__(self, labelNode):
