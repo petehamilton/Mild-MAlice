@@ -253,6 +253,14 @@ class NegativeNode(UnOpNode):
     def __init__(self, reg, parents):
         super(NegativeNode, self).__init__("negative", reg, parents)
 
+class LabelNode(IntermediateNode):
+    def __init__(self, label, parents):
+        super(LabelNode, self).__init__(parents)
+        self.label = label
+    
+    def generateCode(self, registerMap):
+        return ["%s:" % self.label]
+    
 class SpokeNode(IntermediateNode):
     def __init__(self, reg, parents, formatting):
         super(SpokeNode, self).__init__(parents)
