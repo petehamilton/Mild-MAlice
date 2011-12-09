@@ -630,7 +630,7 @@ class IfNode(ConditionalNode):
             iNodes += newINodes
         
             if falseLabelNode != endLabelNode:
-                iNodes.append(INodes.JumpNode(endLabel, parents))
+                iNodes.append(INodes.JumpNode(endLabelNode, parents))
             iNodes.append(falseLabelNode)
             
             logicalClause = nextLogicalClause

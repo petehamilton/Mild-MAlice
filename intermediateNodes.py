@@ -305,8 +305,8 @@ class TrueCheckNode(IntermediateNode):
         return ["cmp %s, 0" % reg, "jle %s" % self.getFalseLabel()]
 
 class JumpNode(IntermediateNode):
-    def __init__(self, labelNode):
-        super(LabelNode, self).__init__(parents)
+    def __init__(self, labelNode, parents):
+        super(JumpNode, self).__init__(parents)
         self.labelNode = labelNode
     
     def uses(self):
