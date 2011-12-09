@@ -577,12 +577,6 @@ class LoopNode(ConditionalNode):
 class IfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody, logicalClauses = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, logicalClauses])
-        
-    def getExpression(self):
-        return self.children[0]
-    
-    def getThenBody(self):
-        return self.children[1]
     
     def getLogicalClauses(self):
         return self.children[2]
@@ -596,56 +590,61 @@ class IfNode(ConditionalNode):
             nextLogicalClause.check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        logicalClause = self
-        logicalClauses = self.getLogicalClauses()
-        
-
         iNodes = []
         iNodes.append(INodes.LabelNode(INodes.makeUniqueLabel("conditional"), parents))
         
         endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("end"), parents)
         
-        logicalNodes = []
+        # Get a list of all logical sections
         
-        while(logicalClause != None):
-            logicalClauses = logicalClause.getLogicalClauses()
-            
-            nextLogicalClause = None
-            if logicalClauses != None:
-                nextLogicalClause = logicalClauses.getLogicalClause()
-                logicalClauses = logicalClauses.getLogicalClauses()
-            
-            if(nextLogicalClause != None):
+        logicalClause = self
+        logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
+        logicalNodes = [logicalClause]
+        while(logicalClauses.getLogicalClauses() != None):
+            logicalClause = logicalClauses.getLogicalClause()
+            logicalClauses = logicalClauses.getLogicalClauses()
+            logicalNodes.append(logicalClause)
+        if logicalClauses != None:
+            logicalNodes.append(logicalClauses)
+        print logicalNodes
+        #Iterate over the logical statements
+        numLogicalNodes = len(logicalNodes)
+        for i, logicalNode in enumerate(logicalNodes):
+            if(i < numLogicalNodes - 1):
                 falseLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_next"), parents)
             else:
                 falseLabelNode = endLabelNode
             
-            expression = logicalClause.getExpression()
+            expression = logicalNode.getExpression()
             if expression != None:
                 reg, newINodes, parents = expression.translate(registersDict, reg, parents)
                 iNodes += newINodes
                 iNodes.append(INodes.TrueCheckNode(reg, falseLabelNode, parents))
             
-            reg2, newINodes, parents = self.getThenBody().translate(registersDict, reg, parents)
+            reg2, newINodes, parents = logicalNode.getBody().translate(registersDict, reg, parents)
             iNodes += newINodes
         
             if falseLabelNode != endLabelNode:
                 iNodes.append(INodes.JumpNode(endLabelNode, parents))
             iNodes.append(falseLabelNode)
             
-            logicalClause = nextLogicalClause
-            
         return reg2, iNodes, parents
             
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
         super(ElseIfNode, self).__init__(ELSEIF, lineno, clauseno, [exp, thenBody])
+    
+    def getLogicalClauses(self):
+        return None
 
 # Some way to inherit this from conditionalNode as well? Although I suppose it's
 # not that conditional in that there is no logical check?
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
+    
+    def getLogicalClauses(self):
+        return None
     
     def getExpression(self):
         return None
