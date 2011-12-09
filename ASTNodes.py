@@ -39,21 +39,6 @@ FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
 COMMENT = 'comment'
 
-
-
-################################################################################
-# UNIQUE LABEL ID GENERATOR
-################################################################################
-currentUniqueID = 1
-
-def makeUniqueLabel(label):
-    global currentUniqueID
-    uniqueID = currentUniqueID
-    currentUniqueID += 1
-    return "%s_%d" % (label, uniqueID)
-
-
-
 ################################################################################
 # MAIN AST NODE
 ################################################################################
@@ -616,9 +601,9 @@ class IfNode(ConditionalNode):
         
 
         iNodes = []
-        iNodes.append(INodes.LabelNode(makeUniqueLabel("conditional"), parents))
+        iNodes.append(INodes.LabelNode(INodes.makeUniqueLabel("conditional"), parents))
         
-        endLabelNode = INodes.LabelNode(makeUniqueLabel("end"), parents)
+        endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("end"), parents)
         
         logicalNodes = []
         
@@ -631,7 +616,7 @@ class IfNode(ConditionalNode):
                 logicalClauses = logicalClauses.getLogicalClauses()
             
             if(nextLogicalClause != None):
-                falseLabelNode = INodes.LabelNode(makeUniqueLabel("conditional_next"), parents)
+                falseLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_next"), parents)
             else:
                 falseLabelNode = endLabelNode
             

@@ -1,5 +1,26 @@
 import re
 
+################################################################################
+# UNIQUE LABEL ID GENERATOR
+################################################################################
+currentUniqueID = 1
+
+def makeUniqueLabel(label):
+    global currentUniqueID
+    uniqueID = currentUniqueID
+    currentUniqueID += 1
+    return "%s_%d" % (label, uniqueID)
+    
+################################################################################
+# NODES
+################################################################################
+
+def makeUniqueLabel(label):
+    global currentUniqueID
+    uniqueID = currentUniqueID
+    currentUniqueID += 1
+    return "%s_%d" % (label, uniqueID)
+
 class IntermediateNode(object):
     def __init__(self, parents):
         self.parents = parents
@@ -142,9 +163,9 @@ class LogicalOpNode(BinOpNode):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
         
         # What happens if they're memory addresses?
-        start_label = "logical_eval_start" + uniqueIdentifier
-        true_label = "logical_eval_true" + uniqueIdentifier
-        end_label = "logical_eval_end" + uniqueIdentifier
+        start_label = makeUniqueLabel("logical_eval_start")
+        true_label = makeUniqueLabel("logical_eval_true")
+        end_label = makeUniqueLabel("logical_eval_end")
         return [
                 start_label + ":",
                 "cmp %s, %s" % (destReg, nextReg),
@@ -190,9 +211,9 @@ class AndNode(LogicalOpNode):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
         # What happens if they're memory addresses?
-        start_label = "logical_eval_and_start" + uniqueIdentifier
-        false_label = "logical_eval_and_false" + uniqueIdentifier
-        end_label = "logical_eval_and_end" + uniqueIdentifier
+        start_label = makeUniqueLabel("logical_eval_start")
+        false_label = makeUniqueLabel("logical_eval_false")
+        end_label = makeUniqueLabel("logical_eval_end")
         return [
             start_label + ":",
             "cmp %s, 1" % destReg,
@@ -216,9 +237,9 @@ class OrNode(LogicalOpNode):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
         # What happens if they're memory addresses?
-        start_label = "logical_eval_or_start" + uniqueIdentifier
-        true_label = "logical_eval_or_true" + uniqueIdentifier
-        end_label = "logical_eval_or_end" + uniqueIdentifier
+        start_label = makeUniqueLabel("logical_eval_start")
+        true_label = makeUniqueLabel("logical_eval_true")
+        end_label = makeUniqueLabel("logical_eval_end")
         return [
             start_label + ":",
             "cmp %s, 1" % destReg,
