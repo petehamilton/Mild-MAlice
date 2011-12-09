@@ -41,7 +41,7 @@ def parse_code(code):
         #     print tok
         parser = yacc.yacc()
         result = parser.parse(code)
-        result.display()
+        # result.display()
         if result:
             symbolTable = {}
             flags = defaultdict(set)
