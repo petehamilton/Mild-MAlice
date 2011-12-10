@@ -1,9 +1,9 @@
-var was a number and var became 6.
-perhaps (var == 0) so
-  0 said Alice.
-or maybe (var < 5 && var < 0) so
-  1 spoke.
-or
-  2 said Alice.
-Alice was unsure which.
-3 spoke.
+x was a number and x became 2.
+y was a number and y became 1.
+i was a number and i became 1.
+
+eventually ( i == 10 ) because
+  y became y * x.
+  i ate.
+enough times.
+y spoke.
