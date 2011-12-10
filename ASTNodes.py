@@ -292,7 +292,7 @@ class AssignmentNode(StatementNode):
             else:
                 print "Assignment Exception"
                 raise AssignmentTypeException(self.lineno, self.clauseno)
-
+    
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.variableCheck(symbolTable, flags, self.getDestination())
@@ -581,7 +581,26 @@ class LoopNode(ConditionalNode):
         self.setSymbolTable(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         super(LoopNode, self).check(newSymbolTable, flags)
+    
+    def translate(self, registersDict, reg, parents):
+        loopStartLabel = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
+        loopEndLabel = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), parents)
         
+        iNodes = []
+        iNodes.append(loopStartLabel)
+        
+        reg1, newINodes, parents = self.getExpression().translate(registersDict, reg, parents)
+        iNodes += newINodes
+        
+        iNodes.append(INodes.TrueCheckNode(reg, loopEndLabel, parents))
+        
+        reg2, newINodes, parents = self.getBody().translate(registersDict, reg1, parents)
+        iNodes += newINodes
+        
+        iNodes.append(INodes.JumpNode(loopStartLabel, parents))
+        iNodes.append(loopEndLabel)
+        
+        return reg2, iNodes, parents
 class IfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody, logicalClauses = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, logicalClauses])
