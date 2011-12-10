@@ -304,6 +304,20 @@ class TrueCheckNode(IntermediateNode):
         reg = registerMap[self.registers[0]]
         return ["cmp %s, 0" % reg, "jle %s" % self.getFalseLabel()]
 
+class LoopNode(IntermediateNode):
+    def __init__(self, usedRegisters, parents):
+        super(LoopNode, self).__init__(parents)
+        self.registers = usedRegisters
+    
+    def uses(self):
+        return self.registers
+    
+    def alteredRegisters(self):
+        return []
+    
+    def generateCode(self, registerMap):
+        return []
+
 class JumpNode(IntermediateNode):
     def __init__(self, labelNode, parents):
         super(JumpNode, self).__init__(parents)

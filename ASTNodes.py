@@ -592,11 +592,19 @@ class LoopNode(ConditionalNode):
         reg1, newINodes, parents = self.getExpression().translate(registersDict, reg, parents)
         iNodes += newINodes
         
+        # Record all registers used in the loop expression. These need to be 
+        # defined as 'used' at the end of the loop so they're preserved.
+        # TODO: Might be some elegant push-pop solution to this?
+        usedRegisters = []
+        for n in newINodes:
+            usedRegisters = n.uses()
+        print usedRegisters
+        
         iNodes.append(INodes.TrueCheckNode(reg, loopEndLabel, parents))
         
         reg2, newINodes, parents = self.getBody().translate(registersDict, reg1, parents)
         iNodes += newINodes
-        
+        iNodes.append(INodes.LoopNode(usedRegisters, parents))
         iNodes.append(INodes.JumpNode(loopStartLabel, parents))
         iNodes.append(loopEndLabel)
         
