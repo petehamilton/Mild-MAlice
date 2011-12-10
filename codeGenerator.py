@@ -132,12 +132,20 @@ class CodeGenerator(object):
             for n in intermediateNodes:
                 code.extend(n.generateCode(registerMap))
             return code
+        
+        def generateFunctionCode(functionNode, registerMap):
+            return functionNode.generateCode(registerMap)
             
             
-        reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+            
+        reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
+        functionCode = []
+        for function in functionNodes:
+            fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
+            functionCode.extend(generateFunctionCode(function, fRegMap))
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues) + finalCode + self.finish()
+        return self.setup(overflowValues) + finalCode + functionCode + self.finish()
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):

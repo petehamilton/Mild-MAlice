@@ -445,6 +445,13 @@ class ReturnNode(ASTNode):
         self.setSymbolTable(symbolTable)
         self.getReturnExpression().check(symbolTable, flags)
         self.type = self.getReturnExpression().type
+        
+    def translate(self, registerDict, reg, parents): 
+        returnReg = reg
+        reg, exp, parents = self.getReturnExpression().translate(registerDict, reg, parents)
+        intermediateNode = INodes.ReturnNode(returnReg, parents)
+        return reg, (exp + [intermediateNode]), parents
+        
 
 
 
@@ -707,6 +714,17 @@ class FunctionDeclarationNode(DeclarationNode):
         if self.getBody():
             self.getBody().check(newSymbolTable, flags)
         # self.getReturnValue().check(newSymbolTable)
+        
+    def translate( self, registersDict, reg, parents ):
+        argLength = self.getArguments().getLength()
+        argRegs = range(reg, reg + argLength)
+        reg += argLength
+        reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [self])
+        reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [self])
+        # It should have no parents?
+        intermediateNode = INodes.FunctionDeclarationNode( argRegs, [], self.getName(), bodyExp )
+        self.registersUsed = reg -1
+        return reg, [intermediateNode], parents
 
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
@@ -726,6 +744,13 @@ class ArgumentsNode(ASTNode):
         self.getArgument().check(symbolTable, flags)
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
+    
+    def translate( self, registersDict, reg, parents):
+        reg, exp1, parents = getArgument().translate(registersDict, reg, parents)
+        reg, exp2, parents = getArguments().translate(registersDict, reg, parents)
+        return reg, (exp1 + exp2), parents
+        
+    
 
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentDeclaration, reference = False):
@@ -741,6 +766,10 @@ class ArgumentNode(ASTNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getArgument().check(symbolTable, flags)
+    
+    def translate( self, registersDict, reg, parents):
+        registersDict[self.getArgument().variableName] = reg
+        return reg + 1, [], parents
 
 
 
@@ -790,7 +819,7 @@ class FunctionArgumentsNode(ASTNode):
         self.setSymbolTable(symbolTable)    
         self.getArgument().check(symbolTable, flags)
         if self.getArguments():
-            self.getArguments().check(symbolTable, flags)        
+            self.getArguments().check(symbolTable, flags)
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
@@ -843,7 +872,11 @@ class FunctionsNode(ASTNode):
         self.getFunction().check(symbolTable, flags)
         if self.getFunctions():
             self.getFunctions().check(symbolTable, flags)
-
+            
+    def translate(self, registersDict, reg, parents):
+        reg, functionExp, parents = self.getFunction().translate( registersDict, reg, parents )
+        reg, functionsExp, parents = self.getFunctions().translate( registersDict, 0, [])
+        return reg, (functionExp + functionsExp), parents
 
 
 ################################################################################
@@ -867,6 +900,10 @@ class CodeSeparatorNode(ASTNode):
             functions.check(symbolTable, flags)
         self.getStatementList().check(symbolTable, flags)
         
+    def translate(self, registersDict, reg, parents):
+        statementListReg, statementListExp, parents = self.getStatementList().translate(registersDict, reg, parents)
+        functionsReg, functionsExp, parents = self.getFunctions().translate(registersDict, 0, [])
+        return statementListReg, statementListExp, functionsExp, parents
         
 class CommentNode(ASTNode):
     def __init__(self, lineno, clauseno, comment):
@@ -878,4 +915,3 @@ class CommentNode(ASTNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         pass    
-    
