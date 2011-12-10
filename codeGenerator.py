@@ -137,13 +137,16 @@ class CodeGenerator(object):
             return functionNode.generateCode(registerMap)
             
             
-            
-        reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
-        registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         functionCode = []
-        for function in functionNodes:
-            fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
-            functionCode.extend(generateFunctionCode(function, fRegMap))
+        if ASTNodes.FUNCTION in self.flags:
+            reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
+            for function in functionNodes:
+                fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
+                functionCode.extend(generateFunctionCode(function, fRegMap))
+        else:
+            reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+
+        registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + functionCode + self.finish()
 

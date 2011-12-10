@@ -38,6 +38,7 @@ FUNCTION_CALL = 'f_call'
 FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
 COMMENT = 'comment'
+FUNCTION = 'function'
 
 ################################################################################
 # MAIN AST NODE
@@ -707,6 +708,7 @@ class FunctionDeclarationNode(DeclarationNode):
     
     # TODO CHECK RETURN VALUE SAME AS RETURN TYPE
     def check(self, symbolTable, flags):
+        flags[FUNCTION].add(self.getName())
         self.setSymbolTable(symbolTable)        
         super(FunctionDeclarationNode, self).check(symbolTable, flags)
         newSymbolTable = SymbolTable(symbolTable)
