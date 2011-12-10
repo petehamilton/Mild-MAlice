@@ -598,7 +598,6 @@ class LoopNode(ConditionalNode):
         usedRegisters = []
         for n in newINodes:
             usedRegisters = n.uses()
-        print usedRegisters
         
         iNodes.append(INodes.TrueCheckNode(reg, loopEndLabel, parents))
         
