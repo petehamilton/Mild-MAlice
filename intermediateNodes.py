@@ -389,5 +389,25 @@ class ArgumentNode(IntermediateNode):
         if self.reference:
             return []
         else:
-            return [ "pop %s" %(registerMap[self.registers[0]]) ]     
+            return [ "pop %s" %(registerMap[self.registers[0]]) ]
+            
+class FunctionArgumentNode(IntermediateNode):
+    def __init__(self, reg, parents):
+         super(FunctionArgumentNode, self).__init__(parents)
+         self.registers = [reg]
+
+    def generateCode(self, registerMap):
+            return [ "push %s" %(registerMap[self.registers[0]]) ]  
+            
+class FunctionCallNode(IntermediateNode):
+    def __init__(self, parents, registersPushed, name):
+        super(FunctionCallNode, self).__init__(parents)
+        self.registersPushed = registersPushed
+        self.registers = []
+        self.functionName = name
+    
+    def generateCode(self, registerMap):
+        return ["call %s" %self.functionName,
+                "add esp %d" %(8*self.registersPushed)]
+        
         

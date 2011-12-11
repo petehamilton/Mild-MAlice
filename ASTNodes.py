@@ -804,6 +804,12 @@ class FunctionCallNode(ASTNode):
             # TODO CHECK COMPATABILITY
             self.type = func.type
     
+    def translate(self, registerDict, reg, parents):
+        reg, exp, parents = self.getArguments().translate(registerDict, reg, parents)
+        # NOT QUITE RIGHT WHEN PASSING BY REFERENCE?
+        registersPushed = self.getArguments().getLength()
+        intermediateNode = INodes.FunctionCallNode( parents, registersPushed, self.getName() )
+        return reg, (exp + [intermediateNode]), [intermediateNode]
         
 
 class FunctionArgumentsNode(ASTNode):
@@ -824,6 +830,12 @@ class FunctionArgumentsNode(ASTNode):
         self.getArgument().check(symbolTable, flags)
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
+            
+    def translate(self, registerDict, reg, parents):
+        reg, exp1, parents = getArgument().translate(registersDict, reg, parents)
+        reg, exp2, parents = getArguments().translate(registersDict, reg, parents)
+        return reg, (exp1 + exp2), parents
+        
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
@@ -839,6 +851,12 @@ class FunctionArgumentNode(ASTNode):
         self.setSymbolTable(symbolTable)    
         self.getExpression().check(symbolTable, flags)
         self.type = self.getExpression().type
+        
+    def translate(self, registerDict, reg, parents):
+        pushReg = reg
+        reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
+        intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
+        return reg + 1, (exp + [intermediateNode]), parents
 
 class FunctionBodyNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functionBody):
