@@ -374,7 +374,7 @@ class ReturnNode(IntermediateNode):
         self.registers = [reg]
         
     def generateCode(self, registerMap):
-        return [ "mov eax %s" %(registerMap[self.registers[0]]),
+        return [ "mov eax, %s" %(registerMap[self.registers[0]]),
                  "mov esp, ebp", 
                  "pop ebp", 
                  "ret" ]
@@ -408,6 +408,6 @@ class FunctionCallNode(IntermediateNode):
     
     def generateCode(self, registerMap):
         return ["call %s" %self.functionName,
-                "add esp %d" %(8*self.registersPushed)]
+                "add esp, %d" %(8*self.registersPushed)]
         
         
