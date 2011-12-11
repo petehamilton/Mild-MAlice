@@ -748,8 +748,8 @@ class ArgumentsNode(ASTNode):
             self.getArguments().check(symbolTable, flags)
     
     def translate( self, registersDict, reg, parents, argNumber):
-        reg, exp1, parents = getArgument().translate(registersDict, reg, parents,argNumber)
-        reg, exp2, parents = getArguments().translate(registersDict, reg, parents, argNumber+1)
+        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents,argNumber)
+        reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents, argNumber+1)
         return reg, (exp1 + exp2), parents
         
     
@@ -832,10 +832,10 @@ class FunctionArgumentsNode(ASTNode):
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
             
-    def translate(self, registerDict, reg, parents):
-        reg, exp1, parents = getArgument().translate(registersDict, reg, parents)
-        reg, exp2, parents = getArguments().translate(registersDict, reg, parents)
-        return reg, (exp1 + exp2), parents
+    def translate(self, registersDict, reg, parents):
+        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents)
+        reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents)
+        return reg, (exp2 + exp1), parents #exp2 + exp1 so that arguments get pushed in reverse order.
         
         
 class FunctionArgumentNode(ASTNode):
