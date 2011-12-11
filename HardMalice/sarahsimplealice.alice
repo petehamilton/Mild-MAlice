@@ -1,6 +1,10 @@
 z was a number and z became test2(10).
 z spoke.
 
-The room test2 (number i) contained a number
+The room test (number i) contained a number
     x was a number and x became 5.
+    Alice found x + 10.
+
+The room test2 (number i) contained a number
+    x was a number and x became test(10).
 	Alice found x.
