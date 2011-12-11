@@ -1,6 +1,9 @@
+* Once you've spoken a variable it's value gets wiped?
+---------------------------------------------------------
 z was a number and z became test(1,1,2).
 z spoke.
 
 The room test (number i, number j, number k) contained a number
     i spoke. j spoke. k spoke.
 	Alice found 2.
+

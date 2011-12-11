@@ -345,20 +345,13 @@ class SpokeNode(IntermediateNode):
 class FunctionDeclarationNode(IntermediateNode):
     def __init__(self, parents, name, arguments, body):
         super(FunctionDeclarationNode, self).__init__(parents)
-        self.body = body
-        self.args = arguments
+        self.body = arguments + body
         self.name = name
-        # self.argRegs = regs
         self.registers = []
-        for a in arguments:
-            self.registers.extend(a.uses())
-        for b in body:
+        for b in self.body:
             self.registers.extend(b.uses())
         
     def generateCode(self, registerMap):
-        argCode = []
-        for arg in self.args:
-            argCode.extend(arg.generateCode(registerMap))
             
         bodyCode = []
         for body in self.body:
@@ -368,10 +361,7 @@ class FunctionDeclarationNode(IntermediateNode):
                  'push rbp',
                  "mov rbp, rsp", ] +
                  self.pushRegs(list(set(registerMap.values()))) +
-                  argCode +
                   bodyCode )
-                 #['mov rsp, rbp',
-                 # 'pop rbp'])
 
 class ReturnNode(IntermediateNode):
     def __init__(self, reg, parents):
