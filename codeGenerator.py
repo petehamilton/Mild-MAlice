@@ -148,7 +148,7 @@ class CodeGenerator(object):
 
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues) + finalCode + functionCode + self.finish()
+        return self.setup(overflowValues) + finalCode + self.finish() + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):

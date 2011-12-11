@@ -364,9 +364,13 @@ class FunctionDeclarationNode(IntermediateNode):
         for body in self.body:
             bodyCode.extend(body.generateCode(registerMap))
         #TODO: Not sure how to deal with passing by reference??
-        return ( ["%s:" %self.name] +
-                 argCode +
-                 bodyCode )
+        return ( ["%s:" %self.name, 
+                 'push rbp',
+                 "mov rbp, rsp", ] +
+                  argCode +
+                  bodyCode )
+                 #['mov rsp, rbp',
+                 # 'pop rbp'])
 
 class ReturnNode(IntermediateNode):
     def __init__(self, reg, parents):
@@ -375,21 +379,21 @@ class ReturnNode(IntermediateNode):
         
     def generateCode(self, registerMap):
         return [ "mov rax, %s" %(registerMap[self.registers[0]]),
-                 "mov rsp, rbp", 
                  "pop rbp", 
                  "ret" ]
  
 class ArgumentNode(IntermediateNode):
-    def __init__(self, reg, parents, reference = False ):
+    def __init__(self, reg, parents, argNumber, reference = False ):
          super(ArgumentNode, self).__init__(parents)
          self.registers = [reg]
-         self.reference = reference 
+         self.reference = reference
+         self.argNumber = argNumber 
 
     def generateCode(self, registerMap):
         if self.reference:
             return []
         else:
-            return [ "pop %s" %(registerMap[self.registers[0]]) ]
+            return [ "mov %s, [rsp + %d]" %(registerMap[self.registers[0]], self.argNumber*8) ]
             
 class FunctionArgumentNode(IntermediateNode):
     def __init__(self, reg, parents):

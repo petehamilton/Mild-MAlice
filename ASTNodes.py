@@ -720,7 +720,7 @@ class FunctionDeclarationNode(DeclarationNode):
     def translate( self, registersDict, reg, parents ):
         # argLength = self.getArguments().getLength()
         # argRegs = range(reg, reg + argLength)
-        reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [self])
+        reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [self], 1)
         reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [self])
         # reg += argLength
         # It should have no parents?, uses no registers in declaration?
@@ -747,9 +747,9 @@ class ArgumentsNode(ASTNode):
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
     
-    def translate( self, registersDict, reg, parents):
-        reg, exp1, parents = getArgument().translate(registersDict, reg, parents)
-        reg, exp2, parents = getArguments().translate(registersDict, reg, parents)
+    def translate( self, registersDict, reg, parents, argNumber):
+        reg, exp1, parents = getArgument().translate(registersDict, reg, parents,argNumber)
+        reg, exp2, parents = getArguments().translate(registersDict, reg, parents, argNumber+1)
         return reg, (exp1 + exp2), parents
         
     
@@ -769,9 +769,9 @@ class ArgumentNode(ASTNode):
         self.setSymbolTable(symbolTable)
         self.getArgument().check(symbolTable, flags)
     
-    def translate( self, registersDict, reg, parents):
+    def translate( self, registersDict, reg, parents, argNumber ):
         registersDict[self.getArgument().variableName] = reg
-        intermediateNode = INodes.ArgumentNode( reg, parents, self.reference )
+        intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
         return reg + 1, [intermediateNode], parents
 
 
