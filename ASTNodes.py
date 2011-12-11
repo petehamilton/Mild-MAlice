@@ -805,10 +805,11 @@ class FunctionCallNode(ASTNode):
             self.type = func.type
     
     def translate(self, registerDict, reg, parents):
+        argumentReg = reg
         reg, exp, parents = self.getArguments().translate(registerDict, reg, parents)
         # NOT QUITE RIGHT WHEN PASSING BY REFERENCE?
         registersPushed = self.getArguments().getLength()
-        intermediateNode = INodes.FunctionCallNode( parents, registersPushed, self.getName() )
+        intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName() )
         return reg, (exp + [intermediateNode]), [intermediateNode]
         
 
@@ -856,7 +857,7 @@ class FunctionArgumentNode(ASTNode):
         pushReg = reg
         reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
-        return reg + 1, (exp + [intermediateNode]), parents
+        return reg, (exp + [intermediateNode]), parents
 
 class FunctionBodyNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functionBody):
