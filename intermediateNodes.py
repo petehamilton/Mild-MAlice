@@ -367,6 +367,7 @@ class FunctionDeclarationNode(IntermediateNode):
         return ( ["%s:" %self.name, 
                  'push rbp',
                  "mov rbp, rsp", ] +
+                 self.pushRegs(list(set(registerMap.values()))) +
                   argCode +
                   bodyCode )
                  #['mov rsp, rbp',
@@ -378,9 +379,12 @@ class ReturnNode(IntermediateNode):
         self.registers = [reg]
         
     def generateCode(self, registerMap):
-        return [ "mov rax, %s" %(registerMap[self.registers[0]]),
-                 "pop rbp", 
-                 "ret" ]
+        registersReverse = list(set(registerMap.values()))[0:]
+        registersReverse.reverse()
+        return ([ "mov rax, %s" %(registerMap[self.registers[0]]) ] +
+                self.popRegs(registersReverse) +
+                [ "pop rbp", 
+                 "ret" ])
  
 class ArgumentNode(IntermediateNode):
     def __init__(self, reg, parents, argNumber, reference = False ):
