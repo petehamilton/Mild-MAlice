@@ -152,7 +152,7 @@ class CodeGenerator(object):
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
-        externSection = []
+        externSection = ["extern syscall"]
         dataSection = []
         bssSection = []
         globalSection = []
@@ -198,4 +198,4 @@ class CodeGenerator(object):
                 ["os_return:"] +
                 [self.indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
-                [self.indent("int  LINUX		; Interrupt Linux kernel")])
+                [self.indent("call  syscall		; Interrupt Linux kernel 64-bit")])
