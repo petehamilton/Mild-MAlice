@@ -28,11 +28,6 @@ call printf
 pop rdi
 pop rsi
 test2:
-push ebp
-pop r8
-pop r9
-pop r8
-pop r9
 pop r8
 mov r9, 3
 add r8, r9

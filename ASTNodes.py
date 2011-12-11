@@ -718,14 +718,14 @@ class FunctionDeclarationNode(DeclarationNode):
         # self.getReturnValue().check(newSymbolTable)
         
     def translate( self, registersDict, reg, parents ):
-        argLength = self.getArguments().getLength()
-        argRegs = range(reg, reg + argLength)
-        reg += argLength
+        # argLength = self.getArguments().getLength()
+        # argRegs = range(reg, reg + argLength)
         reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [self])
         reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [self])
-        # It should have no parents?
-        intermediateNode = INodes.FunctionDeclarationNode( argRegs, [], self.getName(), bodyExp )
-        self.registersUsed = reg -1
+        # reg += argLength
+        # It should have no parents?, uses no registers in declaration?
+        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp )
+        # self.registersUsed = reg -1
         return reg, [intermediateNode], parents
 
 class ArgumentsNode(ASTNode):
@@ -771,7 +771,8 @@ class ArgumentNode(ASTNode):
     
     def translate( self, registersDict, reg, parents):
         registersDict[self.getArgument().variableName] = reg
-        return reg + 1, [], parents
+        intermediateNode = INodes.ArgumentNode( reg, parents, self.reference )
+        return reg + 1, [intermediateNode], parents
 
 
 
@@ -800,9 +801,10 @@ class FunctionCallNode(ASTNode):
             print "Function Argument Count Exception"
             raise FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
-            
             # TODO CHECK COMPATABILITY
             self.type = func.type
+    
+        
 
 class FunctionArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments = None):

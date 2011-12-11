@@ -343,23 +343,29 @@ class SpokeNode(IntermediateNode):
                 self.popRegs(registersToPreserve))
                 
 class FunctionDeclarationNode(IntermediateNode):
-    def __init__(self, regs, parents, name, body):
+    def __init__(self, parents, name, arguments, body):
         super(FunctionDeclarationNode, self).__init__(parents)
         self.body = body
+        self.args = arguments
         self.name = name
-        self.argRegs = regs
+        # self.argRegs = regs
         self.registers = []
+        for a in arguments:
+            self.registers.extend(a.uses())
         for b in body:
             self.registers.extend(b.uses())
         
-    def generateCode(self, registerMap):            
+    def generateCode(self, registerMap):
+        argCode = []
+        for arg in self.args:
+            argCode.extend(arg.generateCode(registerMap))
+            
         bodyCode = []
         for body in self.body:
             bodyCode.extend(body.generateCode(registerMap))
         #TODO: Not sure how to deal with passing by reference??
-        return ( ["%s:" %self.name,
-                  "push ebp"] +
-                 self.popRegs([registerMap[r] for r in self.registers]) +
+        return ( ["%s:" %self.name] +
+                 argCode +
                  bodyCode )
 
 class ReturnNode(IntermediateNode):
@@ -372,5 +378,16 @@ class ReturnNode(IntermediateNode):
                  "mov esp, ebp", 
                  "pop ebp", 
                  "ret" ]
-                 
+ 
+class ArgumentNode(IntermediateNode):
+    def __init__(self, reg, parents, reference = False ):
+         super(ArgumentNode, self).__init__(parents)
+         self.registers = [reg]
+         self.reference = reference 
+
+    def generateCode(self, registerMap):
+        if self.reference:
+            return []
+        else:
+            return [ "pop %s" %(registerMap[self.registers[0]]) ]     
         
