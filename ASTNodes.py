@@ -772,7 +772,7 @@ class ArgumentNode(ASTNode):
     def translate( self, registersDict, reg, parents, argNumber ):
         registersDict[self.getArgument().variableName] = reg
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
-        return reg + 1, [intermediateNode], parents
+        return reg + 1, [intermediateNode], [intermediateNode]
 
 
 
@@ -857,7 +857,7 @@ class FunctionArgumentNode(ASTNode):
         pushReg = reg
         reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
-        return reg, (exp + [intermediateNode]), parents
+        return reg, (exp + [intermediateNode]), [intermediateNode]
 
 class FunctionBodyNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, functionBody):
