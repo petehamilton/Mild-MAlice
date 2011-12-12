@@ -39,6 +39,9 @@ class IntermediateNode(object):
         
     def popRegs(self, registersToPop):
         return ["pop %s" %x for x in registersToPop]
+    
+    def setParents(self, parents):
+        self.parents = parents
         
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):

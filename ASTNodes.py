@@ -602,23 +602,26 @@ class LoopNode(ConditionalNode):
         
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
         
-        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, parents)
+        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, [loopStartLabelNode])
         
-        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [trueCheckNode])
-        
-        jumpNode = INodes.JumpNode(loopStartLabel, postBodyParents)
-        
-        loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), [jumpNode])
+        loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
         
         trueCheckNode = INodes.TrueCheckNode(reg, loopEndLabelNode, postExpressionParents)
         
+        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [trueCheckNode])
+        
+        jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
+        
+        loopEndLabelNode.setParents([jumpNode])
+        
+        
         iNodes = []
-        iNodes.append(loopStartLabel)
+        iNodes.append(loopStartLabelNode)
         iNodes += expressionNodes
         iNodes.append(trueCheckNode)
         iNodes += bodyNodes
         iNodes.append(jumpNode)
-        iNodes.append(loopEndLabel)
+        iNodes.append(loopEndLabelNode)
         
         return reg2, iNodes, [loopEndLabelNode]
 
