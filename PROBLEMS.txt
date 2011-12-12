@@ -7,3 +7,20 @@ The room test (number i, number j, number k) contained a number
     i spoke. j spoke. k spoke.
 	Alice found 2.
 
+
+----------------------------------------------------------
+z was a number and a went through test.
+
+The Looking-Glass test changed a number
+ it became it + 42.
+
+
+----------------------------------------------------------
+z was a number and z went through test.
+z spoke.
+
+The Looking-Glass test changed a number
+ it became it + 42.
+
+Should we allow this to work? z hasnt been assigned before it goes through the looking glass.
+----------------------------------------------------------

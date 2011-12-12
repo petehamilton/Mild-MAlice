@@ -259,7 +259,7 @@ def p_type_sentence(p):
 ################################################################################
 def p_functions_multiple(p):
     'functions : function function_seperator functions'
-     p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
+    p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
 
 def p_functions_single(p):
     'functions : function'
@@ -288,7 +288,7 @@ def p_function_reference(p):
     lookingGlassNode = ASTNodes.LookingGlassNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
     declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
     argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
-    p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], p[5] )
+    p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], lookingGlassNode )
 
 ################################################################################
 # ARGUMENTS
