@@ -337,36 +337,59 @@ class JumpNode(IntermediateNode):
     
 
 class IONode(IntermediateNode):
-    def__init__(self, reg, parents, formatting):
-        super(IONode, self).__init__(parents):
+    def __init__(self, reg, parents, formatting):
+        super(IONode, self).__init__(parents)
         self.registers = [reg]
         self.formatting = formatting
+        self.ioRegisters = ['rsi', 'rdi']
+    
+    def preserveRegisters(self, destReg):
+        registersToPreserve = list(set(self.ioRegisters) - set([destReg]))
+        registersToPreserveReverse = registersToPreserve[0:]
+        registersToPreserveReverse.reverse()
+        return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
+
         
 class SpokeNode(IONode):
     def __init__(self, reg, parents, formatting):
         super(SpokeNode, self).__init__(reg, parents, formatting)
-        self.spokeRegisters = ['rsi', 'rdi']
     
+            
     # Puts registers in the relevant registers required for printf call and
     # preserves the registers which may be overwritten.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-        registersToPreserve = list(set(self.spokeRegisters) - set([destReg]))
-        registersToPreserveReverse = registersToPreserve[0:]
-        registersToPreserveReverse.reverse()
-        return (self.pushRegs(registersToPreserve) +
+        pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
+        return (pushedRegs +
                 ["mov rsi, %s" %destReg,
                 "mov rdi, %s" %self.formatting,
                 "xor rax, rax",
                 "call printf"] +
-                self.popRegs(registersToPreserve))
+                poppedRegs)
 
 class InputNode(IONode):
     def __init__(self, reg, parents, formatting):
         super(InputNode, self).__init__(reg, parents, formatting)
     
-    def generateCode(self, registerMap)    
-
+    def getMemoryLoc(self):
+        memoryLoc = ""
+        if "char" in self.formatting:
+            memoryLoc = "charinput"
+        elif "int" in self.formatting:
+            memoryLoc = "intinput"
+        return memoryLoc
+    
+    def generateCode(self, registerMap):
+        destReg = registerMap[self.registers[0]]
+        memoryLoc = self.getMemoryLoc()
+        pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
+        return (pushedRegs +
+                ["mov rsi, %s" %(memoryLoc),
+                "mov rdi, %s" %self.formatting,
+                "xor rax, rax",
+                "call scanf",
+                "mov %s, [%s]" %(destReg, memoryLoc)] +
+                poppedRegs)
 
                 
 class FunctionDeclarationNode(IntermediateNode):

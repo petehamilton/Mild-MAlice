@@ -5,8 +5,10 @@ import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
-    intfmt = 'db "%ld", 10, 0'
-    charfmt = 'db "%c", 10, 0'
+    output_int_fmt = 'db "%ld", 10, 0'
+    output_char_fmt = 'db "%c", 10, 0'
+    input_int_fmt = 'db "%ld", 0'
+    input_char_fmt = 'db "%c", 0'
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -161,15 +163,31 @@ class CodeGenerator(object):
             dataSection.append("section .data")
             for printType in self.flags[ASTNodes.SPOKE]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("charfmt: ") + self.charfmt)
+                    dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("intfmt: ") + self.intfmt)
+                    dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+        
+        if ASTNodes.INPUT in self.flags:
+            externSection.append("extern scanf")
+            bssSection.append("section .bss")
+            if ASTNodes.SPOKE not in self.flags:
+                dataSection.append("section .data")
+            for printType in self.flags[ASTNodes.INPUT]:
+                if printType == ASTNodes.LETTER:     
+                    dataSection.append(self.indent("inputcharfmt: ") + self.input_char_fmt)
+                    bssSection.append("charinput resq 1")
+                elif printType == ASTNodes.NUMBER:
+                    dataSection.append(self.indent("inputintfmt: ") + self.input_int_fmt)
+                    bssSection.append("intinput resq 1")
+                
+                    
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
 
         if overflowValues:
-            bssSection.append("section .bss")
+            if len(bssSection) == 0:
+                bssSection.append("section .bss")
             bssSection.extend([ self.indent("%s: resq 1") %name for name in overflowValues])
     
         textSection.extend(["segment .text", 
