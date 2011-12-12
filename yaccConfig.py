@@ -121,12 +121,12 @@ def p_statement_expression(p):
 # LOGICAL CLAUSES
 ################################################################################
 def p_logical_clauses_many(p):
-  'logical_clauses  : logical_clause logical_clauses'
-  p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
+    'logical_clauses  : logical_clause logical_clauses'
+    p[0] = ASTNodes.LogicalClausesNode(p.lineno(1), p.clauseno(1), p[1], p[2])
 
 def p_logical_clauses_single(p):
-  'logical_clauses  : logical_clause'
-  p[0] = p[1]
+    'logical_clauses  : logical_clause'
+    p[0] = p[1]
 
 def p_logical_ending(p):
     '''logical_ending  : ALICE DEC_WAS IF_UNSURE
@@ -137,12 +137,12 @@ def p_logical_ending(p):
 # LOGICAL CLAUSE
 ################################################################################
 def p_logical_clause_elif(p):
-  'logical_clause   : IF_OR IF_MAYBE L_PAREN expression R_PAREN IF_SO statement_list'
-  p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
+    'logical_clause   : IF_OR IF_MAYBE L_PAREN expression R_PAREN IF_SO statement_list'
+    p[0] = ASTNodes.ElseIfNode(p.lineno(4), p.clauseno(4), p[4], p[7])
 
 def p_logical_clause_else(p):
-  'logical_clause   : IF_OR statement_list'
-  p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])
+    'logical_clause   : IF_OR statement_list'
+    p[0] = ASTNodes.ElseNode(p.lineno(2), p.clauseno(2), p[2])
 
 ################################################################################
 # EXPRESSION
@@ -156,8 +156,8 @@ def p_expression_call_pbr_function(p):
     'expression : ID FUNCTION_WENT FUNCTION_THROUGH ID'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
     argument = ASTNodes.FunctionArgumentNode( p.lineno(1), p.clauseno(1), factor )
-    p[0] = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], argument)
-
+    functionCall = ASTNodes.FunctionCallNode( p.lineno(1), p.clauseno(1), p[4], argument)
+    p[0] = ASTNodes.AssignmentNode(p.lineno(1), p.clauseno(1), p[1], functionCall)
 def p_expression_parenthesis(p):
     'expression : L_PAREN expression R_PAREN'
     p[0] = p[2]
@@ -258,12 +258,12 @@ def p_type_sentence(p):
 # FUNCTIONS
 ################################################################################
 def p_functions_multiple(p):
-  'functions : function function_seperator functions'
-  p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
+    'functions : function function_seperator functions'
+     p[0] = ASTNodes.FunctionsNode( p.lineno(1), p.clauseno(1), p[1], p[3] )
 
 def p_functions_single(p):
-  'functions : function'
-  p[0] = p[1]
+    'functions : function'
+    p[0] = p[1]
 
 ################################################################################
 # FUNCTION SEPERATOR
@@ -280,19 +280,19 @@ def p_function(p):
   'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type statement_list'
   p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], p[8])
 
-def p_function_no_body(p):
-  'function : ID L_PAREN arguments R_PAREN FUNCTION_CONTAINED DEC_A type'
-  p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], p[3], p[7], None, p[10])    
-
 #     TODO CHANGE THIS TO FUNCTION
 def p_function_reference(p):
-  'function : ID FUNCTION_CHANGED DEC_A type statement_list'
-  factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
-  returnNode = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), factor)
-  functionBodyNode = ASTNodes.FunctionBodyNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
-  declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
-  argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
-  p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], functionBodyNode )
+    'function : ID FUNCTION_CHANGED DEC_A type statement_list'
+    factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
+    returnNode = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), factor)
+  
+
+    lookingGlassNode = ASTNodes.LookingGlassNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
+
+
+    declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
+    argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
+    p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], p[5] )
 
 ################################################################################
 # ARGUMENTS
