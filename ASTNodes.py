@@ -861,7 +861,7 @@ class FunctionArgumentNode(ASTNode):
 
 class LookingGlassNode(ASTNode):
     def __init__(self, lineno, clauseno, statementList, returnStatement):
-        super(FunctionBodyNode, self).__init__( FUNCTION_BODY, lineno, clauseno, [statementList, functionBody])
+        super(LookingGlassNode, self).__init__( FUNCTION_BODY, lineno, clauseno, [statementList, returnStatement])
     
     def getStatementList(self):
         return self.children[0]
@@ -872,7 +872,7 @@ class LookingGlassNode(ASTNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getStatementList().check(symbolTable, flags)
-        self.getFunctionBody().check(symbolTable, flags)
+        self.getReturnStatement().check(symbolTable, flags)
         
     def translate(self, registerMap, reg, parents):
         reg, exp1, parents = self.getStatementList().translate(registerMap, reg, parents)
