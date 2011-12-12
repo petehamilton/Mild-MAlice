@@ -599,31 +599,29 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        loopStartLabel = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
-        loopEndLabel = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), parents)
+        
+        loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
+        loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), parents)
+        
+        reg1, expressionNodes, parents = self.getExpression().translate(registersDict, reg, parents)
+        
+        trueCheckNode = INodes.TrueCheckNode(reg, loopEndLabel, parents)
+        
+        reg2, bodyNodes, parents = self.getBody().translate(registersDict, reg1, parents)
+        
+        jumpNode = INodes.JumpNode(loopStartLabel, parents)
         
         iNodes = []
         iNodes.append(loopStartLabel)
-        
-        reg1, newINodes, parents = self.getExpression().translate(registersDict, reg, parents)
-        iNodes += newINodes
-        
-        # Record all registers used in the loop expression. These need to be 
-        # defined as 'used' at the end of the loop so they're preserved.
-        # TODO: Might be some elegant push-pop solution to this?
-        usedRegisters = []
-        for n in newINodes:
-            usedRegisters = n.uses()
-        
-        iNodes.append(INodes.TrueCheckNode(reg, loopEndLabel, parents))
-        
-        reg2, newINodes, parents = self.getBody().translate(registersDict, reg1, parents)
-        iNodes += newINodes
-        iNodes.append(INodes.LoopNode(usedRegisters, parents))
-        iNodes.append(INodes.JumpNode(loopStartLabel, parents))
+        iNodes += expressionNodes
+        iNodes.append(trueCheckNode)
+        iNodes += bodyNodes
+        iNodes.append(jumpNode)
         iNodes.append(loopEndLabel)
         
         return reg2, iNodes, parents
+
+
 class IfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody, logicalClauses = None ):
         super(IfNode, self).__init__(IF, lineno, clauseno, [exp, thenBody, logicalClauses])
