@@ -305,7 +305,7 @@ class TrueCheckNode(IntermediateNode):
     
     def generateCode(self, registerMap):
         reg = registerMap[self.registers[0]]
-        return ["cmp %s, 0" % reg, "jle %s" % self.getFalseLabel()]
+        return ["cmp %s, 0" % reg, "jne %s" % self.getFalseLabel()]
 
 class LoopNode(IntermediateNode):
     def __init__(self, usedRegisters, parents):
