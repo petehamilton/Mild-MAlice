@@ -604,13 +604,13 @@ class LoopNode(ConditionalNode):
         
         reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, parents)
         
-        trueCheckNode = INodes.TrueCheckNode(reg, loopEndLabel, postExpressionParents)
-        
         reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [trueCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabel, postBodyParents)
         
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), [jumpNode])
+        
+        trueCheckNode = INodes.TrueCheckNode(reg, loopEndLabelNode, postExpressionParents)
         
         iNodes = []
         iNodes.append(loopStartLabel)
