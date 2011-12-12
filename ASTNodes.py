@@ -383,7 +383,35 @@ class IDNode(Factor):
 # PRINT NODE
 ################################################################################
 
-class SpokeNode(ASTNode):
+class IONode(ASTNode):
+    def __init__(self,  nodeType, lineno, clauseno, child ):
+        super(IONode, self).__init__( nodeType, lineno, clauseno, [child] )
+    
+    def getIDType(self, expression):
+        if expression.getNodeType() == FACTOR:
+            if expression.getFactorType() == ID:
+                node = self.symbolTable.lookupCurrLevelAndEnclosingLevels(expression.getValue())
+                idType = node.getType()
+            else:
+                idType = expression.getFactorType()
+        else:
+            # If not a factor, must be of type number since letters are only 
+            # valid as factors and not as part of operations or expressions
+            idType = NUMBER
+        return idType
+
+    def getFormatting(self, idType):        
+        formatting = ""
+        if idType == NUMBER:
+            formatting = "intfmt"
+        elif idType == LETTER:
+            formatting = "charfmt"
+        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
+            formatting = "charfmt"
+        return formatting
+        
+
+class SpokeNode(IONode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
     
@@ -397,32 +425,12 @@ class SpokeNode(ASTNode):
         self.type = self.getExpression().type
         flags[SPOKE].add( self.getIDType() )
     
-    def getIDType(self):
-        spokeExpression = self.getExpression()
-        if spokeExpression.getNodeType() == FACTOR:
-            if spokeExpression.getFactorType() == ID:
-                node = self.symbolTable.lookupCurrLevelAndEnclosingLevels(spokeExpression.getValue())
-                idType = node.getType()
-            else:
-                idType = spokeExpression.getFactorType()
-        else:
-            # If not a factor, must be of type number since letters are only 
-            # valid as factors and not as part of operations or expressions
-            idType = NUMBER
-        return idType
-    
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
-        idType = self.getIDType()
-        formatting = ""
-        if idType == NUMBER:
-            formatting = "intfmt"
-        elif idType == LETTER:
-            formatting = "charfmt"
-        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = "charfmt"
+        idType = self.getIDType(self.getExpression())
+        formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
@@ -460,7 +468,7 @@ class ReturnNode(ASTNode):
 # INPUT NODE
 ################################################################################
 
-class InputNode(ASTNode):
+class InputNode(IONode):
     def __init__(self, lineno, clauseno, variable ):
         super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
         
@@ -469,10 +477,19 @@ class InputNode(ASTNode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
+        flags[INPUT].add(self.getVariable())
         self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable, flags)
         self.type = self.getVariable().type
 
+    def translate(self, registersDict, reg, parents):
+        idType = self.getIDType(self.getVariable())
+        formatting = self.getFormatting(idType)
+        
+        # Should catch error here if formatting not set...
+        intermediateNode = INodes.InputNode(reg, parents, formatting)
+        
+        return reg+1, exp + [intermediateNode], [intermediateNode]
 
 
 ################################################################################

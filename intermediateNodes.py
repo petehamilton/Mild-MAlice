@@ -321,11 +321,16 @@ class JumpNode(IntermediateNode):
     def generateCode(self, registerMap):
         return ["jmp %s" % self.getLabel()]
     
-class SpokeNode(IntermediateNode):
-    def __init__(self, reg, parents, formatting):
-        super(SpokeNode, self).__init__(parents)
+
+class IONode(IntermediateNode):
+    def__init__(self, reg, parents, formatting):
+        super(IONode, self).__init__(parents):
         self.registers = [reg]
         self.formatting = formatting
+        
+class SpokeNode(IONode):
+    def __init__(self, reg, parents, formatting):
+        super(SpokeNode, self).__init__(reg, parents, formatting)
         self.spokeRegisters = ['rsi', 'rdi']
     
     # Puts registers in the relevant registers required for printf call and
@@ -341,6 +346,14 @@ class SpokeNode(IntermediateNode):
                 "xor rax, rax",
                 "call printf"] +
                 self.popRegs(registersToPreserve))
+
+class InputNode(IONode):
+    def __init__(self, reg, parents, formatting):
+        super(InputNode, self).__init__(reg, parents, formatting)
+    
+    def generateCode(self, registerMap)    
+
+
                 
 class FunctionDeclarationNode(IntermediateNode):
     def __init__(self, parents, name, arguments, body):
