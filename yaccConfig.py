@@ -285,11 +285,7 @@ def p_function_reference(p):
     'function : ID FUNCTION_CHANGED DEC_A type statement_list'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), 'it')
     returnNode = ASTNodes.ReturnNode(p.lineno(1), p.clauseno(1), factor)
-  
-
     lookingGlassNode = ASTNodes.LookingGlassNode( p.lineno(1), p.clauseno(1), p[5], returnNode)
-
-
     declarationNode = ASTNodes.DeclarationNode(p.lineno(1), p.clauseno(1), 'it', p[4])
     argument = ASTNodes.ArgumentNode( p.lineno(4), p.clauseno(4), declarationNode )
     p[0] = ASTNodes.FunctionDeclarationNode( p.lineno(1), p.clauseno(1), p[1], argument, p[4], p[5] )

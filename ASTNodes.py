@@ -859,14 +859,14 @@ class FunctionArgumentNode(ASTNode):
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
         return reg, (exp + [intermediateNode]), [intermediateNode]
 
-class FunctionBodyNode(ASTNode):
-    def __init__(self, lineno, clauseno, statementList, functionBody):
+class LookingGlassNode(ASTNode):
+    def __init__(self, lineno, clauseno, statementList, returnStatement):
         super(FunctionBodyNode, self).__init__( FUNCTION_BODY, lineno, clauseno, [statementList, functionBody])
     
     def getStatementList(self):
         return self.children[0]
         
-    def getFunctionBody(self):
+    def getReturnStatement(self):
         return self.children[1]
         
     def check(self, symbolTable, flags):
@@ -874,6 +874,10 @@ class FunctionBodyNode(ASTNode):
         self.getStatementList().check(symbolTable, flags)
         self.getFunctionBody().check(symbolTable, flags)
         
+    def translate(self, registerMap, reg, parents):
+        reg, exp1, parents = self.getStatementList().translate(registerMap, reg, parents)
+        reg, exp2, parents = self.getReturnStatement().translate(registerMap, reg, parents)
+        return reg, (exp1+ exp2), parents
 
 
 ################################################################################
