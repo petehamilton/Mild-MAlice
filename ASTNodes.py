@@ -620,7 +620,7 @@ class LoopNode(ConditionalNode):
         iNodes.append(jumpNode)
         iNodes.append(loopEndLabel)
         
-        return reg2, iNodes, parents
+        return reg2, iNodes, [loopEndLabelNode]
 
 
 class IfNode(ConditionalNode):
