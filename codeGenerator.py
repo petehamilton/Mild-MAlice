@@ -7,6 +7,9 @@ from collections import defaultdict
 class CodeGenerator(object):
     output_int_fmt = 'db "%ld", 10, 0'
     output_char_fmt = 'db "%c", 10, 0'
+    output_string_fmt = 'outputStringFormat: db "%s", 0'
+    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
+    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
     input_int_fmt = 'db "%ld", 0'
     input_char_fmt = 'db "%c", 0'
     newline = "\n"
@@ -167,17 +170,29 @@ class CodeGenerator(object):
                 elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
         
+        
+        #TODO: Tidy up
         if ASTNodes.INPUT in self.flags:
             externSection.append("extern scanf")
             bssSection.append("section .bss")
             if ASTNodes.SPOKE not in self.flags:
                 dataSection.append("section .data")
+                externSection.append("extern printf")
+                for printType in self.flags[ASTNodes.INPUT]:
+                    if printType == ASTNodes.LETTER:     
+                        dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
+                    elif printType == ASTNodes.NUMBER:
+                        dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+                        
+            dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent("inputcharfmt: ") + self.input_char_fmt)
+                    dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent("inputintfmt: ") + self.input_int_fmt)
+                    dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
                 
                     

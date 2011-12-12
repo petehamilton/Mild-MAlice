@@ -344,7 +344,10 @@ class IONode(IntermediateNode):
         self.ioRegisters = ['rsi', 'rdi']
     
     def preserveRegisters(self, destReg):
-        registersToPreserve = list(set(self.ioRegisters) - set([destReg]))
+        if not destReg:
+            registersToPreserve = list(set(self.ioRegisters))
+        else:
+            registersToPreserve = list(set(self.ioRegisters) - set([destReg]))
         registersToPreserveReverse = registersToPreserve[0:]
         registersToPreserveReverse.reverse()
         return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
@@ -371,21 +374,35 @@ class InputNode(IONode):
     def __init__(self, reg, parents, formatting):
         super(InputNode, self).__init__(reg, parents, formatting)
     
-    def getMemoryLoc(self):
+    def getMemoryLocAndMessageLoc(self):
         memoryLoc = ""
+        message = self.formatting + "_message"
         if "char" in self.formatting:
             memoryLoc = "charinput"
         elif "int" in self.formatting:
             memoryLoc = "intinput"
-        return memoryLoc
+        return memoryLoc, message
     
+    #TODO: TIDY THIS UP SO NOT WASTED CODE
+    
+    def printMessage(self, messageLoc):
+        pushedRegs, poppedRegs = self.preserveRegisters(None)
+        return(pushedRegs+
+                ["mov rsi, %s" %messageLoc,
+                "mov rdi, outputStringFormat",
+                "xor rax, rax",
+                "call printf"] +
+               poppedRegs)
+               
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-        memoryLoc = self.getMemoryLoc()
+        memoryLoc, messageLoc = self.getMemoryLocAndMessageLoc()
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        return (pushedRegs +
+        printMessageCode = self.printMessage(messageLoc)
+        return ( printMessageCode +
+                 pushedRegs +
                 ["mov rsi, %s" %(memoryLoc),
-                "mov rdi, %s" %self.formatting,
+                "mov rdi, %s" %("input" + self.formatting),
                 "xor rax, rax",
                 "call scanf",
                 "mov %s, [%s]" %(destReg, memoryLoc)] +

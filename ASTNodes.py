@@ -380,7 +380,7 @@ class IDNode(Factor):
 
 
 ################################################################################
-# PRINT NODE
+# IO NODES
 ################################################################################
 
 class IONode(ASTNode):
@@ -429,12 +429,40 @@ class SpokeNode(IONode):
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
         idType = self.getIDType(self.getExpression())
-        formatting = self.getFormatting(idType)
+        formatting = "output" + self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
         
         return reg1, exp + [intermediateNode], [intermediateNode]
+
+
+class InputNode(IONode):
+    def __init__(self, lineno, clauseno, variable ):
+        super(InputNode, self).__init__( INPUT, lineno, clauseno, variable )
+        
+    def getVariable(self):
+        return self.children[0]
+        
+    #TODO: CHECK IF ID    
+    def check(self, symbolTable, flags):
+        self.setSymbolTable(symbolTable)
+        idType = self.getIDType(self.getVariable())
+        flags[INPUT].add(idType)
+        self.getVariable().check(symbolTable, flags)
+        self.type = self.getVariable().type
+
+    def translate(self, registersDict, reg, parents):
+        idType = self.getIDType(self.getVariable())
+        # Incase first declaration of variable.
+        if self.getVariable() not in registersDict:
+            registersDict[self.getVariable().getValue()] = reg
+        formatting = self.getFormatting(idType)
+        
+        # Should catch error here if formatting not set...
+        intermediateNode = INodes.InputNode(reg, parents, formatting)
+        
+        return reg+1, [intermediateNode], [intermediateNode]
 
 
 
@@ -460,35 +488,6 @@ class ReturnNode(ASTNode):
         intermediateNode = INodes.ReturnNode(returnReg, parents)
         return reg, (exp + [intermediateNode]), parents
         
-
-
-
-################################################################################
-# INPUT NODE
-################################################################################
-
-class InputNode(IONode):
-    def __init__(self, lineno, clauseno, variable ):
-        super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
-        
-    def getVariable(self):
-        return self.children[0]
-        
-    #TODO: CHECK IF ID    
-    def check(self, symbolTable, flags):
-        flags[INPUT].add(self.getVariable())
-        self.setSymbolTable(symbolTable)
-        self.getVariable().check(symbolTable, flags)
-        self.type = self.getVariable().type
-
-    def translate(self, registersDict, reg, parents):
-        idType = self.getIDType(self.getVariable())
-        formatting = self.getFormatting(idType)
-        
-        # Should catch error here if formatting not set...
-        intermediateNode = INodes.InputNode(reg, parents, formatting)
-        
-        return reg+1, exp + [intermediateNode], [intermediateNode]
 
 
 ################################################################################
