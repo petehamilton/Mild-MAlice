@@ -39,6 +39,9 @@ class IntermediateNode(object):
         
     def popRegs(self, registersToPop):
         return ["pop %s" %x for x in registersToPop]
+    
+    def setParents(self, parents):
+        self.parents = parents
         
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):
@@ -302,7 +305,7 @@ class TrueCheckNode(IntermediateNode):
     
     def generateCode(self, registerMap):
         reg = registerMap[self.registers[0]]
-        return ["cmp %s, 0" % reg, "jle %s" % self.getFalseLabel()]
+        return ["cmp %s, 0" % reg, "jne %s" % self.getFalseLabel()]
 
 class LoopNode(IntermediateNode):
     def __init__(self, usedRegisters, parents):
