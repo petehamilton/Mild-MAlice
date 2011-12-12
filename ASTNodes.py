@@ -413,7 +413,7 @@ class IONode(ASTNode):
 
 class SpokeNode(IONode):
     def __init__(self, lineno, clauseno, child ):
-        super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
+        super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, child )
     
     def getExpression(self):
         return self.children[0]
@@ -422,8 +422,7 @@ class SpokeNode(IONode):
         self.setSymbolTable(symbolTable)
         self.symbolTable = symbolTable
         self.getExpression().check(symbolTable, flags)
-        self.type = self.getExpression().type
-        flags[SPOKE].add( self.getIDType() )
+        flags[SPOKE].add( self.getExpression().type )
     
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
