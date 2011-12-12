@@ -5,7 +5,6 @@ import tokRules
 import intermediateNodes as INodes
 import re
 
-
 ################################################################################
 # NODE TYPES
 ################################################################################
@@ -414,7 +413,7 @@ class IONode(ASTNode):
 
 class SpokeNode(IONode):
     def __init__(self, lineno, clauseno, child ):
-        super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, child )
+        super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, [child] )
     
     def getExpression(self):
         return self.children[0]
@@ -431,7 +430,7 @@ class SpokeNode(IONode):
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
         idType = self.getIDType(self.getExpression())
-        formatting = "output" + self.getFormatting(idType)
+        formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
@@ -471,24 +470,26 @@ class ReturnNode(ASTNode):
 
 class InputNode(IONode):
     def __init__(self, lineno, clauseno, variable ):
-        super(InputNode, self).__init__( INPUT, lineno, clauseno, variable )
+        super(InputNode, self).__init__( INPUT, lineno, clauseno, [variable] )
         
     def getVariable(self):
         return self.children[0]
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
+        flags[INPUT].add(self.getVariable())
         self.setSymbolTable(symbolTable)
-        flags[INPUT].add(self.getIDType(self.getVariable()))
         self.getVariable().check(symbolTable, flags)
         self.type = self.getVariable().type
 
     def translate(self, registersDict, reg, parents):
         idType = self.getIDType(self.getVariable())
-        formatting = "input" + self.getFormatting(idType)
+        formatting = self.getFormatting(idType)
+        
         # Should catch error here if formatting not set...
         intermediateNode = INodes.InputNode(reg, parents, formatting)
-        return reg+1, [intermediateNode], [intermediateNode]
+        
+        return reg+1, exp + [intermediateNode], [intermediateNode]
 
 
 ################################################################################
@@ -600,16 +601,17 @@ class LoopNode(ConditionalNode):
     
     def translate(self, registersDict, reg, parents):
         
-        loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
-        loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), parents)
+        loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), [])
         
         reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, parents)
-        # True check goes here
-        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, parents)
-        
         
         trueCheckNode = INodes.TrueCheckNode(reg, loopEndLabel, postExpressionParents)
+        
+        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, postExpressionParents)
+        
         jumpNode = INodes.JumpNode(loopStartLabel, postBodyParents)
+        
+        loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), [])
         
         iNodes = []
         iNodes.append(loopStartLabel)
