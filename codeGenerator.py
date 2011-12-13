@@ -149,6 +149,7 @@ class CodeGenerator(object):
                 functionCode.extend(generateFunctionCode(function, fRegMap))
         else:
             reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+            
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues) + finalCode + self.finish() + functionCode
@@ -161,8 +162,14 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if len(self.flags[ASTNodes.SPOKE]):
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
             externSection.append("extern printf")
+            
+        
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
+            dataSection.append("section.data")
+            
+        if ASTNodes.SPOKE in self.flags:
             dataSection.append("section .data")
             for printType in self.flags[ASTNodes.SPOKE]:
                 if printType == ASTNodes.LETTER:     
@@ -172,17 +179,14 @@ class CodeGenerator(object):
         
         
         #TODO: Tidy up
-        if len(self.flags[ASTNodes.INPUT]):
+        if ASTNodes.INPUT in self.flags:
             externSection.append("extern scanf")
             bssSection.append("section .bss")
-            if (len(self.flags[ASTNodes.SPOKE]) == 0):
-                dataSection.append("section .data")
-                externSection.append("extern printf")
-                for printType in self.flags[ASTNodes.INPUT]:
-                    if printType == ASTNodes.LETTER:     
-                        dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
-                    elif printType == ASTNodes.NUMBER:
-                        dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+            for printType in self.flags[ASTNodes.INPUT]:
+                if printType == ASTNodes.LETTER:     
+                    dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
+                elif printType == ASTNodes.NUMBER:
+                    dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
                         
             dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
@@ -195,7 +199,9 @@ class CodeGenerator(object):
                     dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
                 
-                    
+        if ASTNodes.SENTENCE in self.flags:
+            for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
+                dataSection.append("%s: db %s, 0" %(memoryLocation, sentence))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])

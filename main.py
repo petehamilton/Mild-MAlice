@@ -44,7 +44,7 @@ def parse_code(code):
         # result.display()
         if result:
             symbolTable = {}
-            flags = {'spoke':set(), 'sentence':{}, 'input':set(), 'function':set()}
+            flags = defaultdict(set)
             analyse(result, flags)
             cg = CodeGenerator(symbolTable, registers, flags)
             code = cg.generate(result)

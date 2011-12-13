@@ -386,9 +386,10 @@ class SentenceNode(Factor):
         
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
-        self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
-        flags[SENTENCE][self.getValue()] = self.memoryLocation
-        SentenceNode.sentenceCount += 1
+        if not self.memoryLocation:
+            self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
+            flags[SENTENCE].add((self.memoryLocation, self.getValue()))
+            SentenceNode.sentenceCount += 1
         
     def translate(self, registersDict, reg, parents):
         return reg, [], parents
