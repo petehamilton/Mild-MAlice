@@ -130,6 +130,10 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
+            
+            # Uncomment to generate temporary code
+            # for k, v in registerMap.iteritems():
+            #                 registerMap[k] = "T%d"%k
             return registerMap, overflowValues
             
         def generateFinalCode(intermediateNodes, registerMap):
