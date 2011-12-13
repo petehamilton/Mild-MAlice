@@ -206,10 +206,10 @@ class CodeGenerator(object):
                     dataSection.append(self.indent(self.input_int_fmt))
                     dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
-                
+             
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
-                dataSection.append(self.indent("%s: db %s, 0" %(memoryLocation, sentence)))
+                dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])

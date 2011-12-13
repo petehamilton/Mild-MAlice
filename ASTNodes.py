@@ -309,7 +309,7 @@ class AssignmentNode(StatementNode):
         register, inMemory = registersDict[self.getVariable()]
         if inMemory:
             self.getExpression().memoryLocation
-            intermediateNode = INodes.MovNode(register, self.getExpression().memoryLocation, parents)
+            intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
             return reg, [intermediateNode], [intermediateNode]
         else:
             resultReg = reg 
@@ -396,7 +396,8 @@ class SentenceNode(Factor):
             SentenceNode.sentenceCount += 1
         
     def translate(self, registersDict, reg, parents):
-        return reg, [], parents
+        intermediateNode = INodes.ImmMovNode(reg, self.memoryLocation, parents)
+        return reg + 1, [intermediateNode], [intermediateNode]
 
 class IDNode(Factor):
     def __init__(self, lineno, clauseno, child ):
