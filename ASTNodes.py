@@ -297,16 +297,19 @@ class AssignmentNode(StatementNode):
         self.setSymbolTable(symbolTable)
         self.variableCheck(symbolTable, flags, self.getDestination())
         
-    def translate(self, registersDict, reg, parents):    
-        assignmentReg = reg
+    def translate(self, registersDict, reg, parents):   
+        resultReg = reg 
         reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
-        registersDict[self.getVariable()] = assignmentReg
-        return reg, exp, parents
+        intermediateNode = INodes.MovNode(registersDict[self.getVariable()], resultReg, parents)
+        return reg, (exp + [intermediateNode]), [intermediateNode]
         
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
-        self.variableName = variableName
+        
+    
+    def getVariable(self):    
+        return self.children[0]
         
     # Returns type node's type.
     def getType(self):
@@ -315,7 +318,7 @@ class DeclarationNode(StatementNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
-        V = symbolTable.lookupCurrLevelOnly(self.variableName)
+        V = symbolTable.lookupCurrLevelOnly(self.getVariable())
         # if T == None:
             # error("Unknown Type")
         if V:
@@ -324,10 +327,11 @@ class DeclarationNode(StatementNode):
         else:   
             self.children[1].check(symbolTable, flags)
             self.type = self.children[1].type
-            symbolTable.add(self.variableName, self)
+            symbolTable.add(self.getVariable(), self)
     
     def translate( self, registersDict, reg, parents ):
-        return reg, [], parents
+        registersDict[self.getVariable()] = reg
+        return reg+1, [], parents
 
 
 ################################################################################
