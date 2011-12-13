@@ -288,6 +288,7 @@ class LabelNode(IntermediateNode):
     def generateCode(self, registerMap):
         return ["%s:" % self.label]
 
+# True and false node should inherit, basically the same except the comparator
 class TrueCheckNode(IntermediateNode):
     def __init__(self, reg, falseLabelNode, parents):
         super(TrueCheckNode, self).__init__(parents)
@@ -306,6 +307,27 @@ class TrueCheckNode(IntermediateNode):
     def generateCode(self, registerMap):
         reg = registerMap[self.registers[0]]
         return ["cmp %s, 0" % reg, "je %s" % self.getFalseLabel()]
+
+
+class FalseCheckNode(IntermediateNode):
+    def __init__(self, reg, trueLabelNode, parents):
+        super(FalseCheckNode, self).__init__(parents)
+        self.trueLabelNode = trueLabelNode
+        self.registers = [reg]
+    
+    def uses(self):
+        return [self.registers[0]]
+    
+    def alteredRegisters(self):
+        return []
+        
+    def getTrueLabel(self):
+        return self.trueLabelNode.getLabel()
+    
+    def generateCode(self, registerMap):
+        reg = registerMap[self.registers[0]]
+        return ["cmp %s, 0" % reg, "jne %s" % self.getTrueLabel()]
+
 
 class LoopNode(IntermediateNode):
     def __init__(self, usedRegisters, parents):
