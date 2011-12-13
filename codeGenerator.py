@@ -162,6 +162,8 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
+        # Hashing values for efficiency to check they aren't redefined.
+        inDataSection = {}        
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
             externSection.append("extern printf")
             
@@ -173,10 +175,13 @@ class CodeGenerator(object):
             for printType in self.flags[ASTNodes.SPOKE]:
                 if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent(self.output_char_fmt))
+                    inDataSection[self.output_char_fmt] = True
                 elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent(self.output_int_fmt))
+                    inDataSection[self.output_int_fmt] = True
                 elif printType == ASTNodes.SENTENCE:
                     dataSection.append(self.indent(self.output_string_fmt))
+                    inDataSection[self.output_string_fmt] = True
         
         
         #TODO: Tidy up
@@ -184,19 +189,21 @@ class CodeGenerator(object):
             externSection.append("extern scanf")
             bssSection.append("section .bss")
             for printType in self.flags[ASTNodes.INPUT]:
-                if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent(self.output_char_fmt))
+                if printType == ASTNodes.LETTER:
+                    if self.output_int_fmt not in inDataSection: 
+                        dataSection.append(self.indent(self.output_int_fmt))
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent(output_int_fmt))
+                    if self.output_char_fmt not in inDataSection: 
+                        dataSection.append(self.indent(self.output_char_fmt))
                         
             dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("inputcharfmt: ") + self.input_char_fmt)
+                    dataSection.append(self.indent(+ self.input_char_fmt))
                     dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("inputintfmt: ") + self.input_int_fmt)
+                    dataSection.append(self.indent(self.input_int_fmt))
                     dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
                 

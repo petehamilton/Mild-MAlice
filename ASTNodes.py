@@ -344,6 +344,8 @@ class DeclarationNode(StatementNode):
     def translate( self, registersDict, reg, parents ):
         if self.getType() == SENTENCE:
             registersDict[self.getVariable()] = (reg, IN_MEMORY)
+        else:
+            registersDict[self.getVariable()] = (reg, IN_REGISTER)
         return reg+1, [], parents
 
 
@@ -483,7 +485,7 @@ class InputNode(IONode):
         idType = self.getIDType(self.getVariable())
         # Incase first declaration of variable.
         if self.getVariable() not in registersDict:
-            registersDict[self.getVariable().getValue()] = reg
+            registersDict[self.getVariable().getValue()] = (reg, IN_REGISTER)
         formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
@@ -840,7 +842,7 @@ class ArgumentNode(ASTNode):
         self.getArgument().check(symbolTable, flags)
     
     def translate( self, registersDict, reg, parents, argNumber ):
-        registersDict[self.getArgument().variableName] = reg
+        registersDict[self.getArgument().variableName] = (reg, IN_REGISTER)
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
         return reg + 1, [intermediateNode], [intermediateNode]
 

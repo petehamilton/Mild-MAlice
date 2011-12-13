@@ -397,7 +397,7 @@ class InputNode(IONode):
         pushedRegs, poppedRegs = self.preserveRegisters(None)
         return(pushedRegs+
                 ["mov rsi, %s" %messageLoc,
-                "mov rdi, outputstringformat",
+                "mov rdi, outputstringfmt",
                 "xor rax, rax",
                 "call printf"] +
                poppedRegs)
