@@ -206,8 +206,8 @@ class CodeGenerator(object):
                 elif printType == ASTNodes.NUMBER:
                     if self.output_char_fmt not in inDataSection: 
                         dataSection.append(self.indent(self.output_char_fmt))
-                        
-            dataSection.append(self.indent(self.output_string_fmt))
+            if self.output_string_fmt not in inDataSection:
+                dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent(self.input_char_fmt))
