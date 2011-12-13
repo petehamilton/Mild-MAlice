@@ -167,7 +167,7 @@ class CodeGenerator(object):
             
         
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
-            dataSection.append("section.data")
+            dataSection.append("section .data")
             
         if ASTNodes.SPOKE in self.flags:
             for printType in self.flags[ASTNodes.SPOKE]:
