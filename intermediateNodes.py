@@ -344,7 +344,7 @@ class IONode(IntermediateNode):
         super(IONode, self).__init__(parents)
         self.registers = [reg]
         self.formatting = formatting
-        self.ioRegisters = ['rsi', 'rdi']
+        self.ioRegisters = ['rsi', 'rdi', 'r8', 'r9', 'r10']
     
     def preserveRegisters(self, destReg):
         if not destReg:

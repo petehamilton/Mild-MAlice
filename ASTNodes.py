@@ -430,6 +430,7 @@ class SpokeNode(IONode):
     
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
+        print spokeExpression
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
         
         idType = self.getIDType(self.getExpression())
