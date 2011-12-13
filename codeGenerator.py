@@ -128,11 +128,12 @@ class CodeGenerator(object):
                 
             intermediateNodes.reverse()
             liveOut = calculateLiveRange(intermediateNodes)
+
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
             
-            # for i in intermediateNodes:
-            #     print i, i.parents
+            for i in intermediateNodes:
+                print i, i.parents
             
             # Uncomment to generate temporary code, 
             # same assembly but uses T0,T1,T2 etc
