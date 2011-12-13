@@ -359,16 +359,16 @@ class IONode(IntermediateNode):
 class SpokeNode(IONode):
     def __init__(self, reg, parents, formatting):
         super(SpokeNode, self).__init__(reg, parents, formatting)
-    
+        print "***********"
+        print formatting
+        print "**********"
             
     # Puts registers in the relevant registers required for printf call and
     # preserves the registers which may be overwritten.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        print "***********"
-        print self.formatting
-        print "**********"
+
         return (pushedRegs +
                 ["mov rsi, %s" %destReg,
                 "mov rdi, %s" %self.formatting,
