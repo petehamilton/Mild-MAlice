@@ -366,6 +366,9 @@ class SpokeNode(IONode):
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
+        print "***********"
+        self.formatting
+        print "**********"
         return (pushedRegs +
                 ["mov rsi, %s" %destReg,
                 "mov rdi, %s" %self.formatting,
