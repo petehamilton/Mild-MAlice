@@ -130,10 +130,19 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
+
+            # Code which prints out the intermediate nodes nd their parents, each
+            # with a unique number
+            i = 0
+            nodeDict = {}
+            for n in intermediateNodes:
+                if n not in nodeDict:
+                    nodeDict[n] = i
+                    i += 1
             
-            
-            # for i in intermediateNodes:
-            #     print i, i.parents
+            for i in intermediateNodes:
+                print nodeDict[i], [nodeDict[n] for n in i.parents]
+            # End of parent inspection code
             
             # Uncomment to generate temporary code, 
             # same assembly but uses T0,T1,T2 etc
