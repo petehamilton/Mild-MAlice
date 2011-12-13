@@ -359,9 +359,6 @@ class IONode(IntermediateNode):
 class SpokeNode(IONode):
     def __init__(self, reg, parents, formatting):
         super(SpokeNode, self).__init__(reg, parents, formatting)
-        print "***********"
-        print formatting
-        print "**********"
             
     # Puts registers in the relevant registers required for printf call and
     # preserves the registers which may be overwritten.

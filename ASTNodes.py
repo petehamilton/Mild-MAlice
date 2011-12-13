@@ -403,7 +403,7 @@ class IONode(ASTNode):
     def getFormatting(self, idType):        
         formatting = ""
         if idType == NUMBER:
-            formatting = "outputintfmt"
+            formatting = "intfmt"
         elif idType == LETTER:
             formatting = "charfmt"
         elif idType == SENTENCE: #TODO, IS THIS RIGHT?
