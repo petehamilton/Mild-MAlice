@@ -329,11 +329,9 @@ class JumpTrueNode(JumpBooleanNode):
     def __init__(self, reg, trueLabelNode, parents):
         super(JumpTrueNode, self).__init__('je', reg, trueLabelNode, parents)
 
-
 class JumpFalseNode(JumpBooleanNode):
     def __init__(self, reg, falseLabelNode, parents):
         super(JumpFalseNode, self).__init__('jne', reg, falseLabelNode, parents)
-
 
 class IONode(IntermediateNode):
     def __init__(self, reg, parents, formatting):
