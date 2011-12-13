@@ -367,7 +367,7 @@ class SpokeNode(IONode):
         destReg = registerMap[self.registers[0]]
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
         print "***********"
-        self.formatting
+        print self.formatting
         print "**********"
         return (pushedRegs +
                 ["mov rsi, %s" %destReg,
