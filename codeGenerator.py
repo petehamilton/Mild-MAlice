@@ -142,7 +142,7 @@ class CodeGenerator(object):
             return functionNode.generateCode(registerMap)
             
         functionCode = []
-        if ASTNodes.FUNCTION in self.flags:
+        if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
             for function in functionNodes:
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
@@ -161,7 +161,7 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if ASTNodes.SPOKE in self.flags:
+        if len(self.flags[ASTNodes.SPOKE]):
             externSection.append("extern printf")
             dataSection.append("section .data")
             for printType in self.flags[ASTNodes.SPOKE]:
@@ -172,10 +172,10 @@ class CodeGenerator(object):
         
         
         #TODO: Tidy up
-        if ASTNodes.INPUT in self.flags:
+        if len(self.flags[ASTNodes.INPUT]):
             externSection.append("extern scanf")
             bssSection.append("section .bss")
-            if ASTNodes.SPOKE not in self.flags:
+            if (len(self.flags[ASTNodes.SPOKE]) == 0):
                 dataSection.append("section .data")
                 externSection.append("extern printf")
                 for printType in self.flags[ASTNodes.INPUT]:
