@@ -137,7 +137,7 @@ class CodeGenerator(object):
             nodeDict = {}
             for n in intermediateNodes:
                 if n not in nodeDict:
-                    nodeDict[n] = i
+                    nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
                     i += 1
             
             for i in intermediateNodes:
