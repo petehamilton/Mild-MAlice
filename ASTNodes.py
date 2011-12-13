@@ -869,7 +869,7 @@ class ArgumentNode(ASTNode):
         self.getArgument().check(symbolTable, flags)
     
     def translate( self, registersDict, reg, parents, argNumber ):
-        registersDict[self.getArgument().variableName] = (reg, IN_REGISTER)
+        registersDict[self.getArgument().getVariable()] = (reg, IN_REGISTER)
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
         return reg + 1, [intermediateNode], [intermediateNode]
 
