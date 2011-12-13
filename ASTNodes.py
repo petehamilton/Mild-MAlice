@@ -41,6 +41,12 @@ COMMENT = 'comment'
 FUNCTION = 'function'
 
 ################################################################################
+# GLOBALS
+################################################################################
+IN_MEMORY = True
+IN_REGISTER = False
+
+################################################################################
 # MAIN AST NODE
 ################################################################################
 class ASTNode(object):
@@ -297,11 +303,17 @@ class AssignmentNode(StatementNode):
         self.setSymbolTable(symbolTable)
         self.variableCheck(symbolTable, flags, self.getDestination())
         
-    def translate(self, registersDict, reg, parents):   
-        resultReg = reg 
-        reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
-        intermediateNode = INodes.MovNode(registersDict[self.getVariable()], resultReg, parents)
-        return reg, (exp + [intermediateNode]), [intermediateNode]
+    def translate(self, registersDict, reg, parents):
+        register, inMemory = registersDict[self.getVariable()]
+        if inMemory:
+            self.getExpression().memoryLocation
+            intermediateNode = INodes.MovNode(register, self.getExpression().memoryLocation, parents)
+            return reg, [intermediateNode], [intermediateNode]
+        else:
+            resultReg = reg 
+            reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
+            intermediateNode = INodes.MovNode(register, resultReg, parents)
+            return reg, (exp + [intermediateNode]), [intermediateNode]
         
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
@@ -330,7 +342,10 @@ class DeclarationNode(StatementNode):
             symbolTable.add(self.getVariable(), self)
     
     def translate( self, registersDict, reg, parents ):
-        registersDict[self.getVariable()] = reg
+        if self.getType() == SENTENCE:
+            registersDict[self.getVariable()] = (reg, IN_MEMORY)
+        else:
+            registersDict[self.getVariable()] = (reg, IN_REGISTER)
         return reg+1, [], parents
 
 
@@ -366,8 +381,20 @@ class LetterNode(Factor):
         super(LetterNode, self).__init__( LETTER, lineno, clauseno, child )
 
 class SentenceNode(Factor):
+    sentenceCount = 0
     def __init__(self, lineno, clauseno, child ):
         super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
+        self.memoryLocation = None
+        
+    def check(self, symbolTable, flags):
+        super(SentenceNode, self).check(symbolTable, flags)
+        if not self.memoryLocation:
+            self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
+            flags[SENTENCE].add((self.memoryLocation, self.getValue()))
+            SentenceNode.sentenceCount += 1
+        
+    def translate(self, registersDict, reg, parents):
+        return reg, [], parents
 
 class IDNode(Factor):
     def __init__(self, lineno, clauseno, child ):
@@ -378,7 +405,8 @@ class IDNode(Factor):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
     
     def translate(self, registersDict, reg, parents):
-        intermediateNode = INodes.MovNode(reg, registersDict[self.getValue()], parents)
+        register, inMemory = registersDict[self.getValue()]
+        intermediateNode = INodes.MovNode(reg, register, parents)
         return reg + 1, [intermediateNode], [intermediateNode]
 
 
@@ -411,7 +439,7 @@ class IONode(ASTNode):
         elif idType == LETTER:
             formatting = "charfmt"
         elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = "charfmt"
+            formatting = "stringfmt"
         return formatting
         
 
@@ -430,14 +458,11 @@ class SpokeNode(IONode):
     
     def translate(self, registersDict, reg, parents):
         spokeExpression = self.getExpression()
-        reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)
-        
+        reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)    
         idType = self.getIDType(self.getExpression())
         formatting = "output" + self.getFormatting(idType)
-        
         # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, formatting)
-        
         return reg1, exp + [intermediateNode], [intermediateNode]
 
 
@@ -460,7 +485,7 @@ class InputNode(IONode):
         idType = self.getIDType(self.getVariable())
         # Incase first declaration of variable.
         if self.getVariable() not in registersDict:
-            registersDict[self.getVariable().getValue()] = reg
+            registersDict[self.getVariable().getValue()] = (reg, IN_REGISTER)
         formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
@@ -817,7 +842,7 @@ class ArgumentNode(ASTNode):
         self.getArgument().check(symbolTable, flags)
     
     def translate( self, registersDict, reg, parents, argNumber ):
-        registersDict[self.getArgument().variableName] = reg
+        registersDict[self.getArgument().variableName] = (reg, IN_REGISTER)
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
         return reg + 1, [intermediateNode], [intermediateNode]
 

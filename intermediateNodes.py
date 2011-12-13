@@ -68,9 +68,14 @@ class MovNode(InstructionNode):
         return [self.registers[1]]
     
     def generateCode(self, registerMap):
-        if registerMap[self.registers[0]] == registerMap[self.registers[1]]:
-            return []
-        return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
+        # TODO: COULD HAVE REGISTER CLASS SO KNOW IF ITS MEMORY OR REG
+        if self.registers[1] in registerMap:
+            if registerMap[self.registers[0]] == registerMap[self.registers[1]]:
+                return []
+            return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
+        else:
+            
+            return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.registers[1])]
 
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
@@ -392,7 +397,7 @@ class InputNode(IONode):
         pushedRegs, poppedRegs = self.preserveRegisters(None)
         return(pushedRegs+
                 ["mov rsi, %s" %messageLoc,
-                "mov rdi, outputStringFormat",
+                "mov rdi, outputstringfmt",
                 "xor rax, rax",
                 "call printf"] +
                poppedRegs)

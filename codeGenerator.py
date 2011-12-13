@@ -5,13 +5,13 @@ import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
-    output_int_fmt = 'db "%ld", 10, 0'
-    output_char_fmt = 'db "%c", 10, 0'
-    output_string_fmt = 'outputStringFormat: db "%s", 0'
+    output_int_fmt = 'outputintfmt: db "%ld", 10, 0'
+    output_char_fmt = 'outputcharfmt: db "%c", 10, 0'
+    output_string_fmt = 'outputstringfmt: db "%s", 0'
     int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
     char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
-    input_int_fmt = 'db "%ld", 0'
-    input_char_fmt = 'db "%c", 0'
+    input_int_fmt = 'inputintfmt: db "%ld", 0'
+    input_char_fmt = 'inputcharfmt: db "%c", 0'
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -142,16 +142,17 @@ class CodeGenerator(object):
             return functionNode.generateCode(registerMap)
             
         functionCode = []
-        if ASTNodes.FUNCTION in self.flags:
+        if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
             for function in functionNodes:
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
         else:
             reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+            
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues) + finalCode + self.finish() + functionCode
+        return self.setup(overflowValues) + map(self.indent, finalCode) + self.finish() + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
@@ -161,41 +162,54 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if ASTNodes.SPOKE in self.flags:
+        # Hashing values for efficiency to check they aren't redefined.
+        inDataSection = {}        
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
             externSection.append("extern printf")
+            
+        
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
             dataSection.append("section .data")
+            
+        if ASTNodes.SPOKE in self.flags:
             for printType in self.flags[ASTNodes.SPOKE]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
+                    dataSection.append(self.indent(self.output_char_fmt))
+                    inDataSection[self.output_char_fmt] = True
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+                    dataSection.append(self.indent(self.output_int_fmt))
+                    inDataSection[self.output_int_fmt] = True
+                elif printType == ASTNodes.SENTENCE:
+                    dataSection.append(self.indent(self.output_string_fmt))
+                    inDataSection[self.output_string_fmt] = True
         
         
         #TODO: Tidy up
         if ASTNodes.INPUT in self.flags:
             externSection.append("extern scanf")
             bssSection.append("section .bss")
-            if ASTNodes.SPOKE not in self.flags:
-                dataSection.append("section .data")
-                externSection.append("extern printf")
-                for printType in self.flags[ASTNodes.INPUT]:
-                    if printType == ASTNodes.LETTER:     
-                        dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
-                    elif printType == ASTNodes.NUMBER:
-                        dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+            for printType in self.flags[ASTNodes.INPUT]:
+                if printType == ASTNodes.LETTER:
+                    if self.output_int_fmt not in inDataSection: 
+                        dataSection.append(self.indent(self.output_int_fmt))
+                elif printType == ASTNodes.NUMBER:
+                    if self.output_char_fmt not in inDataSection: 
+                        dataSection.append(self.indent(self.output_char_fmt))
                         
             dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("inputcharfmt: ") + self.input_char_fmt)
+                    dataSection.append(self.indent(+ self.input_char_fmt))
                     dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("inputintfmt: ") + self.input_int_fmt)
+                    dataSection.append(self.indent(self.input_int_fmt))
                     dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
                 
-                    
+        if ASTNodes.SENTENCE in self.flags:
+            for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
+                dataSection.append(self.indent("%s: db %s, 0" %(memoryLocation, sentence)))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
