@@ -673,16 +673,12 @@ class IfNode(ConditionalNode):
             nextLogicalClause.check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        iNodes = []
-        iNodes.append(INodes.LabelNode(INodes.makeUniqueLabel("conditional"), parents))
-        
-        endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("end"), parents)
-        
+                
         # Get a list of all logical sections
         logicalClause = self
         logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
         logicalNodes = [logicalClause]
-        while(logicalClauses.getLogicalClauses() != None):
+        while(logicalClauses != None and logicalClauses.getLogicalClauses() != None):
             logicalClause = logicalClauses.getLogicalClause()
             logicalClauses = logicalClauses.getLogicalClauses()
             logicalNodes.append(logicalClause)
@@ -691,27 +687,52 @@ class IfNode(ConditionalNode):
         
         #Iterate over the logical sections
         numLogicalNodes = len(logicalNodes)
+        endParents = []
+        
+        startLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_start"), parents)
+        endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_end"), [])
+        
+        iNodes = [startLabelNode]
         for i, logicalNode in enumerate(logicalNodes):
             if(i < numLogicalNodes - 1):
-                falseLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_next"), parents)
+                falseLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_next"), [])
             else:
                 falseLabelNode = endLabelNode
             
+            # Evaluate expression if present
             expression = logicalNode.getExpression()
             if expression != None:
-                reg1, newINodes, parents = expression.translate(registersDict, reg, parents)
-                iNodes += newINodes
-                iNodes.append(INodes.TrueCheckNode(reg, falseLabelNode, parents))
-                reg = reg1
+                checkReg = reg
+                reg, expressionNodes, postExpressionParents = expression.translate(registersDict, reg, parents)
+                trueCheckNode = INodes.TrueCheckNode(checkReg, falseLabelNode, postExpressionParents)
+                falseLabelNode.setParents([trueCheckNode])
+            else:
+                trueCheckNode = None
+                
+            # Evaulate body
+            reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [trueCheckNode])
             
-            reg, newINodes, parents = logicalNode.getBody().translate(registersDict, reg, parents)
-            iNodes += newINodes
-            
+            # End of body - jump or nothing if at end
             if falseLabelNode != endLabelNode:
-                iNodes.append(INodes.JumpNode(endLabelNode, parents))
-            iNodes.append(falseLabelNode)
+                jumpNode = INodes.JumpNode(endLabelNode, postBodyParents)
+                endParents.append(jumpNode)
+            else:
+                jumpNode = None
+                endParents.extend(postBodyParents)
             
-        return reg, iNodes, parents
+            # Add all the nodes together into the iNodes list
+            iNodes += expressionNodes
+            if trueCheckNode != None:
+                iNodes.append(trueCheckNode)
+            iNodes += bodyNodes
+            if jumpNode != None:
+                iNodes.append(jumpNode)
+            iNodes.append(falseLabelNode)
+        
+        # Set the parents of the end node to also have the end jumps from 
+        # previous clauses
+        endLabelNode.setParents(endLabelNode.parents + endParents)
+        return reg, iNodes, [endLabelNode]
             
 class ElseIfNode(ConditionalNode):
     def __init__(self, lineno, clauseno, exp, thenBody):
