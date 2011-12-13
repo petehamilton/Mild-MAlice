@@ -1,4 +1,3 @@
-* Once you've spoken a variable it's value gets wiped?
 ---------------------------------------------------------
 z was a number and z became test(1,1,2).
 z spoke.
