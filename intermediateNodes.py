@@ -288,46 +288,6 @@ class LabelNode(IntermediateNode):
     def generateCode(self, registerMap):
         return ["%s:" % self.label]
 
-# True and false node should inherit, basically the same except the comparator
-class TrueCheckNode(IntermediateNode):
-    def __init__(self, reg, falseLabelNode, parents):
-        super(TrueCheckNode, self).__init__(parents)
-        self.falseLabelNode = falseLabelNode
-        self.registers = [reg]
-    
-    def uses(self):
-        return [self.registers[0]]
-    
-    def alteredRegisters(self):
-        return []
-        
-    def getFalseLabel(self):
-        return self.falseLabelNode.getLabel()
-    
-    def generateCode(self, registerMap):
-        reg = registerMap[self.registers[0]]
-        return ["cmp %s, 0" % reg, "je %s" % self.getFalseLabel()]
-
-
-class FalseCheckNode(IntermediateNode):
-    def __init__(self, reg, trueLabelNode, parents):
-        super(FalseCheckNode, self).__init__(parents)
-        self.trueLabelNode = trueLabelNode
-        self.registers = [reg]
-    
-    def uses(self):
-        return [self.registers[0]]
-    
-    def alteredRegisters(self):
-        return []
-        
-    def getTrueLabel(self):
-        return self.trueLabelNode.getLabel()
-    
-    def generateCode(self, registerMap):
-        reg = registerMap[self.registers[0]]
-        return ["cmp %s, 0" % reg, "jne %s" % self.getTrueLabel()]
-
 class JumpNode(IntermediateNode):
     def __init__(self, labelNode, parents):
         super(JumpNode, self).__init__(parents)
@@ -344,7 +304,36 @@ class JumpNode(IntermediateNode):
     
     def generateCode(self, registerMap):
         return ["jmp %s" % self.getLabel()]
+
+class JumpBooleanNode(IntermediateNode):
+    def __init__(self, instruction, reg, labelNode, parents):
+        super(JumpBooleanNode, self).__init__(parents)
+        self.labelNode = labelNode
+        self.registers = [reg]
+        self.instruction = instruction
     
+    def uses(self):
+        return [self.registers[0]]
+    
+    def alteredRegisters(self):
+        return []
+        
+    def getLabel(self):
+        return self.labelNode.getLabel()
+    
+    def generateCode(self, registerMap):
+        reg = registerMap[self.registers[0]]
+        return ["cmp %s, 0" % reg, "%s %s" % (self.instruction, self.getLabel())]
+        
+class JumpTrueNode(JumpBooleanNode):
+    def __init__(self, reg, trueLabelNode, parents):
+        super(JumpTrueNode, self).__init__('je', reg, trueLabelNode, parents)
+
+
+class JumpFalseNode(JumpBooleanNode):
+    def __init__(self, reg, falseLabelNode, parents):
+        super(JumpFalseNode, self).__init__('jne', reg, falseLabelNode, parents)
+
 
 class IONode(IntermediateNode):
     def __init__(self, reg, parents, formatting):
