@@ -209,10 +209,12 @@ class UnaryNode(OperatorNode):
         def transUnOp(destReg, node, registersDict, parents):
             op = self.getOperator()
             if re.match( "ate", op ):
-                intermediateNode = [INodes.IncNode(registersDict[node.getValue()], parents)]
+                register, inMemory = registersDict[node.getValue()]
+                intermediateNode = [INodes.IncNode(register, parents)]
                 parents = intermediateNode
             elif re.match( "drank", op ):
-                intermediateNode = [INodes.DecNode(registersDict[node.getValue()], parents)]
+                register, inMemory = registersDict[node.getValue()]
+                intermediateNode = [INodes.DecNode(register, parents)]
                 parents = intermediateNode
             elif re.match( tokRules.t_B_NOT, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
