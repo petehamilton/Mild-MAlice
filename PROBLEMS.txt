@@ -26,3 +26,5 @@ Should we allow this to work? z hasnt been assigned before it goes through the l
 Passing by reference - if the return node knew it's function name then all returns in a function could jump to a
 return declared by the function. Could work. How to pass parent name though?
 
+----------------------------------------------------------
+Spoke node is check twice
