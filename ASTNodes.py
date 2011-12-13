@@ -298,15 +298,17 @@ class AssignmentNode(StatementNode):
         self.variableCheck(symbolTable, flags, self.getDestination())
         
     def translate(self, registersDict, reg, parents):    
-        assignmentReg = reg
         reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
-        registersDict[self.getVariable()] = assignmentReg
+        # registersDict[self.getVariable()] = assignmentReg
         return reg, exp, parents
         
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
-        self.variableName = variableName
+        
+    
+    def getVariable(self):    
+        return self.children[0]
         
     # Returns type node's type.
     def getType(self):
@@ -315,7 +317,7 @@ class DeclarationNode(StatementNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
-        V = symbolTable.lookupCurrLevelOnly(self.variableName)
+        V = symbolTable.lookupCurrLevelOnly(self.getVariable())
         # if T == None:
             # error("Unknown Type")
         if V:
@@ -324,9 +326,10 @@ class DeclarationNode(StatementNode):
         else:   
             self.children[1].check(symbolTable, flags)
             self.type = self.children[1].type
-            symbolTable.add(self.variableName, self)
+            symbolTable.add(self.getVariable(), self)
     
     def translate( self, registersDict, reg, parents ):
+        registersDict[self.getVariable()] = reg
         return reg, [], parents
 
 
