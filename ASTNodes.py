@@ -402,7 +402,8 @@ class IDNode(Factor):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
     
     def translate(self, registersDict, reg, parents):
-        intermediateNode = INodes.MovNode(reg, registersDict[self.getValue()], parents)
+        register, inMemory = registersDict[self.getValue()]
+        intermediateNode = INodes.MovNode(reg, register, parents)
         return reg + 1, [intermediateNode], [intermediateNode]
 
 

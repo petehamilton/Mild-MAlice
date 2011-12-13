@@ -74,6 +74,7 @@ class MovNode(InstructionNode):
                 return []
             return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
         else:
+            
             return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.registers[1])]
 
 class ImmMovNode(InstructionNode):  
