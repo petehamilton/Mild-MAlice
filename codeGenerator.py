@@ -5,13 +5,13 @@ import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
-    output_int_fmt = 'db "%ld", 10, 0'
-    output_char_fmt = 'db "%c", 10, 0'
-    output_string_fmt = 'outputStringFormat: db "%s", 0'
+    output_int_fmt = 'outputintfmt: db "%ld", 10, 0'
+    output_char_fmt = 'outputcharfmt: db "%c", 10, 0'
+    output_string_fmt = 'outputstringformat: db "%s", 0'
     int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
     char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
-    input_int_fmt = 'db "%ld", 0'
-    input_char_fmt = 'db "%c", 0'
+    input_int_fmt = 'inputintfmt: db "%ld", 0'
+    input_char_fmt = 'inputcharfmt: db "%c", 0'
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -152,7 +152,7 @@ class CodeGenerator(object):
             
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues) + finalCode + self.finish() + functionCode
+        return self.setup(overflowValues) + map(self.indent, finalCode) + self.finish() + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
@@ -170,12 +170,13 @@ class CodeGenerator(object):
             dataSection.append("section.data")
             
         if ASTNodes.SPOKE in self.flags:
-            dataSection.append("section .data")
             for printType in self.flags[ASTNodes.SPOKE]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
+                    dataSection.append(self.indent(self.output_char_fmt))
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+                    dataSection.append(self.indent(self.output_int_fmt))
+                elif printType == ASTNodes.SENTENCE:
+                    dataSection.append(self.indent(self.output_string_fmt))
         
         
         #TODO: Tidy up
@@ -184,9 +185,9 @@ class CodeGenerator(object):
             bssSection.append("section .bss")
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent("outputcharfmt: ") + self.output_char_fmt)
+                    dataSection.append(self.indent(self.output_char_fmt))
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent("outputintfmt: ") + self.output_int_fmt)
+                    dataSection.append(self.indent(output_int_fmt))
                         
             dataSection.append(self.indent(self.output_string_fmt))
             for printType in self.flags[ASTNodes.INPUT]:
@@ -201,7 +202,7 @@ class CodeGenerator(object):
                 
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
-                dataSection.append("%s: db %s, 0" %(memoryLocation, sentence))
+                dataSection.append(self.indent("%s: db %s, 0" %(memoryLocation, sentence)))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])

@@ -437,7 +437,7 @@ class IONode(ASTNode):
         elif idType == LETTER:
             formatting = "charfmt"
         elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = "charfmt"
+            formatting = "stringfmt"
         return formatting
         
 
