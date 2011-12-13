@@ -703,14 +703,17 @@ class IfNode(ConditionalNode):
             expression = logicalNode.getExpression()
             if expression != None:
                 checkReg = reg
-                reg, expressionNodes, postExpressionParents = expression.translate(registersDict, reg, parents)
+                reg, expressionNodes, postExpressionParents = expression.translate(registersDict, reg, [startLabelNode])
                 trueCheckNode = INodes.TrueCheckNode(checkReg, falseLabelNode, postExpressionParents)
                 falseLabelNode.setParents([trueCheckNode])
             else:
                 trueCheckNode = None
                 
             # Evaulate body
-            reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [trueCheckNode])
+            if trueCheckNode != None:
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [trueCheckNode])
+            else:
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [startLabelNode])
             
             # End of body - jump or nothing if at end
             if falseLabelNode != endLabelNode:
