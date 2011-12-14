@@ -69,10 +69,10 @@ class CodeGenerator(object):
                             return unusedSet.pop(), maxColor
                         else:
                             return maxColor, maxColor + 1
-                    
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
                             return color, maxColor
+                            
                 # Returns whether the given color can be applied to the given 
                 # temporary register. True when none of the registers it 
                 # interferes with have already been assigned the color
@@ -100,7 +100,6 @@ class CodeGenerator(object):
                 # location mapping
                 def calculateColors(interferenceGraph, lastReg):
                     colors = {}
-
                     for k in interferenceGraph.keys():
                         colors[k] = None
                         
@@ -173,7 +172,8 @@ class CodeGenerator(object):
         if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
             for function in functionNodes:
-                fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
+                lastReg = max(function.uses()) + 1 
+                fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
                 functionOverflow.extend(fOverFlowValues)
         else:
