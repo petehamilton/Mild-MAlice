@@ -10,7 +10,7 @@ The room complexFunction ( number p, number q ) contained a number
   i was a number and u was a number.
   v was a number and w was a number.
   x was a number and y was a number.
-  u became 0 and v became 0 and w became 0 and x became 0 and y became 0.
+  w became 0 and v became 0.
   z was a number and z became 0.
   i became 0.
 

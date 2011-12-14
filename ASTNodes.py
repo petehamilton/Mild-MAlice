@@ -312,10 +312,16 @@ class AssignmentNode(StatementNode):
             intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
             return reg, [intermediateNode], [intermediateNode]
         else:
-            resultReg = reg 
-            reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
-            intermediateNode = INodes.MovNode(register, resultReg, parents)
-            return reg, (exp + [intermediateNode]), [intermediateNode]
+            if isinstance(self.getExpression(), NumberNode) or isinstance(self.getExpression(), LetterNode):
+                intermediateNode = INodes.ImmMovNode( register, self.getExpression().getValue(), parents)
+                returnExp = [intermediateNode]
+            else:
+                resultReg = reg 
+                reg, exp, parents = self.getExpression().translate(registersDict, reg, parents)
+                intermediateNode = INodes.MovNode(register, resultReg, parents)
+                returnExp = (exp + [intermediateNode])
+            
+            return reg, returnExp, [intermediateNode]
         
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
@@ -410,7 +416,7 @@ class IDNode(Factor):
     def translate(self, registersDict, reg, parents):
         register, inMemory = registersDict[self.getValue()]
         intermediateNode = INodes.MovNode(reg, register, parents)
-        return reg + 1, [intermediateNode], [intermediateNode]
+        return reg + 1 , [intermediateNode], [intermediateNode]
 
 
 
@@ -817,14 +823,10 @@ class FunctionDeclarationNode(DeclarationNode):
         # self.getReturnValue().check(newSymbolTable)
         
     def translate( self, registersDict, reg, parents ):
-        # argLength = self.getArguments().getLength()
-        # argRegs = range(reg, reg + argLength)
-        reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [self], 1)
-        reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [self])
-        # reg += argLength
+        reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [], 1)
+        reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [argsExp[-1]])
         # It should have no parents?, uses no registers in declaration?
         intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp )
-        # self.registersUsed = reg -1
         return reg, [intermediateNode], parents
 
 class ArgumentsNode(ASTNode):
@@ -932,8 +934,8 @@ class FunctionArgumentsNode(ASTNode):
             self.getArguments().check(symbolTable, flags)
             
     def translate(self, registersDict, reg, parents):
-        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents)
         reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents)
+        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents)
         return reg, (exp2 + exp1), parents #exp2 + exp1 so that arguments get pushed in reverse order.
         
         

@@ -72,7 +72,6 @@ class CodeGenerator(object):
                     for color in range(maxColor):
                         if promising(tReg, color, interferenceGraph, registerColors):
                             return color, maxColor
-                
                 # Returns whether the given color can be applied to the given 
                 # temporary register. True when none of the registers it 
                 # interferes with have already been assigned the color
@@ -100,6 +99,7 @@ class CodeGenerator(object):
                 # location mapping
                 def calculateColors(interferenceGraph, lastReg):
                     colors = {}
+
                     for k in interferenceGraph.keys():
                         colors[k] = None
                         
@@ -130,6 +130,11 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
+    
+            #print "***************************************"
+            #for n in intermediateNodes:
+            #    print n, n.parents, liveOut[n]
+            #print "***************************************"
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
@@ -172,7 +177,6 @@ class CodeGenerator(object):
                 functionOverflow.extend(fOverFlowValues)
         else:
             reg, intermediateNodes, parents = node.translate( {}, 0, [] )
-            
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish() + functionCode

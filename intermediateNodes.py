@@ -24,6 +24,7 @@ def makeUniqueLabel(label):
 class IntermediateNode(object):
     def __init__(self, parents):
         self.parents = parents
+        self.registers = []
 
     def generateCode(self, registerMap):
         pass
@@ -423,7 +424,10 @@ class FunctionDeclarationNode(IntermediateNode):
         self.registers = []
         for b in self.body:
             self.registers.extend(b.uses())
-        
+            
+    def defined(self):
+        return [b.registers[0] for b in self.body if len(b.registers)]
+    
     def generateCode(self, registerMap):
         registersToPush = list(set([ v for v in registerMap.values() if not self.isInMemory(v)]))
         bodyCode = []
@@ -456,6 +460,12 @@ class ArgumentNode(IntermediateNode):
          self.registers = [reg]
          self.reference = reference
          self.argNumber = argNumber 
+
+    def uses(self):
+        return []
+
+    def alteredRegisters(self):
+        return [self.registers[0]]
 
     def generateCode(self, registerMap):
         if self.reference:
