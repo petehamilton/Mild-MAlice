@@ -408,13 +408,19 @@ class SentenceNode(Factor):
 class IDNode(Factor):
     def __init__(self, lineno, clauseno, child ):
         super(IDNode, self).__init__( ID, lineno, clauseno, child )
+        self.register = None
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
     
+    def getRegister(self, registersDict):
+        register, inMemory = registersDict[self.getValue()]
+        return register
+        
     def translate(self, registersDict, reg, parents):
         register, inMemory = registersDict[self.getValue()]
+        self.register = register
         intermediateNode = INodes.MovNode(reg, register, parents)
         return reg + 1 , [intermediateNode], [intermediateNode]
 
@@ -981,7 +987,11 @@ class FunctionArgumentNode(ASTNode):
     def translate(self, registerDict, reg, parents, refLocations, argument):
         reference = False
         pushReg = reg
-        reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
+        exp = []
+        if isinstance(self.getExpression(), IDNode) :
+            pushReg = self.getExpression().getRegister(registerDict)
+        else:
+            reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
         if argument in refLocations:
             reference = True
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents, argument, reference )
