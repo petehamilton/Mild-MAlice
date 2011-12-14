@@ -2,6 +2,7 @@ import re
 import tokRules
 import ASTNodes
 import intermediateNodes as INodes
+from RegisterMap import RegisterMap
 from collections import defaultdict
 
 class CodeGenerator(object):
@@ -111,7 +112,7 @@ class CodeGenerator(object):
                 # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
                 # to be used in the setup.
                 def mapToRegisters(colors):
-                    registerMap = {}
+                    registerMap = RegisterMap()
                     overflowValues = []
                     for k, v in colors.items():
                         if v >= len(self.availableRegisters):
