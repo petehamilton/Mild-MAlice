@@ -133,15 +133,15 @@ class CodeGenerator(object):
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            i = 0
-            nodeDict = {}
-            for n in intermediateNodes:
-                if n not in nodeDict:
-                    nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-                    i += 1
-            
-            for i in intermediateNodes:
-                print nodeDict[i], [nodeDict[n] for n in i.parents]
+            # i = 0
+            # nodeDict = {}
+            # for n in intermediateNodes:
+            #     if n not in nodeDict:
+            #         nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
+            #         i += 1
+            # 
+            # for i in intermediateNodes:
+            #     print nodeDict[i], [nodeDict[n] for n in i.parents]
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
