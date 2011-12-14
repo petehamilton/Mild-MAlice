@@ -2,3 +2,4 @@
 compile
 *.out
 parsetab.py
+*.asm
