@@ -1,0 +1,9 @@
+i was a number and i became 0.
+p was a number and p became 2.
+v was a number and v became 0.
+
+eventually (i==p) because
+    v became v + 5.
+    i ate.
+enough times.
+v spoke.
