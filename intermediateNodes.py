@@ -43,6 +43,11 @@ class IntermediateNode(object):
     def setParents(self, parents):
         self.parents = parents
         
+    # Works out if a given value for an instruction is in memory by using 
+    # regular expressions. 
+    def isInMemory(self, value):
+        return re.match('\[\w+\]', value)
+        
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):
         super(InstructionNode, self).__init__(parents)
@@ -53,11 +58,6 @@ class InstructionNode(IntermediateNode):
     
     def alteredRegisters(self):
         return [self.registers[0]]
-        
-    # Works out if a given value for an instruction is in memory by using 
-    # regular expressions. 
-    def isInMemory(self, value):
-        return re.match('\[\w+\]', value)
         
 class MovNode(InstructionNode):
     def __init__(self, reg1, reg2, parents):
@@ -416,7 +416,7 @@ class FunctionDeclarationNode(IntermediateNode):
             self.registers.extend(b.uses())
         
     def generateCode(self, registerMap):
-            
+        registersToPush = list(set([ v for v in registerMap.values() if not self.isInMemory(v)]))
         bodyCode = []
         for body in self.body:
             bodyCode.extend(body.generateCode(registerMap))
@@ -424,7 +424,7 @@ class FunctionDeclarationNode(IntermediateNode):
         return ( ["%s:" %self.name, 
                  'push rbp',
                  "mov rbp, rsp", ] +
-                 self.pushRegs(list(set(registerMap.values()))) +
+                 self.pushRegs(list(set(registersToPush))) +
                   bodyCode )
 
 class ReturnNode(IntermediateNode):
@@ -433,7 +433,8 @@ class ReturnNode(IntermediateNode):
         self.registers = [reg]
         
     def generateCode(self, registerMap):
-        registersReverse = list(set(registerMap.values()))[0:]
+        registersToPop = list(set([ v for v in registerMap.values() if not self.isInMemory(v)]))
+        registersReverse = registersToPop[0:]
         registersReverse.reverse()
         return ([ "mov rax, %s" %(registerMap[self.registers[0]]) ] +
                 self.popRegs(registersReverse) +

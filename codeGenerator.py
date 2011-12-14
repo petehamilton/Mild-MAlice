@@ -163,17 +163,19 @@ class CodeGenerator(object):
             return functionNode.generateCode(registerMap)
             
         functionCode = []
+        functionOverflow = []
         if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
             for function in functionNodes:
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, max(function.uses()) )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
+                functionOverflow.extend(fOverFlowValues)
         else:
             reg, intermediateNodes, parents = node.translate( {}, 0, [] )
             
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues) + map(self.indent, finalCode) + self.finish() + functionCode
+        return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish() + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
