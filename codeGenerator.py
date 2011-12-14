@@ -5,11 +5,11 @@ import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
-    output_int_fmt = 'outputintfmt: db "%ld", 10, 0'
-    output_char_fmt = 'outputcharfmt: db "%c", 10, 0'
-    output_string_fmt = 'outputstringfmt: db "%s", 10, 0'
-    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 10, 0'
-    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 10, 0'
+    output_int_fmt = 'outputintfmt: db "%ld", 0'
+    output_char_fmt = 'outputcharfmt: db "%c", 0'
+    output_string_fmt = 'outputstringfmt: db "%s", 0'
+    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
+    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
     input_int_fmt = 'inputintfmt: db "%ld", 0'
     input_char_fmt = 'inputcharfmt: db "%c", 0'
     newline = "\n"
@@ -188,7 +188,7 @@ class CodeGenerator(object):
         # Hashing values for efficiency to check they aren't redefined.
         inDataSection = {}        
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
-            externSection.append("extern printf")
+            externSection.extend(["extern printf", "extern fflush"])
             
         
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):

@@ -359,12 +359,21 @@ class SpokeNode(IONode):
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-
+        pushDest = []
+        popDest = []
+        if destReg in self.ioRegisters:
+            pushDest = self.pushRegs([destReg])
+            popDest = self.popRegs([destReg])
+            
         return (pushedRegs +
-                ["mov rsi, %s" %destReg,
-                "mov rdi, %s" %self.formatting,
+                ["mov rsi, %s" %destReg] +
+                pushDest +
+                ["mov rdi, %s" %self.formatting,
                 "xor rax, rax",
-                "call printf"] +
+                "call printf",
+                "xor rax, rax",
+                "call fflush"] +
+                popDest +
                 poppedRegs)
 
 class InputNode(IONode):
