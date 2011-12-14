@@ -43,12 +43,12 @@ class CodeGenerator(object):
                 liveIn = defaultdict(set)
                 liveOut = defaultdict(set)
                 while True:
-                    previousLiveIn = liveIn
-                    previousLiveOut = liveOut
+                    previousLiveIn = liveIn.copy()
+                    previousLiveOut = liveOut.copy()
                     for n in intermediateNodes:
-                        liveIn[n]  = set(uses(n)) | (set(liveOut[n]) - set(defs(n)))
+                        liveIn[n]  = set(uses(n)) | ((liveOut[n].copy()) - set(defs(n)))
                         for p in n.parents:
-                            liveOut[p] = liveIn[n]
+                            liveOut[p] = liveOut[p] | liveIn[n].copy()
                     if liveIn == previousLiveIn and liveOut == previousLiveOut:
                         break
                 return liveOut
@@ -130,6 +130,7 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
+            
             
             # for i in intermediateNodes:
             #     print i, i.parents

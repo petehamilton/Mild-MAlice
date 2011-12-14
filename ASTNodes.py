@@ -642,7 +642,7 @@ class LoopNode(ConditionalNode):
         reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [falseCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
-        
+        loopStartLabelNode.setParents(parents +[jumpNode])
         loopEndLabelNode.setParents([jumpNode])
         
         
