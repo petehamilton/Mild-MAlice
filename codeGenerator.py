@@ -5,11 +5,11 @@ import intermediateNodes as INodes
 from collections import defaultdict
 
 class CodeGenerator(object):
-    output_int_fmt = 'outputintfmt: db "%ld", 0'
-    output_char_fmt = 'outputcharfmt: db "%c", 0'
-    output_string_fmt = 'outputstringfmt: db "%s", 0'
-    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
-    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
+    output_int_fmt = 'outputintfmt: db "%ld", 10, 0'
+    output_char_fmt = 'outputcharfmt: db "%c", 10, 0'
+    output_string_fmt = 'outputstringfmt: db "%s", 10, 0'
+    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 10, 0'
+    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 10, 0'
     input_int_fmt = 'inputintfmt: db "%ld", 0'
     input_char_fmt = 'inputcharfmt: db "%c", 0'
     newline = "\n"
