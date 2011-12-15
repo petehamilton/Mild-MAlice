@@ -1,5 +1,6 @@
 # This module contains the nodes created by the parser.
-from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
+# from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
+import grammarExceptions as exception
 from SymbolTable import SymbolTable
 import tokRules
 import intermediateNodes as INodes
@@ -127,7 +128,7 @@ class BinaryNode(OperatorNode):
             self.type = leftExpression.type
         else:
             print "Binary Exception"
-            raise BinaryException(self.lineno, self.clauseno)
+            raise exception.BinaryException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
         def translateOperation(destReg, nextReg, parents):
@@ -203,7 +204,7 @@ class UnaryNode(OperatorNode):
             self.type = self.getExpression().type
         else:
             print "Unary Exception"
-            raise UnaryException(self.lineno, self.clauseno)
+            raise exception.UnaryException(self.lineno, self.clauseno)
     
     def translate( self, registersDict, reg, parents ):
         def transUnOp(destReg, node, registersDict, parents):
@@ -292,14 +293,14 @@ class AssignmentNode(StatementNode):
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(variable)
         expr.check(symbolTable, flags)
         if not V:
-            raise AssignmentNullException(self.lineno, self.clauseno)
+            raise exception.AssignmentNullException(self.lineno, self.clauseno)
         else:
             expr.check(symbolTable, flags)
             if V.type == expr.type:
                 self.type = expr.type
             else:
                 print "Assignment Exception"
-                raise AssignmentTypeException(self.lineno, self.clauseno)
+                raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -343,7 +344,7 @@ class DeclarationNode(StatementNode):
             # error("Unknown Type")
         if V:
             print "Declaration Exception"
-            raise DeclarationException(self.lineno, self.clauseno)
+            raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable, flags)
             self.type = self.children[1].type
@@ -588,7 +589,7 @@ class ArrayAccessNode(ASTNode):
         
         if self.index < 0:
             print "Array Index Out Of Bounds"
-            raise ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
+            raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
 
 class ArrayAssignmentNode(AssignmentNode):
     def __init__(self, lineno, clauseno, array_access, expression ):
@@ -608,7 +609,7 @@ class ArrayDeclarationNode(DeclarationNode):
         self.length.check(symbolTable, flags)
         if self.length.type != NUMBER:
             print "Array declaration exception"
-            raise ArrayDeclarationException(self.lineno, self.clauseno)
+            raise exception.ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable, flags)
 
 
@@ -854,7 +855,10 @@ class ArgumentsNode(ASTNode):
         return self.children[1]
 
     def getLength(self):
-        return 1 + self.getArguments().getLength()
+        return 1 + self.getArguments().getLength() 
+    
+    def toList(self):
+          return self.getArgument().toList() + self.getArguments().toList()
     
     # def getArrayLocations(self, position):
     #        return self.getArgument().getArrayLocations(position) + self.getArguments().getArrayLocations(position+1)
@@ -876,6 +880,7 @@ class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentDeclaration, array = False):
         super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentDeclaration])
         self.isArray = array
+        self.intermediateNode = None
     
     def getArgument(self):
         return self.children[0]
@@ -883,6 +888,8 @@ class ArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
+    def toList(self):
+        return [self]
     # def getArrayLocations(self, position):
     #         if self.reference:
     #             return [position]
@@ -892,10 +899,12 @@ class ArgumentNode(ASTNode):
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getArgument().check(symbolTable, flags)
+        self.type = self.getArgument().type
     
     def translate( self, registersDict, reg, parents, argNumber ):
         registersDict[self.getArgument().getVariable()] = (reg, IN_REGISTER)
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.isArray )
+        self.intermediateNode = intermediateNode
         return reg + 1, [intermediateNode], [intermediateNode]
 
 
@@ -921,13 +930,15 @@ class FunctionCallNode(ASTNode):
         self.getArguments().check(symbolTable, flags)
         if not func:
             print "Function not in symbol table"
-            raise FunctionMissingException(self.lineno, self.clauseno)
+            raise exception.FunctionMissingException(self.lineno, self.clauseno)
         elif func.getArguments().getLength() != self.getArguments().getLength():
             print "Function Argument Count Exception"
-            raise FunctionArgumentCountException(self.lineno, self.clauseno)
+            raise exception.FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
             # self.relatedFunction = func
-            # TODO CHECK COMPATABILITY
+            for passingArg, functionArg in zip(self.getArguments().toList(), func.getArguments().toList()):
+                if not passingArg.type == functionArg.type:
+                    raise exception.FunctionArgumentTypeMisMatch(self.lineno, self.clauseno)
             self.type = func.type
     
     def translate(self, registerDict, reg, parents):
@@ -935,7 +946,7 @@ class FunctionCallNode(ASTNode):
         reg, exp, parents = self.getArguments().translate(registerDict, reg, parents)
         # reg, exp, parents = self.getArguments().translate(registerDict, reg, parents, self.relatedFunction.getArrayLocations(), 0)
         registersPushed = self.getArguments().getLength()
-        # intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName(), self.getArguments().toList())
+        #intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName(), self.getArguments().toList())
         intermediateNode = INodes.FunctionCallNode(argumentReg, parents, registersPushed, self.getName())
         return reg, (exp + [intermediateNode]), [intermediateNode]
         
@@ -952,8 +963,8 @@ class FunctionArgumentsNode(ASTNode):
     def getLength(self):
         return 1 + self.getArguments().getLength()
         
-    # def toList(self):
-    #         return self.getArgument().toList() + self.getArguments().toList()
+    def toList(self):
+          return self.getArgument().toList() + self.getArguments().toList()
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)    
@@ -981,8 +992,8 @@ class FunctionArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
-    # def toList(self):
-        # return [self.intermediateNode]
+    def toList(self):
+        return [self]
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)    

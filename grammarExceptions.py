@@ -50,6 +50,10 @@ class FunctionMissingException(SemanticException):
 class FunctionArgumentCountException(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(FunctionArgumentCountException, self).__init__(lineno, clauseno, value)
+        
+class FunctionArgumentTypeMisMatch(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(FunctionArgumentTypeMisMatch, self).__init__(lineno, clauseno, value)
 
 ################################################################################
 # SYNTAX EXCEPTIONS
