@@ -185,77 +185,58 @@ class CodeGenerator(object):
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
+        
+        def getDataSection():
+            code = set()
+            if ASTNodes.SPOKE in self.flags:
+                for printType in self.flags[ASTNodes.SPOKE]:
+                    if printType == ASTNodes.LETTER:     
+                        code.add(self.indent(self.output_char_fmt))
+                    elif printType == ASTNodes.NUMBER:
+                        code.add(self.indent(self.output_int_fmt))
+                    elif printType == ASTNodes.SENTENCE:
+                        code.add(self.indent(self.output_string_fmt))
+            if ASTNodes.INPUT in self.flags:
+                for printType in self.flags[ASTNodes.INPUT]:
+                    if printType == ASTNodes.LETTER:
+                        code.add(self.indent(self.input_char_fmt))
+                    elif printType == ASTNodes.NUMBER:
+                        code.add(self.indent(self.input_int_fmt))
+            if ASTNodes.BINARY_OP in self.flags:
+                for label in self.flags[ASTNodes.BINARY_OP]:
+                    name, message = labels.overFlowMessageDict[label]
+                    code.add(self.indent('%s: db "%s", 0' %(name, message)))
+                    code.add(self.indent(self.output_string_fmt))
+            return list(code)
+            
+            
+        
         externSection = []
         dataSection = []
         bssSection = []
         globalSection = []
         textSection = []
         
-        # Hashing values for efficiency to check they aren't redefined.
-        inDataSection = {}        
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
             externSection.extend(["extern printf", "extern fflush"])
         
-        # if (ASTNodes.INPUT in self.flags or ASTNodes.FUNCTION in self.flags):
-        #             bssSection.append("section .bss")
-        
-        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags or ASTNodes.BINARY_OP in self.flags):
+        dataCode = getDataSection()
+        if len(dataCode):
             dataSection.append("section .data")
-        
-        
-        if ASTNodes.BINARY_OP in self.flags:
-            for label in self.flags[ASTNodes.BINARY_OP]:
-                name, message = labels.overFlowMessageDict[label]
-                inDataSection[label] = True
-                dataSection.append(self.indent('%s: db "%s", 0' %(name, message)))
-                if self.output_string_fmt not in inDataSection:
-                    dataSection.append(self.indent(self.output_string_fmt))
-            
-        if ASTNodes.SPOKE in self.flags:
-            for printType in self.flags[ASTNodes.SPOKE]:
-                if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent(self.output_char_fmt))
-                    inDataSection[self.output_char_fmt] = True
-                elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent(self.output_int_fmt))
-                    inDataSection[self.output_int_fmt] = True
-                elif printType == ASTNodes.SENTENCE:
-                    dataSection.append(self.indent(self.output_string_fmt))
-                    inDataSection[self.output_string_fmt] = True
+            dataSection.extend(dataCode)
         
         if ASTNodes.INPUT in self.flags:
-            externSection.append("extern scanf")
             bssSection.append("section .bss")
-            for printType in self.flags[ASTNodes.INPUT]:
-                if printType == ASTNodes.LETTER:
-                    if self.output_int_fmt not in inDataSection: 
-                        dataSection.append(self.indent(self.output_int_fmt))
-                elif printType == ASTNodes.NUMBER:
-                    if self.output_char_fmt not in inDataSection: 
-                        dataSection.append(self.indent(self.output_char_fmt))
-            if self.output_string_fmt not in inDataSection:
-                dataSection.append(self.indent(self.output_string_fmt))
+            externSection.append("extern scanf")
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent(self.input_char_fmt))
-                    # dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent(self.input_int_fmt))
-                    # dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
              
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
                 dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
-
-        
-        # if ASTNodes.FUNCTION in self.flags:
-        #            maxReferences = max(map(lambda (x,y):y, self.flags[ASTNodes.FUNCTION]))
-        #            # add one because maxReferences is the maximum argument position from 0.
-        #            for count in range(maxReferences + 1):
-        #                bssSection.append("reference%d resq 1" %(count))
-
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
@@ -342,44 +323,10 @@ class CodeGenerator(object):
                 code = [ "push outputstringfmt", "call %s" %labels.printSentenceLabel, "add rsp, 8",  "jmp %s" %labels.deallocationLabel]
                 code = map(self.indent, code)
                 runTimeErrors.extend(code)
-                #for reg in pushRegs:
-                #    runTimeErrors.append(self.indent("push %s" %reg))
-                #runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
-                #                      "mov rdi, outputstringfmt",
-                #                      "xor rax, rax",
-                #                      "call printf",
-                #                      "xor rax, rax",
-                #                      "call fflush"]))
-                #for reg in popRegs:
-                #    runTimeErrors.append(self.indent("pop %s" %reg))
-                #runTimeErrors.append("jmp %s" %labels.deallocationLabel)
             return runTimeErrors
             
         finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
-        #runTimeErrors = []
-        #if ASTNodes.BINARY_OP in self.flags:
-        #    pushRegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
-        #    popRegs = pushRegs[0:]
-        #    popRegs.reverse()
-        #    for label in self.flags[ASTNodes.BINARY_OP]:
-        #        name, message = labels.overFlowMessageDict[label]
-        #        runTimeErrors.append("%s:"%label)
-        #        for reg in pushRegs:
-        #            runTimeErrors.append(self.indent("push %s" %reg))
-        #        runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
-        #                              "mov rdi, outputstringfmt",
-        #                              "xor rax, rax",
-        #                              "call printf",
-        #                              "xor rax, rax",
-        #                              "call fflush"]))
-        #        for reg in popRegs:
-        #            runTimeErrors.append(self.indent("pop %s" %reg))
-        #        runTimeErrors.append("jmp %s" %labels.deallocationLabel)
-        # TODO UNARY OP OVERFLOW CHECKING HERE!
         runTimeErrorsCode = calculateRunTimeErrorsCode()
-            
-        # if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in flags):
-            # if self.flags[ASTNodes.SPOKE] == ASTNodes.SENTENCE
         spokeFunctionCode = makePrintFunctions()    
         deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
