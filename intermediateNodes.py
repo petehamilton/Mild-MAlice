@@ -1,5 +1,5 @@
 import re
-
+import ASTNodes
 ################################################################################
 # UNIQUE LABEL ID GENERATOR
 ################################################################################
@@ -618,3 +618,17 @@ class DeallocNode(IntermediateNode):
                 "call free",
                 "add rsp, 8"]
 
+#TODO: Make me not-horrible
+def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
+    deallocNodes = []
+    deallocNodes.append(startLabelNode)
+    lastINode = [startLabelNode]
+    for var, decNode in symbolTable.dictionary.iteritems():
+        if decNode.getNodeType() == ASTNodes.ARRAY_DEC:
+            reg, inMem = registerDict[var]
+            deallocNode = DeallocNode(reg, lastINode)
+            deallocNodes.append(deallocNode)
+            lastINode = [deallocNode]
+    deallocEndNode = LabelNode("deallocate_end", lastINode)
+    deallocNodes.append(deallocEndNode)
+    return deallocNodes

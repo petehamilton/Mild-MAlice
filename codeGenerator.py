@@ -180,19 +180,8 @@ class CodeGenerator(object):
         else:
             reg, intermediateNodes, parents = node.translate( registerDict, 0, [] )
         
-        lastINode = [intermediateNodes[-1]]
-        deallocNodes = []
-        deallocStartNode =INodes.LabelNode("deallocate", lastINode)
-        deallocNodes.append(deallocStartNode)
-        lastINode = [deallocStartNode]
-        for var, decNode in self.symbolTable.dictionary.iteritems():
-            if decNode.getNodeType() == ASTNodes.ARRAY_DEC:
-                reg, inMem = registerDict[var]
-                deallocNode = INodes.DeallocNode(reg, lastINode)
-                deallocNodes.append(deallocNode)
-                lastINode = [deallocNode]
-        deallocEndNode =INodes.LabelNode("deallocate_end", lastINode)
-        deallocNodes.append(deallocEndNode)
+        deallocStartLabel = INodes.LabelNode("deallocate_start", [intermediateNodes[-1]])
+        deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registerDict, deallocStartLabel)
         
         if len(deallocNodes) > 2:
             self.flags[ASTNodes.ARRAY_DEC] = True
