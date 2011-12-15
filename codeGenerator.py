@@ -323,29 +323,60 @@ class CodeGenerator(object):
                                 + popCode
                                 + finishCode)
             return spokeCode
-            
-        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
-        runTimeErrors = []
-        if ASTNodes.BINARY_OP in self.flags:
-            pushRegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
-            popRegs = pushRegs[0:]
-            popRegs.reverse()
-            for label in self.flags[ASTNodes.BINARY_OP]:
+        def calculateRunTimeErrors():
+            runTimeErrors = set()
+            if ASTNodes.BINARY_OP in self.flags:
+                for label in self.flags[ASTNodes.BINARY_OP]:
+                    runTimeErrors.add(label)
+            if ASTNodes.UNARY_OP in self.flags:
+                for label in self.flags[ASTNodes.UNARY_OP]:
+                    runTimeErrors.add(label)
+            return list(runTimeErrors)
+    
+        def calculateRunTimeErrorsCode():
+            runTimeErrorLabels = calculateRunTimeErrors()
+            runTimeErrors = []
+            for label in runTimeErrorLabels:
                 name, message = labels.overFlowMessageDict[label]
                 runTimeErrors.append("%s:"%label)
-                for reg in pushRegs:
-                    runTimeErrors.append(self.indent("push %s" %reg))
-                runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
-                                      "mov rdi, outputstringfmt",
-                                      "xor rax, rax",
-                                      "call printf",
-                                      "xor rax, rax",
-                                      "call fflush"]))
-                for reg in popRegs:
-                    runTimeErrors.append(self.indent("pop %s" %reg))
-                runTimeErrors.append("jmp %s" %labels.deallocationLabel)
+                code = [ "push outputstringfmt", "call %s" %labels.printSentenceLabel, "add rsp, 8",  "jmp %s" %labels.deallocationLabel]
+                code = map(self.indent, code)
+                runTimeErrors.extend(code)
+                #for reg in pushRegs:
+                #    runTimeErrors.append(self.indent("push %s" %reg))
+                #runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
+                #                      "mov rdi, outputstringfmt",
+                #                      "xor rax, rax",
+                #                      "call printf",
+                #                      "xor rax, rax",
+                #                      "call fflush"]))
+                #for reg in popRegs:
+                #    runTimeErrors.append(self.indent("pop %s" %reg))
+                #runTimeErrors.append("jmp %s" %labels.deallocationLabel)
+            return runTimeErrors
+            
+        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
+        #runTimeErrors = []
+        #if ASTNodes.BINARY_OP in self.flags:
+        #    pushRegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
+        #    popRegs = pushRegs[0:]
+        #    popRegs.reverse()
+        #    for label in self.flags[ASTNodes.BINARY_OP]:
+        #        name, message = labels.overFlowMessageDict[label]
+        #        runTimeErrors.append("%s:"%label)
+        #        for reg in pushRegs:
+        #            runTimeErrors.append(self.indent("push %s" %reg))
+        #        runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
+        #                              "mov rdi, outputstringfmt",
+        #                              "xor rax, rax",
+        #                              "call printf",
+        #                              "xor rax, rax",
+        #                              "call fflush"]))
+        #        for reg in popRegs:
+        #            runTimeErrors.append(self.indent("pop %s" %reg))
+        #        runTimeErrors.append("jmp %s" %labels.deallocationLabel)
         # TODO UNARY OP OVERFLOW CHECKING HERE!
-
+        runTimeErrorsCode = calculateRunTimeErrorsCode()
             
         # if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in flags):
             # if self.flags[ASTNodes.SPOKE] == ASTNodes.SENTENCE
@@ -359,4 +390,4 @@ class CodeGenerator(object):
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
                 [self.indent("syscall		; Interrupt Linux kernel 64-bit")]))
                 
-        return finishLine + [self.newline] + runTimeErrors + [self.newline] + spokeFunctionCode + [self.newline] + deallocationCode
+        return finishLine + [self.newline] + runTimeErrorsCode + [self.newline] + spokeFunctionCode + [self.newline] + deallocationCode
