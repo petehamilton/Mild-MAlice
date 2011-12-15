@@ -133,7 +133,7 @@ class BinaryNode(OperatorNode):
         op = self.getOperator()
         if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
             flags[BINARY_OP].add(('%s' %labels.overFlowLabel))
-        elif re.match( tokRules.t_DIVIDE, op ):
+        elif re.match( tokRules.t_DIVIDE, op ) or re.match( tokRules.t_MOD, op ):
             flags[BINARY_OP].add(('%s' %labels.divisionByZeroLabel))
     
     def translate(self, registersDict, reg, parents):
