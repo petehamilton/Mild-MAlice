@@ -423,7 +423,6 @@ class FunctionDeclarationNode(IntermediateNode):
         self.body = arguments + body
         self.name = name
         self.registers = []
-        #self.returnNodes = []
         self.returnLabel = "%s_end" %name
 
         returnCodeParents = []
@@ -432,7 +431,6 @@ class FunctionDeclarationNode(IntermediateNode):
             if isinstance(node, ReturnNode):
                node.setJumpLabel(self.returnLabel)
                returnCodeParents.append(node)
-               #self.returnNodes.append(node)
 
         returnNode = FunctionReturnCode(returnCodeParents, self.returnLabel)                
         for node in self.arguments:
@@ -441,24 +439,6 @@ class FunctionDeclarationNode(IntermediateNode):
                 returnCodeParents = [movNode]
                 returnNode.addReturnInstruction(movNode)
         self.body.append(returnNode)
-        
-        #Move reference nodes back into memory
-        #for node in self.arguments:
-        #    if node.isReference():
-        #        for returnNode in self.returnNodes:
-        #            movNode = node.moveBack(returnNode.parents)
-        #            returnNode.addReturnInstruction(
-            
-    #def setReturnCode(self, arguments):
-    #    returnCode = []
-    #    for argument in self.arguments:
-    #        if argument.isReference():
-                
-    #    ([ "mov rax, %s" %(registerMap[self.registers[0]]) ] +
-    #            self.popRegs(registerMap.getPopRegisters()) +
-    #
-    #            [ "pop rbp", 
-    #             "ret" ])
             
     def defined(self):
         return [b.registers[0] for b in (self.body) if len(b.registers)]
@@ -466,11 +446,9 @@ class FunctionDeclarationNode(IntermediateNode):
     def generateCode(self, registerMap):
         referenceArguments = [node.getRegister() for node in self.arguments if node.isReference()]
         registerMap.setPushPopRegs(referenceArguments)
-        #registersToPush = list(set([ v for v in registerMap.values() if not self.isInMemory(v)]))
         bodyCode = []
         for body in self.body:
             bodyCode.extend(body.generateCode(registerMap))
-        #TODO: Not sure how to deal with passing by reference??
         return ( ["%s:" %self.name, 
                  'push rbp',
                  "mov rbp, rsp", ] +
@@ -557,44 +535,45 @@ class ArgumentNode(IntermediateNode):
             return [ "mov %s, [rbp + %d]" %(registerMap[self.registers[0]], (self.argNumber + 1)*8 + 8) ]
             
 class FunctionArgumentNode(IntermediateNode):
-    def __init__(self, reg, parents, argCount, reference = False):
+    def __init__(self, reg, parents):
          super(FunctionArgumentNode, self).__init__(parents)
          self.registers = [reg]
-         self.count = argCount
-         self.reference = reference
+         # self.count = argCount
+         # self.reference = reference
     
-    def getReferenceLocation(self):
-        if self.reference:
-            return "[reference%d]" %self.count
-        else:
-            return None
-    
-    def isReference(self):
-        return self.reference
+    # def getReferenceLocation(self):
+    #     if self.reference:
+    #         return "[reference%d]" %self.count
+    #     else:
+    #         return None
+    # 
+    # def isReference(self):
+    #     return self.reference
     
     def getRegister(self, registerMap):
         return (registerMap[self.registers[0]])
 
     def generateCode(self, registerMap):
             register = (registerMap[self.registers[0]])
-            if self.reference:
-                return [ "mov %s, %s" %(self.getReferenceLocation(), register) ]
-            else:
-                return [ "push %s" %register ]  
+            # if self.reference:
+                # return [ "mov %s, %s" %(self.getReferenceLocation(), register) ]
+            # else:
+            return [ "push %s" %register ]  
             
 class FunctionCallNode(IntermediateNode):
-    def __init__(self, reg, parents, registersPushed, name, arguments):
+    def __init__(self, reg, parents, registersPushed, name):
         super(FunctionCallNode, self).__init__(parents)
         self.registersPushed = registersPushed
         self.registers = [reg]
         self.functionName = name
-        self.arguments = arguments
+        # self.arguments = arguments
     
     def generateCode(self, registerMap):
-        referenceCode = [ "mov %s, %s " %(arg.getRegister(registerMap), arg.getReferenceLocation()) for arg in self.arguments if arg.isReference()]
+        # referenceCode = [ "mov %s, %s " %(arg.getRegister(registerMap), arg.getReferenceLocation()) for arg in self.arguments if arg.isReference()]
         return (["call %s" %self.functionName,
                 "add rsp, %d" %(8*self.registersPushed),
-                "mov %s, rax" %(registerMap[self.registers[0]])] +
-                referenceCode)
+                "mov %s, rax" %(registerMap[self.registers[0]])])
+                 # +
+                # referenceCode)
         
         

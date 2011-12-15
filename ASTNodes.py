@@ -814,8 +814,8 @@ class FunctionDeclarationNode(DeclarationNode):
     def getBody(self):
         return self.body
         
-    def getReferenceLocations(self):
-        return self.getArguments().getReferenceLocations(0)
+    # def getArrayLocations(self):
+    #     return self.getArguments().getArrayLocations(0)
     
     def getReturnType(self):
         return self.children[1]
@@ -823,11 +823,12 @@ class FunctionDeclarationNode(DeclarationNode):
     # TODO CHECK RETURN VALUE SAME AS RETURN TYPE
     def check(self, symbolTable, flags):    
         super(FunctionDeclarationNode, self).check(symbolTable, flags)
-        referenceCount = 0
-        referenceLocations = self.getReferenceLocations()
-        if len(referenceLocations):
-            referenceCount = max(referenceLocations)
-        flags[FUNCTION].add((self.getName(), referenceCount))
+        # referenceCount = 0
+        #    referenceLocations = self.getReferenceLocations()
+        #    if len(referenceLocations):
+        #        referenceCount = max(referenceLocations)
+        # flags[FUNCTION].add((self.getName(), referenceCount))
+        flags[FUNCTION].add(self.getName())
         self.setSymbolTable(symbolTable)    
         newSymbolTable = SymbolTable(symbolTable)
         self.getArguments().check(newSymbolTable, flags)
@@ -855,8 +856,8 @@ class ArgumentsNode(ASTNode):
     def getLength(self):
         return 1 + self.getArguments().getLength()
     
-    def getReferenceLocations(self, position):
-        return self.getArgument().getReferenceLocations(position) + self.getArguments().getReferenceLocations(position+1)
+    # def getArrayLocations(self, position):
+    #        return self.getArgument().getArrayLocations(position) + self.getArguments().getArrayLocations(position+1)
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -872,9 +873,9 @@ class ArgumentsNode(ASTNode):
     
 
 class ArgumentNode(ASTNode):
-    def __init__(self, lineno, clauseno, argumentDeclaration, reference = False):
+    def __init__(self, lineno, clauseno, argumentDeclaration, array = False):
         super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentDeclaration])
-        self.reference = reference
+        self.isArray = array
     
     def getArgument(self):
         return self.children[0]
@@ -882,11 +883,11 @@ class ArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
-    def getReferenceLocations(self, position):
-        if self.reference:
-            return [position]
-        else:
-            return []
+    # def getArrayLocations(self, position):
+    #         if self.reference:
+    #             return [position]
+    #         else:
+    #             return []
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -894,7 +895,7 @@ class ArgumentNode(ASTNode):
     
     def translate( self, registersDict, reg, parents, argNumber ):
         registersDict[self.getArgument().getVariable()] = (reg, IN_REGISTER)
-        intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.reference )
+        intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.isArray )
         return reg + 1, [intermediateNode], [intermediateNode]
 
 
@@ -906,7 +907,7 @@ class ArgumentNode(ASTNode):
 class FunctionCallNode(ASTNode):
     def __init__(self, lineno, clauseno, functionName, arguments):
         super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
-        self.relatedFunction = None
+        # self.relatedFunction = None
         
     def getName(self):
         return self.children[0]
@@ -925,16 +926,17 @@ class FunctionCallNode(ASTNode):
             print "Function Argument Count Exception"
             raise FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
-            self.relatedFunction = func
+            # self.relatedFunction = func
             # TODO CHECK COMPATABILITY
             self.type = func.type
     
     def translate(self, registerDict, reg, parents):
         argumentReg = reg
-        reg, exp, parents = self.getArguments().translate(registerDict, reg, parents, self.relatedFunction.getReferenceLocations(), 0)
-        # NOT QUITE RIGHT WHEN PASSING BY REFERENCE?
+        reg, exp, parents = self.getArguments().translate(registerDict, reg, parents)
+        # reg, exp, parents = self.getArguments().translate(registerDict, reg, parents, self.relatedFunction.getArrayLocations(), 0)
         registersPushed = self.getArguments().getLength()
-        intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName(), self.getArguments().toList())
+        # intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName(), self.getArguments().toList())
+        intermediateNode = INodes.FunctionCallNode(argumentReg, parents, registersPushed, self.getName())
         return reg, (exp + [intermediateNode]), [intermediateNode]
         
 
@@ -950,25 +952,28 @@ class FunctionArgumentsNode(ASTNode):
     def getLength(self):
         return 1 + self.getArguments().getLength()
         
-    def toList(self):
-        return self.getArgument().toList() + self.getArguments().toList()
+    # def toList(self):
+    #         return self.getArgument().toList() + self.getArguments().toList()
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)    
         self.getArgument().check(symbolTable, flags)
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
-            
-    def translate(self, registersDict, reg, parents, refLocations, argument):
-        reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents, refLocations, argument+1)
-        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents, refLocations, argument)
+    
+    def translate(self, registersDict, reg, parents):        
+    # def translate(self, registersDict, reg, parents, refLocations, argument):
+        # reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents, refLocations, argument+1)
+        # reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents, refLocations, argument)
+        reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents)
+        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents)
         return reg, (exp2 + exp1), parents #exp2 + exp1 so that arguments get pushed in reverse order.
         
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
         super(FunctionArgumentNode, self).__init__( FUNCTION_ARGUMENT, lineno, clauseno, [exp] )
-        self.intermediateNode = None
+        # self.intermediateNode = None
         
     def getExpression(self):
         return self.children[0]
@@ -976,26 +981,28 @@ class FunctionArgumentNode(ASTNode):
     def getLength(self):
         return 1
         
-    def toList(self):
-        return [self.intermediateNode]
+    # def toList(self):
+        # return [self.intermediateNode]
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)    
         self.getExpression().check(symbolTable, flags)
         self.type = self.getExpression().type
         
-    def translate(self, registerDict, reg, parents, refLocations, argument):
-        reference = False
+    # def translate(self, registerDict, reg, parents, refLocations, argument):
+    def translate(self, registerDict, reg, parents):
+        # reference = False
         pushReg = reg
-        exp = []
-        if isinstance(self.getExpression(), IDNode) :
-            pushReg = self.getExpression().getRegister(registerDict)
-        else:
-            reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
-        if argument in refLocations:
-            reference = True
-        intermediateNode = INodes.FunctionArgumentNode( pushReg, parents, argument, reference )
-        self.intermediateNode = intermediateNode
+        # exp = []
+        # if isinstance(self.getExpression(), IDNode) :
+            # pushReg = self.getExpression().getRegister(registerDict)
+        # else:
+        reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
+        # if argument in refLocations:
+            # reference = True
+        # intermediateNode = INodes.FunctionArgumentNode( pushReg, parents, argument, reference )
+        intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
+        # self.intermediateNode = intermediateNode
         return reg, (exp + [intermediateNode]), [intermediateNode]
 
 class LookingGlassNode(ASTNode):

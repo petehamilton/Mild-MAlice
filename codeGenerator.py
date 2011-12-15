@@ -195,8 +195,8 @@ class CodeGenerator(object):
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
             externSection.extend(["extern printf", "extern fflush"])
         
-        if (ASTNodes.INPUT in self.flags or ASTNodes.FUNCTION in self.flags):
-            bssSection.append("section .bss")
+        # if (ASTNodes.INPUT in self.flags or ASTNodes.FUNCTION in self.flags):
+        #             bssSection.append("section .bss")
         
         if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
             dataSection.append("section .data")
@@ -215,6 +215,7 @@ class CodeGenerator(object):
         
         if ASTNodes.INPUT in self.flags:
             externSection.append("extern scanf")
+            bssSection.append("section .bss")
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:
                     if self.output_int_fmt not in inDataSection: 
@@ -239,11 +240,11 @@ class CodeGenerator(object):
                 dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
 
         
-        if ASTNodes.FUNCTION in self.flags:
-            maxReferences = max(map(lambda (x,y):y, self.flags[ASTNodes.FUNCTION]))
-            # add one because maxReferences is the maximum argument position from 0.
-            for count in range(maxReferences + 1):
-                bssSection.append("reference%d resq 1" %(count))
+        # if ASTNodes.FUNCTION in self.flags:
+        #            maxReferences = max(map(lambda (x,y):y, self.flags[ASTNodes.FUNCTION]))
+        #            # add one because maxReferences is the maximum argument position from 0.
+        #            for count in range(maxReferences + 1):
+        #                bssSection.append("reference%d resq 1" %(count))
 
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
