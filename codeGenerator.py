@@ -207,7 +207,7 @@ class CodeGenerator(object):
             for label in self.flags[ASTNodes.BINARY_OP]:
                 name, message = labels.overFlowMessageDict[label]
                 inDataSection[label] = True
-                dataSection.append(self.indent('%s: db %s, 0' %(name, message)))
+                dataSection.append(self.indent('%s: db "%s", 0' %(name, message)))
             
         if ASTNodes.SPOKE in self.flags:
             for printType in self.flags[ASTNodes.SPOKE]:
@@ -294,7 +294,7 @@ class CodeGenerator(object):
                 for reg in pushRegs:
                     runTimeErrors.append(self.indent("push %s" %reg))
                 runTimeErrors.extend(map(self.indent, ["mov rsi [%s]" %name,
-                                      "mov rdi outputstringfmt",
+                                      "mov rdi, outputstringfmt",
                                       "xor rax, rax",
                                       "call printf"]))
                 for reg in popRegs:
