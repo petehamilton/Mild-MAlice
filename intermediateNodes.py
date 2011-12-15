@@ -576,4 +576,13 @@ class FunctionCallNode(IntermediateNode):
                  # +
                 # referenceCode)
         
-        
+
+class ArrayDeclarationNode(IntermediateNode):
+    def __init__(self, length, parents):
+        super(FunctionCallNode, self).__init__(parents)
+        self.length = length
+    
+    def generateCode(self, registerMap):
+        return ["call %s" %self.functionName,
+                "add rsp, %d" %(8*self.registersPushed),
+                "mov %s, rax" %(registerMap[self.registers[0]])]

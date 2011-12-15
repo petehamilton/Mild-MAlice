@@ -238,6 +238,10 @@ class CodeGenerator(object):
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
                 dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
+        
+        if ASTNodes.ARRAY_DEC in self.flags:
+            for memoryLocation, length in self.flags[ASTNodes.ARRAY_DEC]:
+                dataSection.append(self.indent("%s resq %d" %(memoryLocation, length)))
 
         
         # if ASTNodes.FUNCTION in self.flags:

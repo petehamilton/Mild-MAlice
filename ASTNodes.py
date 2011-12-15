@@ -40,6 +40,8 @@ FUNCTIONS = 'functions'
 CODE_SEP = 'c_sep'
 COMMENT = 'comment'
 FUNCTION = 'function'
+ARRAY_DEC = 'array_declaration'
+ARRAY_ASS = 'array_assignment'
 
 ################################################################################
 # GLOBALS
@@ -401,7 +403,7 @@ class SentenceNode(Factor):
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
-        
+    
     def translate(self, registersDict, reg, parents):
         intermediateNode = INodes.ImmMovNode(reg, self.memoryLocation, parents)
         return reg + 1, [intermediateNode], [intermediateNode]
@@ -601,16 +603,37 @@ class ArrayAssignmentNode(AssignmentNode):
         self.variableCheck(symbolTable, flags, idNode.getValue())
 
 class ArrayDeclarationNode(DeclarationNode):
+    arrayCount = 0
+    
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):
         super(ArrayDeclarationNode, self).__init__( lineno, clauseno, variableName, typeNode )
         self.length = length
+        self.memoryLocation = None
     
     def check(self, symbolTable, flags):
+        super(ArrayDeclarationNode, self).check(symbolTable, flags)
+        
         self.length.check(symbolTable, flags)
         if self.length.type != NUMBER:
             print "Array declaration exception"
+<<<<<<< HEAD
             raise exception.ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable, flags)
+=======
+            raise ArrayDeclarationException(self.lineno, self.clauseno)
+        
+        if not self.memoryLocation:
+            self.memoryLocation = 'array%d' %ArrayDeclarationNode.arrayCount
+            flags[ARRAY_DEC].add((self.memoryLocation, self.length))
+            ArrayDeclarationNode.arrayCount += 1
+            
+
+    def translate(self, registersDict, reg, parents):
+        intermediateNode = INodes.ImmMovNode(reg, self.memoryLocation, parents)
+        returnReg = reg
+        reg, exp, parents = self.getReturnExpression().translate(registerDict, reg, parents)
+        return reg + 1, [intermediateNode], [intermediateNode]
+>>>>>>> Initial start on arrays
 
 
 
