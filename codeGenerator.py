@@ -298,10 +298,12 @@ class CodeGenerator(object):
                 runTimeErrors.extend(map(self.indent, ["mov rsi, %s" %name,
                                       "mov rdi, outputstringfmt",
                                       "xor rax, rax",
-                                      "call printf"]))
+                                      "call printf",
+                                      "xor rax, rax",
+                                      "call fflush"]))
                 for reg in popRegs:
                     runTimeErrors.append(self.indent("pop %s" %reg))
-                runTimeErrors.append("jmp %s" labels.deallocationLabel)
+                runTimeErrors.append("jmp %s" %labels.deallocationLabel)
             
         deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
