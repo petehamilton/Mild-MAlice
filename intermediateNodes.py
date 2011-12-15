@@ -575,14 +575,46 @@ class FunctionCallNode(IntermediateNode):
                 "mov %s, rax" %(registerMap[self.registers[0]])])
                  # +
                 # referenceCode)
-        
 
-class ArrayDeclarationNode(IntermediateNode):
-    def __init__(self, length, parents):
-        super(FunctionCallNode, self).__init__(parents)
-        self.length = length
+
+class MallocNode(IntermediateNode):
+    def __init__(self, destReg, parents, lengthRegister):
+        super(MallocNode, self).__init__(parents)
+        self.registers = [destReg, lengthRegister]
+        
+    def uses(self):
+        return [self.registers[1]]
+    
+    def alteredRegisters(self):
+        return [self.registers[0]]
+        
+    def generateCode(self, registerMap):
+        # Add the push/pop to this for volatile registers
+        return ["mov rdi, %s" %(registerMap[self.registers[1]]),
+                "imul rdi, 8",
+                "xor rax, rax",
+                "call malloc",
+                "add rsp, 8",
+                "test rax, rax",
+                "jz malloc_failure",
+                "mov %s, rsp" % (registerMap[self.registers[0]])]
+
+class DeallocNode(IntermediateNode):
+    def __init__(self, arrayBaseReg, parents):
+        super(DeallocNode, self).__init__(parents)
+        self.registers = [arrayBaseReg]
+    
+    def uses(self):
+        return [self.registers[0]]
+    
+    def alteredRegisters(self):
+        return []
     
     def generateCode(self, registerMap):
-        return ["call %s" %self.functionName,
-                "add rsp, %d" %(8*self.registersPushed),
-                "mov %s, rax" %(registerMap[self.registers[0]])]
+        # Add the push/pop to this for volatile registers
+        return ["%s:" % (makeUniqueLabel("dealloc")),
+                "mov rdi, %s" % (registerMap[self.registers[0]]),
+                "xor rax, rax",
+                "call free",
+                "add rsp, 8"]
+

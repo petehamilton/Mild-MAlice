@@ -602,38 +602,43 @@ class ArrayAssignmentNode(AssignmentNode):
         idNode = self.getDestination().getValue()
         self.variableCheck(symbolTable, flags, idNode.getValue())
 
-class ArrayDeclarationNode(DeclarationNode):
-    arrayCount = 0
-    
+class ArrayDeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):
-        super(ArrayDeclarationNode, self).__init__( lineno, clauseno, variableName, typeNode )
+        super(ArrayDeclarationNode, self).__init__(ARRAY_DEC, lineno, clauseno, [variableName, typeNode] )
         self.length = length
-        self.memoryLocation = None
+    
+    def getVariable(self):    
+        return self.children[0]
+    
+    # Returns the type of the array.
+    def getType(self):
+        return self.children[1].getType()
     
     def check(self, symbolTable, flags):
-        super(ArrayDeclarationNode, self).check(symbolTable, flags)
-        
-        self.length.check(symbolTable, flags)
-        if self.length.type != NUMBER:
-            print "Array declaration exception"
-<<<<<<< HEAD
-            raise exception.ArrayDeclarationException(self.lineno, self.clauseno)
-        super(ArrayDeclarationNode, self).check(symbolTable, flags)
-=======
-            raise ArrayDeclarationException(self.lineno, self.clauseno)
-        
-        if not self.memoryLocation:
-            self.memoryLocation = 'array%d' %ArrayDeclarationNode.arrayCount
-            flags[ARRAY_DEC].add((self.memoryLocation, self.length))
-            ArrayDeclarationNode.arrayCount += 1
+        self.setSymbolTable(symbolTable)
+        # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
+        V = symbolTable.lookupCurrLevelOnly(self.getVariable())
+        # if T == None:
+            # error("Unknown Type")
+        if V:
+            print "Declaration Exception"
+            raise exception.DeclarationException(self.lineno, self.clauseno)
+        else:   
+            self.children[1].check(symbolTable, flags)
+            self.type = self.children[1].type
+            symbolTable.add(self.getVariable(), self)
             
-
+        if self.length.factorType != NUMBER:
+            print "Array declaration exception"
+            # TODO, uncomment me and make me work
+            # raise ArrayDeclarationException(self.lineno, self.clauseno)
+    
     def translate(self, registersDict, reg, parents):
-        intermediateNode = INodes.ImmMovNode(reg, self.memoryLocation, parents)
-        returnReg = reg
-        reg, exp, parents = self.getReturnExpression().translate(registerDict, reg, parents)
-        return reg + 1, [intermediateNode], [intermediateNode]
->>>>>>> Initial start on arrays
+        lengthReg = reg
+        reg, lengthNodes, lengthParents = self.length.translate(registersDict, reg, parents)
+        mallocNode = INodes.MallocNode(reg, parents, lengthReg)
+        registersDict[self.getVariable()] = (reg, IN_REGISTER)
+        return reg + 1, lengthNodes + [mallocNode], [mallocNode]
 
 
 
@@ -1121,4 +1126,4 @@ class CommentNode(ASTNode):
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        pass    
+        pass

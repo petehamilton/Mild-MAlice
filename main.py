@@ -10,7 +10,7 @@ from yaccConfig import *
 from semanticAnalysis import analyse
 from codeGenerator import CodeGenerator
 import grammarExceptions as e
-
+from SymbolTable import SymbolTable
 
 registers = ['r%d' %r for r in range(8,16)]  + ["rbx", "rcx", "rdx", "rsi", "rdi"]
 
@@ -43,9 +43,9 @@ def parse_code(code):
         result = parser.parse(code)
         # result.display()
         if result:
-            symbolTable = {}
+            symbolTable = SymbolTable()
             flags = defaultdict(set)
-            analyse(result, flags)
+            analyse(result, flags, symbolTable)
             cg = CodeGenerator(symbolTable, registers, flags)
             code = cg.generate(result)
             return code

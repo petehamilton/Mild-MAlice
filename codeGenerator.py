@@ -169,17 +169,39 @@ class CodeGenerator(object):
             
         functionCode = []
         functionOverflow = []
+        registerDict = {}
         if len(self.flags[ASTNodes.FUNCTION]):
-            reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
+            reg, intermediateNodes, functionNodes, parents = node.translate( registerDict, 0, [] )
             for function in functionNodes:
                 lastReg = max(function.uses()) + 1 
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
                 functionOverflow.extend(fOverFlowValues)
         else:
-            reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+            reg, intermediateNodes, parents = node.translate( registerDict, 0, [] )
+        
+        lastINode = [intermediateNodes[-1]]
+        deallocNodes = []
+        deallocStartNode =INodes.LabelNode("deallocate", lastINode)
+        deallocNodes.append(deallocStartNode)
+        lastINode = [deallocStartNode]
+        for var, decNode in self.symbolTable.dictionary.iteritems():
+            if decNode.getNodeType() == ASTNodes.ARRAY_DEC:
+                reg, inMem = registerDict[var]
+                deallocNode = INodes.DeallocNode(reg, lastINode)
+                deallocNodes.append(deallocNode)
+                lastINode = [deallocNode]
+        deallocEndNode =INodes.LabelNode("deallocate_end", lastINode)
+        deallocNodes.append(deallocEndNode)
+        
+        if len(deallocNodes) > 2:
+            self.flags[ASTNodes.ARRAY_DEC] = True
+            intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
+            intermediateNodes.extend(deallocNodes)
+        
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
+        
         return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish() + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
@@ -213,6 +235,10 @@ class CodeGenerator(object):
                     dataSection.append(self.indent(self.output_string_fmt))
                     inDataSection[self.output_string_fmt] = True
         
+        if ASTNodes.ARRAY_DEC in self.flags:
+            externSection.append("extern malloc")
+            externSection.append("extern free")
+            
         if ASTNodes.INPUT in self.flags:
             externSection.append("extern scanf")
             bssSection.append("section .bss")
@@ -238,10 +264,6 @@ class CodeGenerator(object):
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
                 dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
-        
-        if ASTNodes.ARRAY_DEC in self.flags:
-            for memoryLocation, length in self.flags[ASTNodes.ARRAY_DEC]:
-                dataSection.append(self.indent("%s resq %d" %(memoryLocation, length)))
 
         
         # if ASTNodes.FUNCTION in self.flags:

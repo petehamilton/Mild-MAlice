@@ -1,5 +1,2 @@
-from SymbolTable import SymbolTable
-
-
-def analyse( node, flags ):
-    node.check(SymbolTable(), flags)
+def analyse( node, flags, symbolTable ):
+    node.check(symbolTable, flags)
