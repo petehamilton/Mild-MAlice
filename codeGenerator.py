@@ -293,7 +293,7 @@ class CodeGenerator(object):
                 runTimeErrors.append("%s:"%label)
                 for reg in pushRegs:
                     runTimeErrors.append(self.indent("push %s" %reg))
-                runTimeErrors.extend(map(self.indent, ["mov rsi [%s]" %name,
+                runTimeErrors.extend(map(self.indent, ["mov rsi, [%s]" %name,
                                       "mov rdi, outputstringfmt",
                                       "xor rax, rax",
                                       "call printf"]))
