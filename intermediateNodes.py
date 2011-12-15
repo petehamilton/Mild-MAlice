@@ -354,11 +354,26 @@ class JumpFalseNode(JumpBooleanNode):
     def __init__(self, reg, falseLabelNode, parents):
         super(JumpFalseNode, self).__init__('jne', reg, falseLabelNode, parents)
 
-class IONode(IntermediateNode):
-    def __init__(self, reg, parents, formatting):
-        super(IONode, self).__init__(parents)
+class SpokeNode(IntermediateNode):
+    def __init__(self, reg, parents, printFunction):
+        super(SpokeNode, self).__init__(parents)
+        self.printFunction = printFunction
         self.registers = [reg]
+            
+    # Puts registers in the relevant registers required for printf call and
+    # preserves the registers which may be overwritten.
+    def generateCode(self, registerMap):
+        destReg = registerMap[self.registers[0]]
+            
+        return ["push %s" %destReg,
+                "call %s" %self.printFunction,
+                "add rsp, 8"]
+
+class InputNode(IntermediateNode):
+    def __init__(self, reg, parents, formatting):
+        super(InputNode, self).__init__(parents)
         self.formatting = formatting
+        self.registers = [reg]
         self.ioRegisters = ['rsi', 'rdi', 'r8', 'r9', 'r10']
     
     def preserveRegisters(self, destReg):
@@ -369,67 +384,23 @@ class IONode(IntermediateNode):
         registersToPreserveReverse = registersToPreserve[0:]
         registersToPreserveReverse.reverse()
         return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
-
-        
-class SpokeNode(IONode):
-    def __init__(self, reg, parents, formatting):
-        super(SpokeNode, self).__init__(reg, parents, formatting)
-            
-    # Puts registers in the relevant registers required for printf call and
-    # preserves the registers which may be overwritten.
-    def generateCode(self, registerMap):
-        destReg = registerMap[self.registers[0]]
-        pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        pushDest = []
-        popDest = []
-        if destReg in self.ioRegisters:
-            pushDest = self.pushRegs([destReg])
-            popDest = self.popRegs([destReg])
-            
-        return (pushedRegs +
-                ["mov rsi, %s" %destReg] +
-                pushDest +
-                ["mov rdi, %s" %self.formatting,
-                "xor rax, rax",
-                "call printf",
-                "xor rax, rax",
-                "call fflush"] +
-                popDest +
-                poppedRegs)
-
-class InputNode(IONode):
-    def __init__(self, reg, parents, formatting):
-        super(InputNode, self).__init__(reg, parents, formatting)
     
-    def getMemoryLocAndMessageLoc(self):
+    # BIT OF A HACK?
+    def getMemoryLoc(self):
         memoryLoc = ""
-        message = self.formatting + "_message"
         if "char" in self.formatting:
             memoryLoc = "charinput"
         elif "int" in self.formatting:
             memoryLoc = "intinput"
-        return memoryLoc, message
-    
-    #TODO: TIDY THIS UP SO NOT WASTED CODE
-    
-    def printMessage(self, messageLoc):
-        pushedRegs, poppedRegs = self.preserveRegisters(None)
-        return(pushedRegs+
-                ["mov rsi, %s" %messageLoc,
-                "mov rdi, outputstringfmt",
-                "xor rax, rax",
-                "call printf"] +
-               poppedRegs)
+        return memoryLoc
                
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-        memoryLoc, messageLoc = self.getMemoryLocAndMessageLoc()
+        memoryLoc = self.getMemoryLoc()
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        printMessageCode = self.printMessage(messageLoc)
-        return ( printMessageCode +
-                 pushedRegs +
+        return (pushedRegs +
                 ["mov rsi, %s" %(memoryLoc),
-                "mov rdi, %s" %("input" + self.formatting),
+                "mov rdi, %s" %(self.formatting),
                 "xor rax, rax",
                 "call scanf",
                 "mov %s, [%s]" %(destReg, memoryLoc)] +

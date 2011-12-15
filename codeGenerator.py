@@ -10,10 +10,10 @@ class CodeGenerator(object):
     output_int_fmt = 'outputintfmt: db "%ld", 0'
     output_char_fmt = 'outputcharfmt: db "%c", 0'
     output_string_fmt = 'outputstringfmt: db "%s", 0'
-    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
-    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
-    input_int_fmt = 'inputintfmt: db "%ld", 0'
-    input_char_fmt = 'inputcharfmt: db "%c", 0'
+    # int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
+    # char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
+    input_int_fmt = labels.inputNumberLabel + ': db "%ld", 0' 
+    input_char_fmt = labels.inputLetterLabel +': db "%c", 0'
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -238,11 +238,11 @@ class CodeGenerator(object):
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
                     dataSection.append(self.indent(self.input_char_fmt))
-                    dataSection.append(self.indent(self.char_message))
+                    # dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
                     dataSection.append(self.indent(self.input_int_fmt))
-                    dataSection.append(self.indent(self.int_message))
+                    # dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
              
         if ASTNodes.SENTENCE in self.flags:
@@ -284,6 +284,46 @@ class CodeGenerator(object):
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
     def finish(self, flags):
+        def calculateSpokeTypes(flags):
+            spokeTypes = set()
+            if ASTNodes.SPOKE in self.flags:
+                for item in self.flags[ASTNodes.SPOKE]:
+                    spokeTypes.add(item)
+            elif ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP or ASTNodes.UNARY_OP:
+                spokeTypes.add(ASTNodes.SENTENCE)
+            return list(spokeTypes)
+        
+        def makePrintFunctions():
+            spokeTypes = calculateSpokeTypes(self.flags)
+            spokeCode = []
+            IORegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
+            IORegsReverse = IORegs[0:]
+            IORegsReverse.reverse()
+            pushCode = map( lambda x: ("push %s" %x), IORegs )
+            pushCode = map(self.indent, pushCode)
+            popCode = map( lambda x: ("pop %s" %x), IORegsReverse )
+            popCode = map(self.indent, popCode)
+            startCode = map( self.indent, [ "push rbp",
+                                            "mov rbp, rsp",
+                                            "push r12", 
+                                            "mov r12, [rbp + 16]"])
+            finishCode = map(self.indent, ["pop r12", "pop rbp", "ret"] )
+            for spokeType in spokeTypes:
+                label, formatLabel, format = labels.spokeTypeDict[spokeType]
+                printCode = map(self.indent,[ "mov rsi, r12",
+                                              "mov rdi, %s"%formatLabel,
+                                              "xor rax, rax",
+                                              "call printf",
+                                              "xor rax, rax",
+                                              "call fflush"])
+                spokeCode.extend( ["%s:" %label] 
+                                + startCode
+                                + pushCode
+                                + printCode
+                                + popCode
+                                + finishCode)
+            return spokeCode
+            
         finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
         runTimeErrors = []
         if ASTNodes.BINARY_OP in self.flags:
@@ -304,7 +344,12 @@ class CodeGenerator(object):
                 for reg in popRegs:
                     runTimeErrors.append(self.indent("pop %s" %reg))
                 runTimeErrors.append("jmp %s" %labels.deallocationLabel)
+        # TODO UNARY OP OVERFLOW CHECKING HERE!
+
             
+        # if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in flags):
+            # if self.flags[ASTNodes.SPOKE] == ASTNodes.SENTENCE
+        spokeFunctionCode = makePrintFunctions()    
         deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
         deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
@@ -314,4 +359,4 @@ class CodeGenerator(object):
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
                 [self.indent("syscall		; Interrupt Linux kernel 64-bit")]))
                 
-        return finishLine + [self.newline] + runTimeErrors + [self.newline] + deallocationCode
+        return finishLine + [self.newline] + runTimeErrors + [self.newline] + spokeFunctionCode + [self.newline] + deallocationCode

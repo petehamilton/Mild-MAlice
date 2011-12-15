@@ -1,5 +1,4 @@
 # This module contains the nodes created by the parser.
-# from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
 import grammarExceptions as exception
 from SymbolTable import SymbolTable
 import tokRules
@@ -212,6 +211,9 @@ class UnaryNode(OperatorNode):
         else:
             print "Unary Exception"
             raise exception.UnaryException(self.lineno, self.clauseno)
+        op = self.getOperator()
+        if re.match("ate", op) or re.match("drank", op):
+            flags[UNARY_OP].add(('%s' %labels.overFlowLabel))
     
     def translate( self, registersDict, reg, parents ):
         def transUnOp(destReg, node, registersDict, parents):
@@ -455,15 +457,7 @@ class IONode(ASTNode):
             idType = NUMBER
         return idType
 
-    def getFormatting(self, idType):        
-        formatting = ""
-        if idType == NUMBER:
-            formatting = "intfmt"
-        elif idType == LETTER:
-            formatting = "charfmt"
-        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = "stringfmt"
-        return formatting
+
         
 
 class SpokeNode(IONode):
@@ -472,6 +466,16 @@ class SpokeNode(IONode):
     
     def getExpression(self):
         return self.children[0]
+        
+    def getPrintFunction(self, idType):        
+        formatting = ""
+        if idType == NUMBER:
+            formatting = labels.printNumberLabel
+        elif idType == LETTER:
+            formatting = labels.printLetterLabel
+        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
+            formatting = labels.printSentenceLabel
+        return formatting
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -483,9 +487,10 @@ class SpokeNode(IONode):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)    
         idType = self.getIDType(self.getExpression())
-        formatting = "output" + self.getFormatting(idType)
+        # formatting = "output" + self.getFormatting(idType)
+        functionCall = self.getPrintFunction(idType)
         # Should catch error here if formatting not set...
-        intermediateNode = INodes.SpokeNode(reg, parents, formatting)
+        intermediateNode = INodes.SpokeNode(reg, parents, functionCall)
         return reg1, exp + [intermediateNode], [intermediateNode]
 
 
@@ -495,6 +500,14 @@ class InputNode(IONode):
         
     def getVariable(self):
         return self.children[0]
+        
+    def getFormatting(self, idType):        
+        formatting = ""
+        if idType == NUMBER:
+            formatting = labels.inputNumberLabel
+        elif idType == LETTER:
+            formatting = labels.inputLetterLabel
+        return formatting
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
