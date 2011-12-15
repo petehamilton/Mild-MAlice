@@ -106,7 +106,6 @@ class PossibleBinaryOverFlowNode(BinOpNode):
         # TODO Make this global somewhere?
         overFlowTest = ["jo %s" %labels.overFlowLabel]
         return code + overFlowTest
-  
 
 class AddNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
@@ -141,7 +140,7 @@ class DivNode(BinOpNode):
             compCode = "cmp %s, 0" %nextReg
         
         return ([compCode,
-                 "jz os_return" ] +
+                 "je %s" %labels.divisionByZeroLabel] +
                 self.pushRegs(registersToPreserve) +
                 ["mov rax, %s" %destReg,
                  "mov rcx, %s" %nextReg,
@@ -275,8 +274,7 @@ class PossibleUnaryOverFlowNode(UnOpNode):
         code = super(PossibleUnaryOverFlowNode, self).generateCode(registerMap)
         overFlowTest = ["jo %s" %labels.overFlowLabel]
         return code + overFlowTest    
-    
-        
+
 class IncNode(PossibleUnaryOverFlowNode):
     def __init__(self, reg, parents):
         super(IncNode, self).__init__("inc", reg, parents)
