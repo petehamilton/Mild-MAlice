@@ -129,6 +129,11 @@ class BinaryNode(OperatorNode):
         else:
             print "Binary Exception"
             raise exception.BinaryException(self.lineno, self.clauseno)
+        
+        if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
+            flags[BINARY_OP].add('overflow_label')
+        elif re.match( tokRules.t_DIVIDE, op ):
+            flags[BINARY_OP].add('division_by_zero_label')
     
     def translate(self, registersDict, reg, parents):
         def translateOperation(destReg, nextReg, parents):

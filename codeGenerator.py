@@ -180,7 +180,7 @@ class CodeGenerator(object):
             reg, intermediateNodes, parents = node.translate( {}, 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
-        return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish() + functionCode
+        return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish(self.flags) + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
@@ -273,10 +273,16 @@ class CodeGenerator(object):
 
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
-    def finish(self):
-        return ([self.indent("call os_return		; return to operating system")] +
+    def finish(self, flags):
+        deallocationLabel = "deallocate_label"
+        finishLine = [self.indent("jmp %s" %deallocationLabel)]
+        deallocationCode = ["%s:" %deallocationLabel]
+        # Add deallocation code here?
+        deallocationCode.extend( ([self.indent("call os_return		; return to operating system")] +
                 [self.newline] +
                 ["os_return:"] +
                 [self.indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
-                [self.indent("syscall		; Interrupt Linux kernel 64-bit")])
+                [self.indent("syscall		; Interrupt Linux kernel 64-bit")]))
+                
+        return finishLine + deallocationCode

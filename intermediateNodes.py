@@ -90,11 +90,23 @@ class ImmMovNode(InstructionNode):
 
     def uses(self):
         return []
-    
+        
+  
 class BinOpNode(InstructionNode):
     def __init__(self, instruction, reg1, reg2, parents):
         super(BinOpNode, self).__init__(instruction, parents)  
         self.registers = [reg1, reg2]
+        
+class PossibleBinaryOverFlowNode(BinOpNode):
+    def __init__(self, instruction, reg1, reg2, parents):
+        super(PossibleBinaryOverFlowNode, self).__init__(instruction, reg1, reg2, parents)
+        
+    def generateCode(self, registerMap):
+        code = super(PossibleBionaryOverFlowNode, self).generateCode(registerMap)
+        # TODO Make this global somewhere?
+        overFlowTest = ["jo overflow_label"]
+        return code + overFlowTest
+  
 
 class AddNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
