@@ -217,7 +217,7 @@ class CodeGenerator(object):
         globalSection = []
         textSection = []
         
-        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in self.flags or ASTNodes.UNARY_OP in self.flags):
             externSection.extend(["extern printf", "extern fflush"])
         
         dataCode = getDataSection()
@@ -304,6 +304,7 @@ class CodeGenerator(object):
                                 + popCode
                                 + finishCode)
             return spokeCode
+            
         def calculateRunTimeErrors():
             runTimeErrors = set()
             if ASTNodes.BINARY_OP in self.flags:
@@ -324,7 +325,7 @@ class CodeGenerator(object):
                 code = map(self.indent, code)
                 runTimeErrors.extend(code)
             return runTimeErrors
-            
+                        
         finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
