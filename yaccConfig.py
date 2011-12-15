@@ -218,7 +218,7 @@ def p_expression_factor(p):
 def p_array_access(p):
     'array_access : ID APOSTROPHE expression ARRAY_PIECE'
     factor = ASTNodes.IDNode(p.lineno(1), p.clauseno(1), p[1])
-    p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), factor, p[2])
+    p[0] = ASTNodes.ArrayAccessNode(p.lineno(1), p.clauseno(1), factor, p[3])
 
 ################################################################################
 # FACTOR
