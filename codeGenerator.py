@@ -208,6 +208,8 @@ class CodeGenerator(object):
                 name, message = labels.overFlowMessageDict[label]
                 inDataSection[label] = True
                 dataSection.append(self.indent('%s: db "%s", 0' %(name, message)))
+                if self.output_string_fmt not in inDataSection:
+                    dataSection.append(self.indent(self.output_string_fmt))
             
         if ASTNodes.SPOKE in self.flags:
             for printType in self.flags[ASTNodes.SPOKE]:
