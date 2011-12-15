@@ -1,5 +1,5 @@
 import re
-
+import labels
 ################################################################################
 # UNIQUE LABEL ID GENERATOR
 ################################################################################
@@ -102,21 +102,21 @@ class PossibleBinaryOverFlowNode(BinOpNode):
         super(PossibleBinaryOverFlowNode, self).__init__(instruction, reg1, reg2, parents)
         
     def generateCode(self, registerMap):
-        code = super(PossibleBionaryOverFlowNode, self).generateCode(registerMap)
+        code = super(PossibleBinaryOverFlowNode, self).generateCode(registerMap)
         # TODO Make this global somewhere?
-        overFlowTest = ["jo overflow_label"]
+        overFlowTest = ["jo %s" %labels.overFlowLabel]
         return code + overFlowTest
   
 
-class AddNode(BinOpNode):
+class AddNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(AddNode, self).__init__("add", reg1, reg2, parents)  
         
-class SubNode(BinOpNode):
+class SubNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(SubNode, self).__init__("sub", reg1, reg2, parents) 
          
-class MulNode(BinOpNode):
+class MulNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(MulNode, self).__init__("imul", reg1, reg2, parents)
           
@@ -267,11 +267,21 @@ class UnOpNode(InstructionNode):
         super(UnOpNode, self).__init__(instruction, parents)  
         self.registers = [reg]
         
-class IncNode(UnOpNode):
+class PossibleUnaryOverFlowNode(UnOpNode):
+    def __init__(self, instruction, reg, parents):
+        super(PossibleUnaryOverFlowNode, self).__init__(instruction, reg, parents)
+    
+    def generateCode(self, registerMap):
+        code = super(PossibleUnaryOverFlowNode, self).generateCode(registerMap)
+        overFlowTest = ["jo %s" %labels.overFlowLabel]
+        return code + overFlowTest    
+    
+        
+class IncNode(PossibleUnaryOverFlowNode):
     def __init__(self, reg, parents):
         super(IncNode, self).__init__("inc", reg, parents)
         
-class DecNode(UnOpNode):
+class DecNode(PossibleUnaryOverFlowNode):
     def __init__(self, reg, parents):
         super(DecNode, self).__init__("dec", reg, parents)
         

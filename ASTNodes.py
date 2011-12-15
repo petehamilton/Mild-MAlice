@@ -5,6 +5,7 @@ from SymbolTable import SymbolTable
 import tokRules
 import intermediateNodes as INodes
 import re
+import labels
 
 ################################################################################
 # NODE TYPES
@@ -130,10 +131,11 @@ class BinaryNode(OperatorNode):
             print "Binary Exception"
             raise exception.BinaryException(self.lineno, self.clauseno)
         
+        op = self.getOperator()
         if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
-            flags[BINARY_OP].add('overflow_label')
+            flags[BINARY_OP].add(('%s' %labels.overFlowLabel))
         elif re.match( tokRules.t_DIVIDE, op ):
-            flags[BINARY_OP].add('division_by_zero_label')
+            flags[BINARY_OP].add(('%s' %labels.divisionByZeroLabel))
     
     def translate(self, registersDict, reg, parents):
         def translateOperation(destReg, nextReg, parents):

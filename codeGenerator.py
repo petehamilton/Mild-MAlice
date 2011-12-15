@@ -1,5 +1,6 @@
 import re
 import tokRules
+import labels
 import ASTNodes
 import intermediateNodes as INodes
 from RegisterMap import RegisterMap
@@ -198,8 +199,15 @@ class CodeGenerator(object):
         # if (ASTNodes.INPUT in self.flags or ASTNodes.FUNCTION in self.flags):
         #             bssSection.append("section .bss")
         
-        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags or ASTNodes.BINARY_OP in self.flags):
             dataSection.append("section .data")
+        
+        
+        if ASTNodes.BINARY_OP in self.flags:
+            for label in self.flags[ASTNodes.BINARY_OP]:
+                name, message = labels.overFlowMessageDict[label]
+                inDataSection[label] = True
+                dataSection.append(self.indent('%s: db %s, 0' %(name, message)))
             
         if ASTNodes.SPOKE in self.flags:
             for printType in self.flags[ASTNodes.SPOKE]:
@@ -274,15 +282,31 @@ class CodeGenerator(object):
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
     def finish(self, flags):
-        deallocationLabel = "deallocate_label"
-        finishLine = [self.indent("jmp %s" %deallocationLabel)]
-        deallocationCode = ["%s:" %deallocationLabel]
+        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
+        runTimeErrors = []
+        if ASTNodes.BINARY_OP in self.flags:
+            pushRegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
+            popRegs = pushRegs[0:]
+            popRegs.reverse()
+            for label in self.flags[ASTNodes.BINARY_OP]:
+                name, message = labels.overFlowMessageDict[label]
+                runTimeErrors.append("%s:"%label)
+                for reg in pushRegs:
+                    runTimeErrors.append(self.indent("push %s" %reg))
+                runTimeErrors.extend(map(self.indent, ["mov rsi [%s]" %name,
+                                      "mov rdi outputstringfmt",
+                                      "xor rax, rax",
+                                      "call printf"]))
+                for reg in popRegs:
+                    runTimeErrors.append(self.indent("pop %s" %reg))
+            
+        deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
-        deallocationCode.extend( ([self.indent("call os_return		; return to operating system")] +
+        deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
-                ["os_return:"] +
+                ["%s:"%labels.osReturnLabel] +
                 [self.indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
                 [self.indent("syscall		; Interrupt Linux kernel 64-bit")]))
                 
-        return finishLine + deallocationCode
+        return finishLine + [self.newline] + runTimeErrors + [self.newline] + deallocationCode
