@@ -301,6 +301,7 @@ class CodeGenerator(object):
                                       "call printf"]))
                 for reg in popRegs:
                     runTimeErrors.append(self.indent("pop %s" %reg))
+                runTimeErrors.append("jmp %s" labels.deallocationLabel)
             
         deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
