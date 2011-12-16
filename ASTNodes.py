@@ -182,11 +182,11 @@ class BinaryNode(OperatorNode):
             elif re.match( "%s$"%tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( "%s$"%tokRules.t_L_AND, op ):
-                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-                
-            elif re.match( "%s$"%tokRules.t_L_OR, op ):
-                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
+            # elif re.match( "%s$"%tokRules.t_L_AND, op ):
+            #                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+            #                
+            #            elif re.match( "%s$"%tokRules.t_L_OR, op ):
+            #                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -196,6 +196,46 @@ class BinaryNode(OperatorNode):
         reg, exp3, parents = translateOperation(reg, reg1, parents)
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
+
+class LogicalSeperatorNode(BinaryNode):
+    def __init__(self, lineno, clauseno, operator, children ):
+        super(LogicalSeperatorNode, self).__init__( lineno, clauseno, operator, children )
+    
+    def translate(self, registersDict, reg, parents):
+        def translateOperation(parents):
+            op = self.getOperator()
+            if re.match( "%s$"%tokRules.t_L_AND, op ):
+                logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
+                reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
+                logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
+                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+                reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
+                jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
+                logicalExpressionLabelNode.setParents(parents + [jumpNode])
+                logicalExpressionEndLabelNode.setParents([jumpNode])
+               
+            elif re.match( "%s$"%tokRules.t_L_OR, op ):
+                logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
+                reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
+                logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
+                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
+                reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
+                jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
+                logicalExpressionLabelNode.setParents(parents + [jumpNode])
+                logicalExpressionEndLabelNode.setParents([jumpNode])
+        
+            iNodes = []
+            iNodes.append(logicalExpressionLabelNode)
+            iNodes += exp1
+            iNodes.append(checkNode)
+            iNodes += exp2
+            iNodes.append(jumpNode)
+            iNodes.append(logicalExpressionEndLabelNode)
+            return reg2, iNodes, [logicalExpressionEndLabelNode]
+            
+        reg, exp, parents = translateOperation(parents)
+        return reg, exp, parents
+        
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):

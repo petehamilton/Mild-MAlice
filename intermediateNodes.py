@@ -161,10 +161,20 @@ class OrNode(BinOpNode):
 class XORNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
         super(XORNode, self).__init__("xor", reg1, reg2, parents) 
-         
-class AndNode(BinOpNode):
-    def __init__(self, reg1, reg2, parents):
-        super(AndNode, self).__init__("and", reg1, reg2, parents)          
+
+# class LogicalExpressionNode(IntermediateNode):
+#     def __init__(self, instruction, exp1, exp2, parents):
+#         super(LogicalExpressionNode, self).__init__(parents)
+#         
+#     def uses(self):
+#         return list(set(exp1.uses()) & set(exp2.uses()))
+#     
+#     def alteredRegisters(self)
+#         return list(set(exp1.alteredRegisters()) & set(exp2.alteredRegisters()))
+#         
+# class AndNode(LogicalExpressionNode):
+#     def __init__(self, exp1, exp2, parents):
+#         super(AndNode, self).__init__("and", exp1, exp2, parents)          
         
 class LogicalOpNode(BinOpNode):
     # Could/should(?) use nested nodes instead of labels?
