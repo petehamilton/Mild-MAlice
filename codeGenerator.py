@@ -141,9 +141,11 @@ class CodeGenerator(object):
         def generateFunctionCode(functionNode, registerMap):
             return functionNode.generateCode(registerMap)
             
+        
         functionCode = []
         functionOverflow = []
         rmap = RegisterDict()
+        # Parse functions first
         if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( rmap, 0, [] )
             for function in functionNodes:
@@ -177,7 +179,7 @@ class CodeGenerator(object):
             intermediateNodes = zeroNodes
         
         self.flags[ASTNodes.ARRAY_DEC] = True
-        intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
+        intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]]))
         intermediateNodes.extend(deallocNodes)
         
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
@@ -187,6 +189,7 @@ class CodeGenerator(object):
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
+        # Works out what should be in the data section
         def getDataSection():
             code = set()
             if ASTNodes.SPOKE in self.flags:
@@ -215,8 +218,6 @@ class CodeGenerator(object):
                     code.add(self.indent(self.output_string_fmt))
             return list(code)
             
-            
-        
         externSection = []
         dataSection = []
         bssSection = []
@@ -275,6 +276,7 @@ class CodeGenerator(object):
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
     def finish(self, flags):
+        # calculate the types of values spoken.
         def calculateSpokeTypes(flags):
             spokeTypes = set()
             if ASTNodes.SPOKE in self.flags:
@@ -284,6 +286,7 @@ class CodeGenerator(object):
                 spokeTypes.add(ASTNodes.SENTENCE)
             return list(spokeTypes)
         
+        # Creates relevant print functions.
         def makePrintFunctions():
             spokeTypes = calculateSpokeTypes(self.flags)
             spokeCode = []
@@ -315,6 +318,8 @@ class CodeGenerator(object):
                                 + finishCode)
             return spokeCode
             
+        
+        # Calculates which runtime errors have been set in the code.
         def calculateRunTimeErrors():
             runTimeErrors = set()
             if ASTNodes.BINARY_OP in self.flags:
@@ -324,7 +329,8 @@ class CodeGenerator(object):
                 for label in self.flags[ASTNodes.UNARY_OP]:
                     runTimeErrors.add(label)
             return list(runTimeErrors)
-    
+        
+        # Creates relevant runtime error code.
         def calculateRunTimeErrorsCode():
             runTimeErrorLabels = calculateRunTimeErrors()
             runTimeErrors = []
@@ -339,8 +345,6 @@ class CodeGenerator(object):
         finishLine = [self.indent("call %s" %labels.osReturnLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
-        # deallocationCode = ["%s:" %labels.deallocationLabel]
-        # Add deallocation code here?
         deallocationCode = []
         deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
