@@ -323,7 +323,7 @@ class CodeGenerator(object):
             for label in runTimeErrorLabels:
                 name, message = labels.overFlowMessageDict[label]
                 runTimeErrors.append("%s:"%label)
-                code = [ "push outputstringfmt", "call %s" %labels.printSentenceLabel, "add rsp, 8",  "jmp %s" %labels.deallocationLabel]
+                code = [ "push %s"%name, "call %s" %labels.printSentenceLabel, "add rsp, 8",  "jmp %s" %labels.deallocationLabel]
                 code = map(self.indent, code)
                 runTimeErrors.extend(code)
             return runTimeErrors
