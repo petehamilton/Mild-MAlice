@@ -455,7 +455,11 @@ class IDNode(Factor):
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
+        if V:
+            self.type = V.type
+        else:
+            raise exception.IDNotDeclaredException(self.lineno, self.clauseno)
     
     def getRegister(self, registersDict):
         register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getValue())

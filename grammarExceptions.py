@@ -55,6 +55,11 @@ class FunctionArgumentTypeMisMatch(SemanticException):
     def __init__( self, lineno, clauseno, value = "" ):
         super(FunctionArgumentTypeMisMatch, self).__init__(lineno, clauseno, value)
 
+class IDNotDeclaredException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(IDNotDeclaredException, self).__init__(lineno, clauseno, value)
+    
+
 ################################################################################
 # SYNTAX EXCEPTIONS
 ################################################################################
