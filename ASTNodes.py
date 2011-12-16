@@ -561,6 +561,7 @@ class InputNode(IONode):
         super(InputNode, self).__init__( INPUT, lineno, clauseno, variable )
         
     def getVariable(self):
+        print self.children[0]
         return self.children[0]
         
     def getFormatting(self, idType):        
@@ -1012,6 +1013,7 @@ class FunctionDeclarationNode(DeclarationNode):
         flags[FUNCTION].add(self.getName())
         self.setSymbolTable(symbolTable)    
         newSymbolTable = SymbolTable(symbolTable)
+        self.newSymbolTable = newSymbolTable
         self.getArguments().check(newSymbolTable, flags)
         if self.getBody():
             self.getBody().check(newSymbolTable, flags)
@@ -1023,7 +1025,7 @@ class FunctionDeclarationNode(DeclarationNode):
         # It should have no parents?, uses no registers in declaration?
         # deallocStartLabelNode = INodes.LabelNode("dealloc_start", [intermediateNode])
         # deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registersDict, deallocStartLabelNode)
-        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.symbolTable, registersDict )
+        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.newSymbolTable, registersDict )
         
         
         return reg, [intermediateNode], [intermediateNode]
