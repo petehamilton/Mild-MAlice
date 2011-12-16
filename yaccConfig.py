@@ -98,8 +98,8 @@ def p_statement_loop(p):
 
 
 def p_statement_if_either(p):
-    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list IF_OR statement_list logical_ending'
-    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
+    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list logical_clause logical_ending'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7])
 
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS L_PAREN expression R_PAREN IF_SO statement_list logical_ending'

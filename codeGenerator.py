@@ -139,22 +139,24 @@ class CodeGenerator(object):
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            # i = 0
-            # nodeDict = {}
-            # for n in intermediateNodes:
-            #     if n not in nodeDict:
-            #         nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-            #         i += 1
-            # 
-            # for i in intermediateNodes:
-            #     print nodeDict[i], [nodeDict[n] for n in i.parents]
+            #print "**************************************"
+            #i = 0
+            #nodeDict = {}
+            #for n in intermediateNodes:
+            #    if n not in nodeDict:
+            #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
+            #        i += 1
+            
+            #for i in intermediateNodes:
+            #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
+            #print "**************************************"
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
             # same assembly but uses T0,T1,T2 etc
             # Start of Temp Code Outputter
-            # for k, v in registerMap.iteritems():
-            #     registerMap[k] = "T%d"%k
+            #for k, v in registerMap.iteritems():
+            #    registerMap[k] = "T%d"%k
             # End of Temp Code Outputter
             
             return registerMap, overflowValues

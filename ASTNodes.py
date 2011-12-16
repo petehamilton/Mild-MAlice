@@ -165,23 +165,19 @@ class BinaryNode(OperatorNode):
             
             elif re.match( tokRules.t_L_EQUAL, op ):
                 intermediateNode = INodes.EqualNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_LESS_THAN, op ):
+            elif re.match( "$%s"%tokRules.t_L_LESS_THAN, op ):
+                print "Here"
                 intermediateNode = INodes.LessThanNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_LESS_THAN_EQUAL, op ):
+            elif re.match( "<=", op ):
                 intermediateNode = INodes.LessThanEqualNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_GREATER_THAN, op ):
+            elif re.match( "$%s"%tokRules.t_L_GREATER_THAN, op ):
                 intermediateNode = INodes.GreaterThanNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_GREATER_THAN_EQUAL, op ):
+            elif re.match( ">=", op ):
                 intermediateNode = INodes.GreaterThanEqualNode(destReg, nextReg, parents)
-                #destReg += 1
                 
             elif re.match( tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
@@ -528,12 +524,16 @@ class InputNode(IONode):
     def translate(self, registersDict, reg, parents):
         idType = self.getIDType(self.getVariable())
         # Incase first declaration of variable.
-        if self.getVariable() not in registersDict:
-            registersDict[self.getVariable().getValue()] = (reg, IN_REGISTER)
+        variable = self.getVariable().getValue()
+        if variable not in registersDict:
+            registersDict[variable] = (reg, IN_REGISTER)
+            register = reg
+        else:
+            register, inMemory = registersDict[variable]
         formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
-        intermediateNode = INodes.InputNode(reg, parents, formatting)
+        intermediateNode = INodes.InputNode(register, parents, formatting)
         
         return reg+1, [intermediateNode], [intermediateNode]
 
