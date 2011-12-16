@@ -242,7 +242,7 @@ class CodeGenerator(object):
              
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
-                dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
+                dataSection.append(self.indent("%s: db %s, 0" %(memoryLocation, sentence)))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])

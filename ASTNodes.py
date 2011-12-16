@@ -128,7 +128,6 @@ class BinaryNode(OperatorNode):
         if leftExpression.type == rightExpression.type == NUMBER:
             self.type = leftExpression.type
         else:
-            print "Binary Exception"
             raise exception.BinaryException(self.lineno, self.clauseno)
         
         op = self.getOperator()
@@ -242,7 +241,6 @@ class UnaryNode(OperatorNode):
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
-            print "Unary Exception"
             raise exception.UnaryException(self.lineno, self.clauseno)
         op = self.getOperator()
         if re.match("ate", op) or re.match("drank", op):
@@ -341,7 +339,6 @@ class AssignmentNode(StatementNode):
             if V.type == expr.type:
                 self.type = expr.type
             else:
-                print "Assignment Exception"
                 raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def check(self, symbolTable, flags):
@@ -385,7 +382,6 @@ class DeclarationNode(StatementNode):
         # if T == None:
             # error("Unknown Type")
         if V:
-            print "Declaration Exception"
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable, flags)
@@ -436,10 +432,36 @@ class SentenceNode(Factor):
     def __init__(self, lineno, clauseno, child ):
         super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
         self.memoryLocation = None
-        
+    
+    # Returns list of string and it's newlines
+    def newLineSplitter(self, string):
+        newline = r'"\n"'
+        newlineLen = len(newline)
+        copy = string
+        splitList = []
+        while copy!= "":
+            if newline in copy:
+                firstOccurance = copy.index(newline)
+            else:
+                firstOccurance = -1
+            if copy[0:firstOccurance]:
+                splitList.append(copy[0:firstOccurance])
+            if newline in copy:
+                splitList.append(newline)
+                copy = copy[(firstOccurance+newlineLen):-1]
+            else:
+                copy = ""
+        return splitList
+    
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
         if not self.memoryLocation:
+            split = self.newLineSplitter(self.getValue())
+#            split = self.getValue().split
+#            newLines = self.getValue().index("\n")
+#            for newline in len(newLines):
+                
+            
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
@@ -650,7 +672,6 @@ class ArrayAccessNode(ASTNode):
         # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
         
         if self.index < 0:
-            print "Array Index Out Of Bounds"
             raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
 
 class ArrayAssignmentNode(AssignmentNode):
@@ -670,7 +691,6 @@ class ArrayDeclarationNode(DeclarationNode):
     def check(self, symbolTable, flags):
         self.length.check(symbolTable, flags)
         if self.length.type != NUMBER:
-            print "Array declaration exception"
             raise exception.ArrayDeclarationException(self.lineno, self.clauseno)
         super(ArrayDeclarationNode, self).check(symbolTable, flags)
 
@@ -995,10 +1015,8 @@ class FunctionCallNode(ASTNode):
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
         self.getArguments().check(symbolTable, flags)
         if not func:
-            print "Function not in symbol table"
             raise exception.FunctionMissingException(self.lineno, self.clauseno)
         elif func.getArguments().getLength() != self.getArguments().getLength():
-            print "Function Argument Count Exception"
             raise exception.FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
             # self.relatedFunction = func

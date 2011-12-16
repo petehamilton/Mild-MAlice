@@ -51,7 +51,7 @@ def parse_code(code):
             return code
         return None
     except (e.SemanticException, e.NoMatchException, e.SyntaxException, e.LexicalException, e.DivisionByZeroException) as exception:
-        print exception.value 
+        print exception.value + " " + exception.message 
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
         sys.exit(1)
 
