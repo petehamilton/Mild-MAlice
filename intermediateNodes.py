@@ -623,8 +623,8 @@ class MallocNode(IntermediateNode):
                 "call malloc"] +
                 poppedRegs +
                 ["test rax, rax",
-                "jz malloc_failure"] +
-                ["mov %s, rax" % destReg] + [""])
+                 "mov %s, rax" % destReg,
+                "jz malloc_failure"] + [""])
 
 class DeallocNode(IntermediateNode):
     def __init__(self, arrayBaseReg, parents):
