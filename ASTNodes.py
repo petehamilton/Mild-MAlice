@@ -812,7 +812,7 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        newRegistersDict = RegisterMap(registersDict)
+        newRegistersDict = RegisterDict(registersDict)
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
         
         reg1, expressionNodes, postExpressionParents = self.getExpression().translate(newRegistersDict, reg, [loopStartLabelNode])
