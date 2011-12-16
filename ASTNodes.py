@@ -712,7 +712,7 @@ class IfNode(ConditionalNode):
             nextLogicalClause.check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-                
+        newRegistersDict = RegisterMap(registersDict)
         # Get a list of all logical sections
         logicalClause = self
         logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
@@ -742,7 +742,7 @@ class IfNode(ConditionalNode):
             expression = logicalNode.getExpression()
             if expression != None:
                 checkReg = reg
-                reg, expressionNodes, postExpressionParents = expression.translate(registersDict, reg, [startLabelNode])
+                reg, expressionNodes, postExpressionParents = expression.translate(newRegistersDict, reg, [startLabelNode])
                 trueCheckNode = INodes.JumpTrueNode(checkReg, falseLabelNode, postExpressionParents)
                 falseLabelNode.setParents([trueCheckNode])
             else:
@@ -750,9 +750,9 @@ class IfNode(ConditionalNode):
                 
             # Evaulate body
             if trueCheckNode != None:
-                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [trueCheckNode])
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [trueCheckNode])
             else:
-                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [startLabelNode])
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [startLabelNode])
             
             # End of body - jump or nothing if at end
             if falseLabelNode != endLabelNode:
