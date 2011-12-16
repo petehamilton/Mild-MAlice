@@ -92,21 +92,17 @@ t_R_PAREN = r'\)'
 t_L_EQUAL = r'=='
 t_L_LESS_THAN = r'<'
 t_L_GREATER_THAN = r'>'
-#t_L_GREATER_THAN_EQUAL = r'>='
-#t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
-#t_L_AND = r'&&'
-#t_L_OR = r'\|\|'
 t_APOSTROPHE = r'\'s'
-# t_ALICE = r'Alice'
 
 
 
-# tokens.extend(reserved.values())
 tokens = reserved.values() + tokens
+
 # A string containing ignored characters.
 t_ignore  = ' \t\r'
 
+#Define all the tokens that could be matched to another token
 @TOKEN(t_B_AND + t_B_AND)
 def t_L_AND(t):
     return t
