@@ -683,13 +683,6 @@ class ArrayAssignmentNode(AssignmentNode):
         self.setSymbolTable(symbolTable)
         self.getExpression().check(symbolTable, flags)
         self.getArrayAccess().check(symbolTable, flags)
-        # TODO: Check for type match here
-        # expr.check(symbolTable, flags)
-        # print V, expr
-        # if V.type == expr.type:
-        #     self.type = expr.type
-        # else:
-        #     raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
         arrayAccessReg = reg
@@ -732,9 +725,6 @@ class ArrayDeclarationNode(StatementNode):
         factorType = self.length.getFactorType()
         if factorType == ID:
             factorType = symbolTable.lookupCurrLevelAndEnclosingLevels(self.length.getValue()).type
-        #if factorType != NUMBER:
-            # TODO, uncomment me and make me work
-            # raise ArrayDeclarationException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
         lengthReg = reg
