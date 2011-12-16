@@ -1085,7 +1085,6 @@ class FunctionArgumentsNode(ASTNode):
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
         super(FunctionArgumentNode, self).__init__( FUNCTION_ARGUMENT, lineno, clauseno, [exp] )
-        # self.intermediateNode = None
         
     def getExpression(self):
         return self.children[0]
@@ -1101,20 +1100,10 @@ class FunctionArgumentNode(ASTNode):
         self.getExpression().check(symbolTable, flags)
         self.type = self.getExpression().type
         
-    # def translate(self, registerDict, reg, parents, refLocations, argument):
     def translate(self, registerDict, reg, parents):
-        # reference = False
         pushReg = reg
-        # exp = []
-        # if isinstance(self.getExpression(), IDNode) :
-            # pushReg = self.getExpression().getRegister(registerDict)
-        # else:
         reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
-        # if argument in refLocations:
-            # reference = True
-        # intermediateNode = INodes.FunctionArgumentNode( pushReg, parents, argument, reference )
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
-        # self.intermediateNode = intermediateNode
         return reg, (exp + [intermediateNode]), [intermediateNode]
 
 class LookingGlassNode(ASTNode):
