@@ -12,7 +12,8 @@ from codeGenerator import CodeGenerator
 import grammarExceptions as e
 from SymbolTable import SymbolTable
 
-registers = ['r%d' %r for r in range(8,16)]  + ["rbx", "rcx", "rdx", "rsi", "rdi"]
+#['r%d' %r for r in range(8,16)]  + 
+registers = ["r8", "r9", "r10", "r12", "r13", "r14", "r15", "rbx", "rcx", "rdx", "rsi", "rdi"]
 # registers = ['r%d' %r for r in range(15,16)]
 
 def run():
