@@ -95,8 +95,8 @@ t_L_GREATER_THAN = r'>'
 #t_L_GREATER_THAN_EQUAL = r'>='
 #t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
-t_L_AND = r'&&'
-t_L_OR = r'\|\|'
+#t_L_AND = r'&&'
+#t_L_OR = r'\|\|'
 t_APOSTROPHE = r'\'s'
 # t_ALICE = r'Alice'
 
@@ -106,6 +106,14 @@ t_APOSTROPHE = r'\'s'
 tokens = reserved.values() + tokens
 # A string containing ignored characters.
 t_ignore  = ' \t\r'
+
+@TOKEN(t_B_AND + t_B_AND)
+def t_L_AND(t):
+    return t
+    
+@TOKEN(t_B_OR + t_B_OR)
+def t_L_OR(t):
+    return t
 
 @TOKEN('Alice[\s\t\n]+found')
 def t_ALICE_FOUND(t):

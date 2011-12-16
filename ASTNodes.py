@@ -208,7 +208,7 @@ class LogicalSeperatorNode(BinaryNode):
             logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
             reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
-            if re.match( "%s$"%tokRules.t_L_AND, op ):
+            if re.match( "&&", op ):
                 checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
             else:
                 checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)

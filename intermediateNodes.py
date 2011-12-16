@@ -169,7 +169,7 @@ class DivNode(BinOpNode):
                  "mov rcx, %s" %nextReg,
                  "mov rdx, %d" %0,
                  "idiv rcx"] +
-                 preventBadRegisters("mov", destReg, self.regToReturn) +
+                 self.preventBadRegisters("mov", destReg, self.regToReturn) +
                self.popRegs(registersToPreserveReverse))
         
 class ModNode(DivNode):
@@ -195,9 +195,9 @@ class XORNode(BinOpNode):
 #     def alteredRegisters(self)
 #         return list(set(exp1.alteredRegisters()) & set(exp2.alteredRegisters()))
 #         
-# class AndNode(LogicalExpressionNode):
-#     def __init__(self, exp1, exp2, parents):
-#         super(AndNode, self).__init__("and", exp1, exp2, parents)          
+class AndNode(BinOpNode):
+    def __init__(self, exp1, exp2, parents):
+        super(AndNode, self).__init__("and", exp1, exp2, parents)          
         
 class LogicalOpNode(BinOpNode):
     # Could/should(?) use nested nodes instead of labels?
