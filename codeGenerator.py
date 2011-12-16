@@ -11,8 +11,6 @@ class CodeGenerator(object):
     output_int_fmt = 'outputintfmt: db "%ld", 0'
     output_char_fmt = 'outputcharfmt: db "%c", 0'
     output_string_fmt = 'outputstringfmt: db "%s", 0'
-    # int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
-    # char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
     input_int_fmt = labels.inputNumberLabel + ': db "%ld", 0' 
     input_char_fmt = labels.inputLetterLabel +': db "%c", 0'
     newline = "\n"
@@ -132,34 +130,6 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
-    
-            # print "***************************************"
-            # for n in intermediateNodes:
-            #    print n, n.parents, liveOut[n]
-            # print "***************************************"
-
-            # Code which prints out the intermediate nodes nd their parents, each
-            # with a unique number
-            # print "**************************************"
-            # i = 0
-            # nodeDict = {}
-            # for n in intermediateNodes:
-            #    if n not in nodeDict:
-            #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-            #        i += 1
-            # 
-            # for i in intermediateNodes:
-            #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
-            # print "**************************************"
-            # End of parent inspection code
-            
-            # Uncomment to generate temporary code, 
-            # same assembly but uses T0,T1,T2 etc
-            # Start of Temp Code Outputter
-            #for k, v in registerMap.iteritems():
-            #    registerMap[k] = "T%d"%k
-            # End of Temp Code Outputter
-            
             return registerMap, overflowValues
             
         def generateFinalCode(intermediateNodes, registerMap):
