@@ -626,13 +626,16 @@ class SentenceTypeNode(TypeNode):
 class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, indexExpression ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable, indexExpression] )
+    
+    def isId(self):
+        return True
+    
     # Checks that the
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable, flags)
         self.type = self.getVariable().type
         self.variableCheck(symbolTable, flags, self.getVariable())
-        # Array accessing checks done at runtime.
     
     def getValue(self):
         return self.getVariable().getValue()

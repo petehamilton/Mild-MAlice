@@ -438,8 +438,8 @@ class FunctionDeclarationNode(IntermediateNode):
         return [b.registers[0] for b in (self.body) if len(b.registers)]
     
     def generateCode(self, registerMap):
-        referenceArguments = [node.getRegister() for node in self.arguments if node.isReference()]
-        registerMap.setPushPopRegs(referenceArguments)
+        arrayArguments = [node.getRegister() for node in self.arguments if node.isArray()]
+        registerMap.setPushPopRegs(arrayArguments)
         bodyCode = []
         for body in self.body:
             bodyCode.extend(body.generateCode(registerMap))
