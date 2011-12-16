@@ -107,7 +107,6 @@ class ImmMovNode(InstructionNode):
 
     def uses(self):
         return []
-        
   
 class BinOpNode(InstructionNode):
     def __init__(self, instruction, reg1, reg2, parents):
@@ -120,7 +119,6 @@ class PossibleBinaryOverFlowNode(BinOpNode):
         
     def generateCode(self, registerMap):
         code = super(PossibleBinaryOverFlowNode, self).generateCode(registerMap)
-        # TODO Make this global somewhere?
         overFlowTest = ["jo %s" %labels.overFlowLabel]
         return code + overFlowTest
 
@@ -178,31 +176,17 @@ class OrNode(BinOpNode):
 class XORNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
         super(XORNode, self).__init__("xor", reg1, reg2, parents) 
-
-# class LogicalExpressionNode(IntermediateNode):
-#     def __init__(self, instruction, exp1, exp2, parents):
-#         super(LogicalExpressionNode, self).__init__(parents)
-#         
-#     def uses(self):
-#         return list(set(exp1.uses()) & set(exp2.uses()))
-#     
-#     def alteredRegisters(self)
-#         return list(set(exp1.alteredRegisters()) & set(exp2.alteredRegisters()))
-#         
+              
 class AndNode(BinOpNode):
     def __init__(self, exp1, exp2, parents):
         super(AndNode, self).__init__("and", exp1, exp2, parents)          
         
 class LogicalOpNode(BinOpNode):
-    # Could/should(?) use nested nodes instead of labels?
-    # Also, instruction not used really so should probably inherit from intermediateNode?
     def __init__(self, instruction, reg1, reg2, parents):
         super(LogicalOpNode, self).__init__(instruction, reg1, reg2, parents)
     
     def generateCode(self, registerMap):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
-        
-        # What happens if they're memory addresses?
         start_label = makeUniqueLabel("logical_eval_start")
         true_label = makeUniqueLabel("logical_eval_true")
         end_label = makeUniqueLabel("logical_eval_end")
@@ -245,8 +229,6 @@ class LAndNode(LogicalOpNode):
 
     def generateCode(self, registerMap):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
-    
-        # What happens if they're memory addresses?
         start_label = makeUniqueLabel("logical_eval_start")
         false_label = makeUniqueLabel("logical_eval_false")
         end_label = makeUniqueLabel("logical_eval_end")
@@ -270,7 +252,6 @@ class LOrNode(LogicalOpNode):
     def generateCode(self, registerMap):
         destReg, nextReg = map(lambda x: registerMap[x], self.registers)
     
-        # What happens if they're memory addresses?
         start_label = makeUniqueLabel("logical_eval_start")
         true_label = makeUniqueLabel("logical_eval_true")
         end_label = makeUniqueLabel("logical_eval_end")
@@ -312,7 +293,6 @@ class NotNode(UnOpNode):
     def __init__(self, reg, parents):
         super(NotNode, self).__init__("not", reg, parents)
    
-# TODO: Added on the fly, review later.
 class NegativeNode(UnOpNode):
     def __init__(self, reg, parents):
         super(NegativeNode, self).__init__("neg", reg, parents)
@@ -389,7 +369,6 @@ class SpokeNode(IntermediateNode):
     # preserves the registers which may be overwritten.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-            
         return ["push %s" %destReg,
                 "call %s" %self.printFunction,
                 "add rsp, 8"]
@@ -410,9 +389,7 @@ class InputNode(IntermediateNode):
         registersToPreserveReverse.reverse()
         return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
     
-    # BIT OF A HACK?
     def getMemoryLoc(self):
-        memoryLoc = ""
         if "char" in self.formatting:
             memoryLoc = "charinput"
         elif "int" in self.formatting:
@@ -441,6 +418,7 @@ class FunctionDeclarationNode(IntermediateNode):
         self.registers = []
         self.returnLabel = "%s_end" %name
 
+        #Set jump label in return node.
         returnCodeParents = []
         for node in (self.body):
             self.registers.extend(node.uses())
@@ -448,12 +426,12 @@ class FunctionDeclarationNode(IntermediateNode):
                node.setJumpLabel(self.returnLabel)
                returnCodeParents.append(node)
         
+        # set deallocation of any arrays created
         returnNode = FunctionReturnCode(returnCodeParents, self.returnLabel)            
         deallocStartLabelNode = LabelNode(makeUniqueLabel(labels.deallocationLabel), returnCodeParents)
         deallocNodes = generateDeallocationNodes(symbolTable, registersDict, deallocStartLabelNode)
         for node in deallocNodes:
              returnNode.addReturnInstruction(node)
-            
         self.body.append(returnNode)
             
     def defined(self):
@@ -493,8 +471,6 @@ class ReferenceMovNode(InstructionNode):
         self.registers = [reg]
         self.imm = imm
         
-    # Chosen to move into rax as it is a given in assembly that this register will
-    # get overwritten in function calls.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
         return ["mov %s, %s" %(self.imm, destReg)] 
@@ -524,14 +500,14 @@ class FunctionReturnCode(IntermediateNode):
                  "ret" ])
  
 class ArgumentNode(IntermediateNode):
-    def __init__(self, reg, parents, argNumber, reference = False ):
+    def __init__(self, reg, parents, argNumber, array = False ):
          super(ArgumentNode, self).__init__(parents)
          self.registers = [reg]
-         self.reference = reference
+         self.array = array
          self.argNumber = argNumber 
 
-    def isReference(self):
-        return self.reference
+    def isArray(self):
+        return self.array
 
     def uses(self):
         return []
@@ -547,9 +523,6 @@ class ArgumentNode(IntermediateNode):
             return ReferenceMovNode( "[reference%d]" %self.argNumber, self.getRegister(), parents)
     
     def generateCode(self, registerMap):
-        #if self.reference:
-        #    return ["mov %s, [reference%d]" %(registerMap[self.registers[0]], self.argNumber)]
-        #else:
         return [ "mov %s, [rbp + %d]" %(registerMap[self.registers[0]], (self.argNumber + 1)*8 + 8) ]
             
 class FunctionArgumentNode(IntermediateNode):
