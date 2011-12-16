@@ -1,7 +1,7 @@
 # This module contains the nodes created by the parser.
 import grammarExceptions as exception
 from SymbolTable import SymbolTable
-from RegisterMap import RegisterMap
+from RegisterDict import RegisterDict
 import tokRules
 import intermediateNodes as INodes
 import re
