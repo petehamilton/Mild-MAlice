@@ -204,26 +204,18 @@ class LogicalSeperatorNode(BinaryNode):
     def translate(self, registersDict, reg, parents):
         def translateOperation(parents):
             op = self.getOperator()
+            logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
+            reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
+            logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
             if re.match( "%s$"%tokRules.t_L_AND, op ):
-                logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
-                reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
-                logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
-                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
-                reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
-                jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
-                logicalExpressionLabelNode.setParents(parents + [jumpNode])
-                logicalExpressionEndLabelNode.setParents([jumpNode])
-               
-            elif re.match( "%s$"%tokRules.t_L_OR, op ):
-                logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
-                reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
-                logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
                 checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
-                reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
-                jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
-                logicalExpressionLabelNode.setParents(parents + [jumpNode])
-                logicalExpressionEndLabelNode.setParents([jumpNode])
-        
+            else:
+                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+            reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
+            jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
+            logicalExpressionLabelNode.setParents(parents + [jumpNode])
+            logicalExpressionEndLabelNode.setParents([jumpNode]) 
+                   
             iNodes = []
             iNodes.append(logicalExpressionLabelNode)
             iNodes += exp1
@@ -232,7 +224,7 @@ class LogicalSeperatorNode(BinaryNode):
             iNodes.append(jumpNode)
             iNodes.append(logicalExpressionEndLabelNode)
             return reg2, iNodes, [logicalExpressionEndLabelNode]
-            
+        
         reg, exp, parents = translateOperation(parents)
         return reg, exp, parents
         
@@ -789,7 +781,7 @@ class IfNode(ConditionalNode):
                 trueCheckNode = None
                 
             # Evaulate body
-            if trueCheckNode != None:
+            if trueCheckNode:
                 reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [trueCheckNode])
             else:
                 reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [startLabelNode])
@@ -805,11 +797,11 @@ class IfNode(ConditionalNode):
                 endParents.extend(postBodyParents)
             
             # Add all the nodes together into the iNodes list
-            iNodes += expressionNodes
-            if trueCheckNode != None:
+            if trueCheckNode:
+                iNodes += expressionNodes
                 iNodes.append(trueCheckNode)
             iNodes += bodyNodes
-            if jumpNode != None:
+            if jumpNode:
                 iNodes.append(jumpNode)
             iNodes.append(falseLabelNode)
             
