@@ -855,7 +855,7 @@ class IfNode(ConditionalNode):
             nextLogicalClause.check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        newRegistersDict = RegisterMap(registersDict)
+        newRegistersDict = RegisterDict(registersDict)
         # Get a list of all logical sections
         logicalClause = self
         logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
