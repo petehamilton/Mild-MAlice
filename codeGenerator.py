@@ -112,7 +112,7 @@ class CodeGenerator(object):
                 # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
                 # to be used in the setup.
                 def mapToRegisters(colors):
-                    registerMap = RegisterMap()
+                    registerMap = {}
                     overflowValues = []
                     for k, v in colors.items():
                         if v >= len(self.availableRegisters):
@@ -173,14 +173,14 @@ class CodeGenerator(object):
         functionCode = []
         functionOverflow = []
         if len(self.flags[ASTNodes.FUNCTION]):
-            reg, intermediateNodes, functionNodes, parents = node.translate( {}, 0, [] )
+            reg, intermediateNodes, functionNodes, parents = node.translate( RegisterMap(), 0, [] )
             for function in functionNodes:
                 lastReg = max(function.uses()) + 1 
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
                 functionOverflow.extend(fOverFlowValues)
         else:
-            reg, intermediateNodes, parents = node.translate( {}, 0, [] )
+            reg, intermediateNodes, parents = node.translate( RegisterMap(), 0, [] )
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish(self.flags) + functionCode

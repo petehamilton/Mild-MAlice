@@ -219,11 +219,11 @@ class UnaryNode(OperatorNode):
         def transUnOp(destReg, node, registersDict, parents):
             op = self.getOperator()
             if re.match( "ate", op ):
-                register, inMemory = registersDict[node.getValue()]
+                register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(node.getValue())
                 intermediateNode = [INodes.IncNode(register, parents)]
                 parents = intermediateNode
             elif re.match( "drank", op ):
-                register, inMemory = registersDict[node.getValue()]
+                register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(node.getValue())
                 intermediateNode = [INodes.DecNode(register, parents)]
                 parents = intermediateNode
             elif re.match( "%s$"%tokRules.t_B_NOT, op ):
@@ -316,7 +316,7 @@ class AssignmentNode(StatementNode):
         self.variableCheck(symbolTable, flags, self.getDestination())
         
     def translate(self, registersDict, reg, parents):
-        register, inMemory = registersDict[self.getVariable()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getVariable())
         if inMemory:
             self.getExpression().memoryLocation
             intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
@@ -361,9 +361,9 @@ class DeclarationNode(StatementNode):
     
     def translate( self, registersDict, reg, parents ):
         if self.getType() == SENTENCE:
-            registersDict[self.getVariable()] = (reg, IN_MEMORY)
+            registersDict.add(self.getVariable(), (reg, IN_MEMORY))
         else:
-            registersDict[self.getVariable()] = (reg, IN_REGISTER)
+            registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg+1, [], parents
 
 
@@ -425,11 +425,11 @@ class IDNode(Factor):
         self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
     
     def getRegister(self, registersDict):
-        register, inMemory = registersDict[self.getValue()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getValue())
         return register
         
     def translate(self, registersDict, reg, parents):
-        register, inMemory = registersDict[self.getValue()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getValue())
         self.register = register
         intermediateNode = INodes.MovNode(reg, register, parents)
         return reg + 1 , [intermediateNode], [intermediateNode]
@@ -521,11 +521,12 @@ class InputNode(IONode):
         idType = self.getIDType(self.getVariable())
         # Incase first declaration of variable.
         variable = self.getVariable().getValue()
-        if variable not in registersDict:
-            registersDict[variable] = (reg, IN_REGISTER)
+        V = registersDict.lookupCurrLevelAndEnclosingLevels(variable)
+        if not V:
+            registersDict.add(variable, (reg, IN_REGISTER))
             register = reg
         else:
-            register, inMemory = registersDict[variable]
+            register, inMemory = V
         formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
@@ -930,7 +931,7 @@ class ArgumentNode(ASTNode):
         self.type = self.getArgument().type
     
     def translate( self, registersDict, reg, parents, argNumber ):
-        registersDict[self.getArgument().getVariable()] = (reg, IN_REGISTER)
+        registersDict.add(self.getArgument().getVariable(), (reg, IN_REGISTER))
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.isArray )
         self.intermediateNode = intermediateNode
         return reg + 1, [intermediateNode], [intermediateNode]
@@ -1059,9 +1060,9 @@ class LookingGlassNode(ASTNode):
         self.getStatementList().check(symbolTable, flags)
         self.getReturnStatement().check(symbolTable, flags)
         
-    def translate(self, registerMap, reg, parents):
-        reg, exp1, parents = self.getStatementList().translate(registerMap, reg, parents)
-        reg, exp2, parents = self.getReturnStatement().translate(registerMap, reg, parents)
+    def translate(self, registersDict, reg, parents):
+        reg, exp1, parents = self.getStatementList().translate(registersDict, reg, parents)
+        reg, exp2, parents = self.getReturnStatement().translate(registersDict, reg, parents)
         return reg, (exp1+ exp2), parents
 
 
