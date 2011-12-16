@@ -452,6 +452,7 @@ class FunctionDeclarationNode(IntermediateNode):
         deallocStartLabelNode = LabelNode(makeUniqueLabel(labels.deallocationLabel), returnCodeParents)
         deallocNodes = generateDeallocationNodes(symbolTable, registersDict, deallocStartLabelNode)
         for node in deallocNodes:
+             self.registers.extend(node.uses())
              returnNode.addReturnInstruction(node)
             
         self.body.append(returnNode)
