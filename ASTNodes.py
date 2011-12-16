@@ -697,7 +697,7 @@ class ArrayAccessNode(ASTNode):
         self.variableCheck(symbolTable, flags, self.getVariable())
         
     def translate(self, registersDict, reg, parents):
-        baseRegister, inMemory = registersDict[self.getVariable().getValue()]
+        baseRegister, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getVariable().getValue())
         destReg = reg
         reg, indexINodes, indexParents = self.getIndexExpression().translate(registersDict, destReg, parents)
         arrayAccessNode = INodes.ArrayAccessNode(destReg, baseRegister, destReg, indexParents)
@@ -777,7 +777,7 @@ class ArrayDeclarationNode(StatementNode):
         lengthReg = reg
         reg, lengthNodes, lengthParents = self.length.translate(registersDict, reg, parents)
         mallocNode = INodes.MallocNode(reg, parents, lengthReg)
-        registersDict[self.getVariable()] = (reg, IN_REGISTER)
+        registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg + 1, lengthNodes + [mallocNode], [mallocNode]
 
 

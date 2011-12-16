@@ -695,7 +695,7 @@ def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
     lastINode = [startLabelNode]
     for var, decNode in symbolTable.dictionary.iteritems():
         if decNode.getNodeType() == ASTNodes.ARRAY_DEC:
-            reg, inMem = registerDict[var]
+            reg, inMem = registerDict.lookupCurrLevelOnly(var)
             deallocNode = DeallocNode(reg, lastINode)
             deallocNodes.append(deallocNode)
             lastINode = [deallocNode]

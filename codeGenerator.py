@@ -172,19 +172,19 @@ class CodeGenerator(object):
             
         functionCode = []
         functionOverflow = []
-        registerDict = {}
+        rmap = RegisterMap()
         if len(self.flags[ASTNodes.FUNCTION]):
-            reg, intermediateNodes, functionNodes, parents = node.translate( RegisterMap(), 0, [] )
+            reg, intermediateNodes, functionNodes, parents = node.translate( rmap, 0, [] )
             for function in functionNodes:
                 lastReg = max(function.uses()) + 1 
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
                 functionOverflow.extend(fOverFlowValues)
         else:
-            reg, intermediateNodes, parents = node.translate( registerDict, 0, [] )
+            reg, intermediateNodes, parents = node.translate( rmap, 0, [] )
         
         deallocStartLabel = INodes.LabelNode("deallocate_start", [intermediateNodes[-1]])
-        deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registerDict, deallocStartLabel)
+        deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, rmap, deallocStartLabel)
         
         if len(deallocNodes) > 2:
             self.flags[ASTNodes.ARRAY_DEC] = True
