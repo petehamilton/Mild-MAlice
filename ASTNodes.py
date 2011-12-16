@@ -53,6 +53,7 @@ IN_REGISTER = False
 ################################################################################
 # MAIN AST NODE
 ################################################################################
+# Base class for all other AST Nodes.
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
         self.nodeType = nodeType
@@ -67,7 +68,8 @@ class ASTNode(object):
         
     def getNodeType(self):
         return self.nodeType
-
+        
+    # Returns string representation of Node. Useful for debugging.
     def __str__(self):
         return "%s(%s,%r,%s,%s)" % (self.__class__.__name__, self.nodeType,self.lineno,self.clauseno,self.children)
     
@@ -127,12 +129,14 @@ class BinaryNode(OperatorNode):
         leftExpression.check(symbolTable, flags)
         rightExpression.check(symbolTable, flags)
         
+        # Check that we're only using binary operators on numbers.
         if leftExpression.type == rightExpression.type == NUMBER:
             self.type = leftExpression.type
         else:
             raise exception.BinaryException(self.lineno, self.clauseno)
         
         op = self.getOperator()
+        # Set the flags for integer overflow and division by zero
         if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
             flags[BINARY_OP].add(('%s' %labels.overFlowLabel))
         elif re.match( tokRules.t_DIVIDE, op ) or re.match( tokRules.t_MOD, op ):
@@ -182,12 +186,6 @@ class BinaryNode(OperatorNode):
                 
             elif re.match( "%s$"%tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
-                
-            # elif re.match( "%s$"%tokRules.t_L_AND, op ):
-            #                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-            #                
-            #            elif re.match( "%s$"%tokRules.t_L_OR, op ):
-            #                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -202,20 +200,19 @@ class LogicalSeperatorNode(BinaryNode):
     def __init__(self, lineno, clauseno, operator, children ):
         super(LogicalSeperatorNode, self).__init__( lineno, clauseno, operator, children )
     
+    # translate evaluates the left and side of the logical and/or. Performs lazy evaluation.
+    # For and if the left hand side fails does not evaluate the right.
+    # For or if the left hand side evaluates to true then doesn't evaluate the right.
     def translate(self, registersDict, reg, parents):
         def translateOperation(parents):
             op = self.getOperator()
             logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
             logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
-            
-            
             reg1, exp1, leftParents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             if re.match( "&&", op ):
                 checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, leftParents)
             else:
                 checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, leftParents)
-                
-                
             reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, [checkNode] + parents + [logicalExpressionLabelNode])
             logicalExpressionEndLabelNode.setParents([checkNode] + parents) 
                    
@@ -277,8 +274,6 @@ class UnaryNode(OperatorNode):
         reg, exp2, parents = transUnOp( reg, self.getExpression(), registersDict, parents )
         return reg, exp2, parents
         
-        
-
 
 ################################################################################
 # STATEMENT/STATEMENT LIST NODES
@@ -314,13 +309,10 @@ class StatementNode(ASTNode):
     def getExpression(self):
         return self.children[1]
 
-
-
 ################################################################################
 # VARIABLE MODIFIER NODES - Assignment and declaration for id
 ################################################################################
 
-#TODO: Maybe not dest, use something more appropriate
 class AssignmentNode(StatementNode):
     def __init__(self, lineno, clauseno, dest, expression ):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [dest, expression] )
@@ -331,6 +323,8 @@ class AssignmentNode(StatementNode):
     def getExpression(self):
         return self.children[1]
         
+    # Checks that we've declared the variable and that the expression it's being assigned
+    # to is of the right type.
     def variableCheck(self, symbolTable, flags, variable):
         expr = self.getExpression()
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(variable)
@@ -355,6 +349,7 @@ class AssignmentNode(StatementNode):
             intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
             return reg, [intermediateNode], [intermediateNode]
         else:
+            # Optimisation to do an immediate move of a primative type.
             if isinstance(self.getExpression(), NumberNode) or isinstance(self.getExpression(), LetterNode):
                 intermediateNode = INodes.ImmMovNode( register, self.getExpression().getValue(), parents)
                 returnExp = [intermediateNode]
@@ -369,21 +364,18 @@ class AssignmentNode(StatementNode):
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
-        
-    
+
     def getVariable(self):    
         return self.children[0]
         
-    # Returns type node's type.
     def getType(self):
         return self.children[1].getType()
-
+    
+    # Checks that we haven't already declared the variable in the current
+    # scope.
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
         V = symbolTable.lookupCurrLevelOnly(self.getVariable())
-        # if T == None:
-            # error("Unknown Type")
         if V:
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
@@ -397,7 +389,6 @@ class DeclarationNode(StatementNode):
         else:
             registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg+1, [], parents
-
 
 ################################################################################
 # FACTOR/PRIMATIVE NODES
@@ -413,6 +404,9 @@ class Factor(ASTNode):
     
     def getValue(self):
         return self.children[0]
+    
+    def isId(self):
+        return False
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -436,35 +430,10 @@ class SentenceNode(Factor):
         super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
         self.memoryLocation = None
     
-    # Returns list of string and it's newlines
-    def newLineSplitter(self, string):
-        newline = r'"\n"'
-        newlineLen = len(newline)
-        copy = string
-        splitList = []
-        while copy!= "":
-            if newline in copy:
-                firstOccurance = copy.index(newline)
-            else:
-                firstOccurance = -1
-            if copy[0:firstOccurance]:
-                splitList.append(copy[0:firstOccurance])
-            if newline in copy:
-                splitList.append(newline)
-                copy = copy[(firstOccurance+newlineLen):-1]
-            else:
-                copy = ""
-        return splitList
-    
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
         if not self.memoryLocation:
             split = self.newLineSplitter(self.getValue())
-#            split = self.getValue().split
-#            newLines = self.getValue().index("\n")
-#            for newline in len(newLines):
-            
-            
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
@@ -478,6 +447,10 @@ class IDNode(Factor):
         super(IDNode, self).__init__( ID, lineno, clauseno, child )
         self.register = None
     
+    def isId(self):
+        return True
+    
+    # checks that the id is in scope.
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
@@ -519,25 +492,23 @@ class IONode(ASTNode):
             idType = NUMBER
         return idType
 
-
-        
-
 class SpokeNode(IONode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, child )
     
     def getExpression(self):
         return self.children[0]
-        
+    
+    # Sets the right function call for the id type.
     def getPrintFunction(self, idType):        
         formatting = ""
         if idType == NUMBER:
-            formatting = labels.printNumberLabel
+            printFunction = labels.printNumberLabel
         elif idType == LETTER:
-            formatting = labels.printLetterLabel
-        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = labels.printSentenceLabel
-        return formatting
+            printFunction = labels.printLetterLabel
+        elif idType == SENTENCE:
+            printFunction = labels.printSentenceLabel
+        return printFunction
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -549,9 +520,7 @@ class SpokeNode(IONode):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)    
         idType = self.getIDType(self.getExpression())
-        # formatting = "output" + self.getFormatting(idType)
         functionCall = self.getPrintFunction(idType)
-        # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, functionCall)
         return reg1, exp + [intermediateNode], [intermediateNode]
 
@@ -573,7 +542,10 @@ class InputNode(IONode):
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
+        if not self.getVariable().isId():
+            raise exception.InputNonIDException(self.lineno, self.clauseno)
         self.setSymbolTable(symbolTable)
+
         idType = self.getIDType(self.getVariable())
         flags[INPUT].add(idType)
         self.getVariable().check(symbolTable, flags)
