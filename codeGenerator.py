@@ -183,7 +183,7 @@ class CodeGenerator(object):
         else:
             reg, intermediateNodes, parents = node.translate( rmap, 0, [] )
         
-        deallocStartLabel = INodes.LabelNode("deallocate_start", [intermediateNodes[-1]])
+        deallocStartLabel = INodes.LabelNode(labels.deallocationLabel, [intermediateNodes[-1]])
         deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, rmap, deallocStartLabel)
         
         if len(deallocNodes) > 2:
@@ -347,7 +347,7 @@ class CodeGenerator(object):
                 runTimeErrors.extend(code)
             return runTimeErrors
                         
-        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
+        finishLine = [self.indent("call %s" %labels.osReturnLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
         deallocationCode = ["%s:" %labels.deallocationLabel]
