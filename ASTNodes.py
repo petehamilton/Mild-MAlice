@@ -719,12 +719,8 @@ class ArrayDeclarationNode(StatementNode):
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
         V = symbolTable.lookupCurrLevelOnly(self.getVariable())
-        # if T == None:
-            # error("Unknown Type")
         if V:
-            print "Declaration Exception"
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable, flags)
@@ -734,8 +730,7 @@ class ArrayDeclarationNode(StatementNode):
         factorType = self.length.getFactorType()
         if factorType == ID:
             factorType = symbolTable.lookupCurrLevelAndEnclosingLevels(self.length.getValue()).type
-        if factorType != NUMBER:
-            print "Array declaration exception"
+        #if factorType != NUMBER:
             # TODO, uncomment me and make me work
             # raise ArrayDeclarationException(self.lineno, self.clauseno)
     
@@ -779,19 +774,14 @@ class LoopNode(ConditionalNode):
     def translate(self, registersDict, reg, parents):
         newRegistersDict = RegisterDict(registersDict)
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
-        
         reg1, expressionNodes, postExpressionParents = self.getExpression().translate(newRegistersDict, reg, [loopStartLabelNode])
-        
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
-        
         falseCheckNode = INodes.JumpTrueNode(reg, loopEndLabelNode, postExpressionParents)
-        
         reg2, bodyNodes, postBodyParents = self.getBody().translate(newRegistersDict, reg1, [falseCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
         loopStartLabelNode.setParents(parents +[jumpNode])
         loopEndLabelNode.setParents([jumpNode])
-        
         
         iNodes = []
         iNodes.append(loopStartLabelNode)
@@ -810,9 +800,9 @@ class IfNode(ConditionalNode):
     
     def getLogicalClauses(self):
         return self.children[2]
-
+    
+    # Checks if node it's self and all it's logical clauses.
     def check(self, symbolTable, flags):
-        self.setSymbolTable(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         super(IfNode, self).check(newSymbolTable, flags)
         nextLogicalClause = self.getLogicalClauses();
