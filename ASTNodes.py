@@ -630,7 +630,6 @@ class ArrayAccessNode(ASTNode):
     def isId(self):
         return True
     
-    # Checks that the
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable, flags)
