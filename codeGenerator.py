@@ -1,5 +1,6 @@
 import re
 import tokRules
+import labels
 import ASTNodes
 import intermediateNodes as INodes
 from RegisterMap import RegisterMap
@@ -9,10 +10,10 @@ class CodeGenerator(object):
     output_int_fmt = 'outputintfmt: db "%ld", 0'
     output_char_fmt = 'outputcharfmt: db "%c", 0'
     output_string_fmt = 'outputstringfmt: db "%s", 0'
-    int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
-    char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
-    input_int_fmt = 'inputintfmt: db "%ld", 0'
-    input_char_fmt = 'inputcharfmt: db "%c", 0'
+    # int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
+    # char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
+    input_int_fmt = labels.inputNumberLabel + ': db "%ld", 0' 
+    input_char_fmt = labels.inputLetterLabel +': db "%c", 0'
     newline = "\n"
     
     def __init__(self, symbolTable, registers, flags):
@@ -111,7 +112,7 @@ class CodeGenerator(object):
                 # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
                 # to be used in the setup.
                 def mapToRegisters(colors):
-                    registerMap = RegisterMap()
+                    registerMap = {}
                     overflowValues = []
                     for k, v in colors.items():
                         if v >= len(self.availableRegisters):
@@ -138,24 +139,24 @@ class CodeGenerator(object):
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            i = 0
-            nodeDict = {}
-            for n in intermediateNodes:
-                print [v for k, v in nodeDict.iteritems()]
-                if n not in nodeDict:
-                    nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-                    i += 1
+            #print "**************************************"
+            #i = 0
+            #nodeDict = {}
+            #for n in intermediateNodes:
+            #    if n not in nodeDict:
+            #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
+            #        i += 1
             
-            for i in intermediateNodes:
-                print nodeDict[i], [nodeDict[n] for n in i.parents]
+            #for i in intermediateNodes:
+            #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
+            #print "**************************************"
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
             # same assembly but uses T0,T1,T2 etc
             # Start of Temp Code Outputter
-            # print registerMap
-            # for k, v in registerMap.iteritems():
-            #     registerMap[k] = "T%d(%s)"%(k, registerMap[k])
+            #for k, v in registerMap.iteritems():
+            #    registerMap[k] = "T%d"%k
             # End of Temp Code Outputter
             
             return registerMap, overflowValues
@@ -173,7 +174,7 @@ class CodeGenerator(object):
         functionOverflow = []
         registerDict = {}
         if len(self.flags[ASTNodes.FUNCTION]):
-            reg, intermediateNodes, functionNodes, parents = node.translate( registerDict, 0, [] )
+            reg, intermediateNodes, functionNodes, parents = node.translate( RegisterMap(), 0, [] )
             for function in functionNodes:
                 lastReg = max(function.uses()) + 1 
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
@@ -193,76 +194,70 @@ class CodeGenerator(object):
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
         
-        return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish() + functionCode
+        return self.setup(overflowValues + functionOverflow) + map(self.indent, finalCode) + self.finish(self.flags) + functionCode
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
+        def getDataSection():
+            code = set()
+            if ASTNodes.SPOKE in self.flags:
+                for printType in self.flags[ASTNodes.SPOKE]:
+                    if printType == ASTNodes.LETTER:     
+                        code.add(self.indent(self.output_char_fmt))
+                    elif printType == ASTNodes.NUMBER:
+                        code.add(self.indent(self.output_int_fmt))
+                    elif printType == ASTNodes.SENTENCE:
+                        code.add(self.indent(self.output_string_fmt))
+            if ASTNodes.INPUT in self.flags:
+                for printType in self.flags[ASTNodes.INPUT]:
+                    if printType == ASTNodes.LETTER:
+                        code.add(self.indent(self.input_char_fmt))
+                    elif printType == ASTNodes.NUMBER:
+                        code.add(self.indent(self.input_int_fmt))
+            if ASTNodes.BINARY_OP in self.flags:
+                for label in self.flags[ASTNodes.BINARY_OP]:
+                    name, message = labels.overFlowMessageDict[label]
+                    code.add(self.indent('%s: db "%s", 0' %(name, message)))
+                    code.add(self.indent(self.output_string_fmt))
+            if ASTNodes.UNARY_OP in self.flags:
+                for label in self.flags[ASTNodes.UNARY_OP]:
+                    name, message = labels.overFlowMessageDict[label]
+                    code.add(self.indent('%s: db "%s", 0' %(name, message)))
+                    code.add(self.indent(self.output_string_fmt))
+            return list(code)
+            
+            
+        
         externSection = []
         dataSection = []
         bssSection = []
         globalSection = []
         textSection = []
         
-        # Hashing values for efficiency to check they aren't redefined.
-        inDataSection = {}        
-        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags):
+        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in self.flags or ASTNodes.UNARY_OP in self.flags):
             externSection.extend(["extern printf", "extern fflush"])
         
-        # if (ASTNodes.INPUT in self.flags or ASTNodes.FUNCTION in self.flags):
-        #             bssSection.append("section .bss")
-        
-        if (ASTNodes.SPOKE in self.flags or ASTNodes.INPUT in self.flags or ASTNodes.SENTENCE in self.flags):
+        dataCode = getDataSection()
+        if len(dataCode):
             dataSection.append("section .data")
-            
-        if ASTNodes.SPOKE in self.flags:
-            for printType in self.flags[ASTNodes.SPOKE]:
-                if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent(self.output_char_fmt))
-                    inDataSection[self.output_char_fmt] = True
-                elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent(self.output_int_fmt))
-                    inDataSection[self.output_int_fmt] = True
-                elif printType == ASTNodes.SENTENCE:
-                    dataSection.append(self.indent(self.output_string_fmt))
-                    inDataSection[self.output_string_fmt] = True
+            dataSection.extend(dataCode)
         
         if ASTNodes.ARRAY_DEC in self.flags:
             externSection.append("extern malloc")
             externSection.append("extern free")
             
         if ASTNodes.INPUT in self.flags:
-            externSection.append("extern scanf")
             bssSection.append("section .bss")
-            for printType in self.flags[ASTNodes.INPUT]:
-                if printType == ASTNodes.LETTER:
-                    if self.output_int_fmt not in inDataSection: 
-                        dataSection.append(self.indent(self.output_int_fmt))
-                elif printType == ASTNodes.NUMBER:
-                    if self.output_char_fmt not in inDataSection: 
-                        dataSection.append(self.indent(self.output_char_fmt))
-            if self.output_string_fmt not in inDataSection:
-                dataSection.append(self.indent(self.output_string_fmt))
+            externSection.append("extern scanf")
             for printType in self.flags[ASTNodes.INPUT]:
                 if printType == ASTNodes.LETTER:     
-                    dataSection.append(self.indent(self.input_char_fmt))
-                    dataSection.append(self.indent(self.char_message))
                     bssSection.append("charinput resq 1")
                 elif printType == ASTNodes.NUMBER:
-                    dataSection.append(self.indent(self.input_int_fmt))
-                    dataSection.append(self.indent(self.int_message))
                     bssSection.append("intinput resq 1")
              
         if ASTNodes.SENTENCE in self.flags:
             for memoryLocation, sentence in self.flags[ASTNodes.SENTENCE]:
-                dataSection.append(self.indent("%s: db %s, 10, 0" %(memoryLocation, sentence)))
-
-        
-        # if ASTNodes.FUNCTION in self.flags:
-        #            maxReferences = max(map(lambda (x,y):y, self.flags[ASTNodes.FUNCTION]))
-        #            # add one because maxReferences is the maximum argument position from 0.
-        #            for count in range(maxReferences + 1):
-        #                bssSection.append("reference%d resq 1" %(count))
-
+                dataSection.append(self.indent("%s: db %s, 0" %(memoryLocation, sentence)))
 
         globalSection.extend(["LINUX        equ     80H      ; interupt number for entering Linux kernel",
                               "EXIT         equ     60       ; Linux system call 1 i.e. exit ()"])
@@ -290,10 +285,78 @@ class CodeGenerator(object):
 
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
-    def finish(self):
-        return ([self.indent("call os_return		; return to operating system")] +
+    def finish(self, flags):
+        def calculateSpokeTypes(flags):
+            spokeTypes = set()
+            if ASTNodes.SPOKE in self.flags:
+                for item in self.flags[ASTNodes.SPOKE]:
+                    spokeTypes.add(item)
+            elif ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP or ASTNodes.UNARY_OP:
+                spokeTypes.add(ASTNodes.SENTENCE)
+            return list(spokeTypes)
+        
+        def makePrintFunctions():
+            spokeTypes = calculateSpokeTypes(self.flags)
+            spokeCode = []
+            IORegs = ['rsi', 'rdi', 'r8', 'r9', 'r10']
+            IORegsReverse = IORegs[0:]
+            IORegsReverse.reverse()
+            pushCode = map( lambda x: ("push %s" %x), IORegs )
+            pushCode = map(self.indent, pushCode)
+            popCode = map( lambda x: ("pop %s" %x), IORegsReverse )
+            popCode = map(self.indent, popCode)
+            startCode = map( self.indent, [ "push rbp",
+                                            "mov rbp, rsp",
+                                            "push r12", 
+                                            "mov r12, [rbp + 16]"])
+            finishCode = map(self.indent, ["pop r12", "pop rbp", "ret"] )
+            for spokeType in spokeTypes:
+                label, formatLabel, format = labels.spokeTypeDict[spokeType]
+                printCode = map(self.indent,[ "mov rsi, r12",
+                                              "mov rdi, %s"%formatLabel,
+                                              "xor rax, rax",
+                                              "call printf",
+                                              "xor rax, rax",
+                                              "call fflush"])
+                spokeCode.extend( ["%s:" %label] 
+                                + startCode
+                                + pushCode
+                                + printCode
+                                + popCode
+                                + finishCode)
+            return spokeCode
+            
+        def calculateRunTimeErrors():
+            runTimeErrors = set()
+            if ASTNodes.BINARY_OP in self.flags:
+                for label in self.flags[ASTNodes.BINARY_OP]:
+                    runTimeErrors.add(label)
+            if ASTNodes.UNARY_OP in self.flags:
+                for label in self.flags[ASTNodes.UNARY_OP]:
+                    runTimeErrors.add(label)
+            return list(runTimeErrors)
+    
+        def calculateRunTimeErrorsCode():
+            runTimeErrorLabels = calculateRunTimeErrors()
+            runTimeErrors = []
+            for label in runTimeErrorLabels:
+                name, message = labels.overFlowMessageDict[label]
+                runTimeErrors.append("%s:"%label)
+                code = [ "push %s"%name, "call %s" %labels.printSentenceLabel, "add rsp, 8",  "jmp %s" %labels.deallocationLabel]
+                code = map(self.indent, code)
+                runTimeErrors.extend(code)
+            return runTimeErrors
+                        
+        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
+        runTimeErrorsCode = calculateRunTimeErrorsCode()
+        spokeFunctionCode = makePrintFunctions()    
+        deallocationCode = ["%s:" %labels.deallocationLabel]
+        # Add deallocation code here?
+        deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
-                ["os_return:"] +
+                ["%s:"%labels.osReturnLabel] +
                 [self.indent("mov  rax, EXIT		; Linux system call 1 i.e. exit ()")] +
                 [self.indent("mov  rdi, 0		; Error code 0 i.e. no errors")] +
-                [self.indent("syscall		; Interrupt Linux kernel 64-bit")])
+                [self.indent("syscall		; Interrupt Linux kernel 64-bit")]))
+                
+        return finishLine + [self.newline] + runTimeErrorsCode + [self.newline] + spokeFunctionCode + [self.newline] + deallocationCode

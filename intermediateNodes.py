@@ -1,5 +1,6 @@
 import re
 import ASTNodes
+import labels
 ################################################################################
 # UNIQUE LABEL ID GENERATOR
 ################################################################################
@@ -112,21 +113,32 @@ class ImmMovNode(InstructionNode):
 
     def uses(self):
         return []
-    
+        
+  
 class BinOpNode(InstructionNode):
     def __init__(self, instruction, reg1, reg2, parents):
         super(BinOpNode, self).__init__(instruction, parents)  
         self.registers = [reg1, reg2]
+        
+class PossibleBinaryOverFlowNode(BinOpNode):
+    def __init__(self, instruction, reg1, reg2, parents):
+        super(PossibleBinaryOverFlowNode, self).__init__(instruction, reg1, reg2, parents)
+        
+    def generateCode(self, registerMap):
+        code = super(PossibleBinaryOverFlowNode, self).generateCode(registerMap)
+        # TODO Make this global somewhere?
+        overFlowTest = ["jo %s" %labels.overFlowLabel]
+        return code + overFlowTest
 
-class AddNode(BinOpNode):
+class AddNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(AddNode, self).__init__("add", reg1, reg2, parents)  
         
-class SubNode(BinOpNode):
+class SubNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(SubNode, self).__init__("sub", reg1, reg2, parents) 
          
-class MulNode(BinOpNode):
+class MulNode(PossibleBinaryOverFlowNode):
     def __init__(self, reg1, reg2, parents):
         super(MulNode, self).__init__("imul", reg1, reg2, parents)
           
@@ -151,7 +163,7 @@ class DivNode(BinOpNode):
             compCode = "cmp %s, 0" %nextReg
         
         return ([compCode,
-                 "jz os_return" ] +
+                 "je %s" %labels.divisionByZeroLabel] +
                 self.pushRegs(registersToPreserve) +
                 ["mov rax, %s" %destReg,
                  "mov rcx, %s" %nextReg,
@@ -172,10 +184,20 @@ class OrNode(BinOpNode):
 class XORNode(BinOpNode):
     def __init__(self, reg1, reg2, parents):
         super(XORNode, self).__init__("xor", reg1, reg2, parents) 
-         
-class AndNode(BinOpNode):
-    def __init__(self, reg1, reg2, parents):
-        super(AndNode, self).__init__("and", reg1, reg2, parents)          
+
+# class LogicalExpressionNode(IntermediateNode):
+#     def __init__(self, instruction, exp1, exp2, parents):
+#         super(LogicalExpressionNode, self).__init__(parents)
+#         
+#     def uses(self):
+#         return list(set(exp1.uses()) & set(exp2.uses()))
+#     
+#     def alteredRegisters(self)
+#         return list(set(exp1.alteredRegisters()) & set(exp2.alteredRegisters()))
+#         
+# class AndNode(LogicalExpressionNode):
+#     def __init__(self, exp1, exp2, parents):
+#         super(AndNode, self).__init__("and", exp1, exp2, parents)          
         
 class LogicalOpNode(BinOpNode):
     # Could/should(?) use nested nodes instead of labels?
@@ -275,11 +297,20 @@ class UnOpNode(InstructionNode):
         super(UnOpNode, self).__init__(instruction, parents)  
         self.registers = [reg]
         
-class IncNode(UnOpNode):
+class PossibleUnaryOverFlowNode(UnOpNode):
+    def __init__(self, instruction, reg, parents):
+        super(PossibleUnaryOverFlowNode, self).__init__(instruction, reg, parents)
+    
+    def generateCode(self, registerMap):
+        code = super(PossibleUnaryOverFlowNode, self).generateCode(registerMap)
+        overFlowTest = ["jo %s" %labels.overFlowLabel]
+        return code + overFlowTest    
+
+class IncNode(PossibleUnaryOverFlowNode):
     def __init__(self, reg, parents):
         super(IncNode, self).__init__("inc", reg, parents)
         
-class DecNode(UnOpNode):
+class DecNode(PossibleUnaryOverFlowNode):
     def __init__(self, reg, parents):
         super(DecNode, self).__init__("dec", reg, parents)
         
@@ -290,7 +321,7 @@ class NotNode(UnOpNode):
 # TODO: Added on the fly, review later.
 class NegativeNode(UnOpNode):
     def __init__(self, reg, parents):
-        super(NegativeNode, self).__init__("negative", reg, parents)
+        super(NegativeNode, self).__init__("neg", reg, parents)
 
 class LabelNode(IntermediateNode):
     def __init__(self, label, parents):
@@ -354,11 +385,26 @@ class JumpFalseNode(JumpBooleanNode):
     def __init__(self, reg, falseLabelNode, parents):
         super(JumpFalseNode, self).__init__('jne', reg, falseLabelNode, parents)
 
-class IONode(IntermediateNode):
-    def __init__(self, reg, parents, formatting):
-        super(IONode, self).__init__(parents)
+class SpokeNode(IntermediateNode):
+    def __init__(self, reg, parents, printFunction):
+        super(SpokeNode, self).__init__(parents)
+        self.printFunction = printFunction
         self.registers = [reg]
+            
+    # Puts registers in the relevant registers required for printf call and
+    # preserves the registers which may be overwritten.
+    def generateCode(self, registerMap):
+        destReg = registerMap[self.registers[0]]
+            
+        return ["push %s" %destReg,
+                "call %s" %self.printFunction,
+                "add rsp, 8"]
+
+class InputNode(IntermediateNode):
+    def __init__(self, reg, parents, formatting):
+        super(InputNode, self).__init__(parents)
         self.formatting = formatting
+        self.registers = [reg]
         self.ioRegisters = ['rsi', 'rdi', 'r8', 'r9', 'r10']
     
     def preserveRegisters(self, destReg):
@@ -369,67 +415,23 @@ class IONode(IntermediateNode):
         registersToPreserveReverse = registersToPreserve[0:]
         registersToPreserveReverse.reverse()
         return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
-
-        
-class SpokeNode(IONode):
-    def __init__(self, reg, parents, formatting):
-        super(SpokeNode, self).__init__(reg, parents, formatting)
-            
-    # Puts registers in the relevant registers required for printf call and
-    # preserves the registers which may be overwritten.
-    def generateCode(self, registerMap):
-        destReg = registerMap[self.registers[0]]
-        pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        pushDest = []
-        popDest = []
-        if destReg in self.ioRegisters:
-            pushDest = self.pushRegs([destReg])
-            popDest = self.popRegs([destReg])
-            
-        return (pushedRegs +
-                ["mov rsi, %s" %destReg] +
-                pushDest +
-                ["mov rdi, %s" %self.formatting,
-                "xor rax, rax",
-                "call printf",
-                "xor rax, rax",
-                "call fflush"] +
-                popDest +
-                poppedRegs)
-
-class InputNode(IONode):
-    def __init__(self, reg, parents, formatting):
-        super(InputNode, self).__init__(reg, parents, formatting)
     
-    def getMemoryLocAndMessageLoc(self):
+    # BIT OF A HACK?
+    def getMemoryLoc(self):
         memoryLoc = ""
-        message = self.formatting + "_message"
         if "char" in self.formatting:
             memoryLoc = "charinput"
         elif "int" in self.formatting:
             memoryLoc = "intinput"
-        return memoryLoc, message
-    
-    #TODO: TIDY THIS UP SO NOT WASTED CODE
-    
-    def printMessage(self, messageLoc):
-        pushedRegs, poppedRegs = self.preserveRegisters(None)
-        return(pushedRegs+
-                ["mov rsi, %s" %messageLoc,
-                "mov rdi, outputstringfmt",
-                "xor rax, rax",
-                "call printf"] +
-               poppedRegs)
+        return memoryLoc
                
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-        memoryLoc, messageLoc = self.getMemoryLocAndMessageLoc()
+        memoryLoc = self.getMemoryLoc()
         pushedRegs, poppedRegs = self.preserveRegisters(destReg) 
-        printMessageCode = self.printMessage(messageLoc)
-        return ( printMessageCode +
-                 pushedRegs +
+        return (pushedRegs +
                 ["mov rsi, %s" %(memoryLoc),
-                "mov rdi, %s" %("input" + self.formatting),
+                "mov rdi, %s" %(self.formatting),
                 "xor rax, rax",
                 "call scanf",
                 "mov %s, [%s]" %(destReg, memoryLoc)] +
@@ -486,8 +488,10 @@ class ReturnNode(IntermediateNode):
         self.jumpLabel = label    
     
     def generateCode(self, registerMap):
-        return ([ "mov rax, %s" %(registerMap[self.registers[0]]),
-                  "jmp %s" %self.jumpLabel])
+        moveCode = "mov rax, %s" %(registerMap[self.registers[0]])
+        if self.jumpLabel:
+            return [ moveCode, "jmp %s" %self.jumpLabel ]
+        return [moveCode]
  
 class ReferenceMovNode(InstructionNode):  
     def __init__(self, imm, reg, parents):

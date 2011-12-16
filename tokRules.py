@@ -92,8 +92,8 @@ t_R_PAREN = r'\)'
 t_L_EQUAL = r'=='
 t_L_LESS_THAN = r'<'
 t_L_GREATER_THAN = r'>'
-t_L_GREATER_THAN_EQUAL = r'>='
-t_L_LESS_THAN_EQUAL = r'<='
+#t_L_GREATER_THAN_EQUAL = r'>='
+#t_L_LESS_THAN_EQUAL = r'<='
 t_L_NOT_EQUAL = r'!='
 t_L_AND = r'&&'
 t_L_OR = r'\|\|'
@@ -115,7 +115,14 @@ def t_ALICE_FOUND(t):
 def t_FUNCTION_LOOKING_GLASS(t):
     return t
 
+@TOKEN(t_L_LESS_THAN + '=')
+def t_L_LESS_THAN_EQUAL(t):
+    return t
 
+@TOKEN(t_L_GREATER_THAN + "=")
+def t_L_GREATER_THAN_EQUAL(t):
+    return t
+    
 # A regular expression rule with some action code
 def t_NUMBER(t):
     r'\d+'

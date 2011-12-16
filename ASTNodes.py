@@ -1,10 +1,11 @@
 # This module contains the nodes created by the parser.
-# from grammarExceptions import SemanticException, BinaryException, LogicalException, UnaryException, AssignmentNullException, AssignmentTypeException, DeclarationException, ArrayIndexOutOfBoundsException, ArrayDeclarationException, FunctionMissingException, FunctionArgumentCountException
 import grammarExceptions as exception
 from SymbolTable import SymbolTable
+from RegisterMap import RegisterMap
 import tokRules
 import intermediateNodes as INodes
 import re
+import labels
 
 ################################################################################
 # NODE TYPES
@@ -129,59 +130,64 @@ class BinaryNode(OperatorNode):
         if leftExpression.type == rightExpression.type == NUMBER:
             self.type = leftExpression.type
         else:
-            print "Binary Exception"
             raise exception.BinaryException(self.lineno, self.clauseno)
+        
+        op = self.getOperator()
+        if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
+            flags[BINARY_OP].add(('%s' %labels.overFlowLabel))
+        elif re.match( tokRules.t_DIVIDE, op ) or re.match( tokRules.t_MOD, op ):
+            flags[BINARY_OP].add(('%s' %labels.divisionByZeroLabel))
     
     def translate(self, registersDict, reg, parents):
         def translateOperation(destReg, nextReg, parents):
             op = self.getOperator()
-            if re.match( tokRules.t_PLUS, op ):
+            if re.match( "%s$"%tokRules.t_PLUS, op ):
                 intermediateNode = INodes.AddNode(destReg, nextReg, parents)
             
-            elif re.match( tokRules.t_MINUS, op ):
+            elif re.match( "%s$"%tokRules.t_MINUS, op ):
                 intermediateNode = INodes.SubNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_MULTIPLY, op ):
+            elif re.match( "%s$"%tokRules.t_MULTIPLY, op ):
                 intermediateNode = INodes.MulNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_DIVIDE, op ):
+            elif re.match( "%s$"%tokRules.t_DIVIDE, op ):
                 intermediateNode = INodes.DivNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_MOD, op ):
+            elif re.match( "%s$"%tokRules.t_MOD, op ):
                 intermediateNode = INodes.ModNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_B_OR, op ):
+            elif re.match("%s$"%tokRules.t_B_OR, op ):
                 intermediateNode = INodes.OrNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_B_XOR, op ):
+            elif re.match( "%s$"%tokRules.t_B_XOR, op ):
                 intermediateNode = INodes.XORNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_B_AND, op ):
+            elif re.match( "%s$"%tokRules.t_B_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
             
-            elif re.match( tokRules.t_L_EQUAL, op ):
+            elif re.match( "%s$"%tokRules.t_L_EQUAL, op ):
                 intermediateNode = INodes.EqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_LESS_THAN, op ):
+            elif re.match( "%s$"%tokRules.t_L_LESS_THAN, op ):
                 intermediateNode = INodes.LessThanNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_LESS_THAN_EQUAL, op ):
+            elif re.match( "<=", op ):
                 intermediateNode = INodes.LessThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_GREATER_THAN, op ):
+            elif re.match( "%s$"%tokRules.t_L_GREATER_THAN, op ):
                 intermediateNode = INodes.GreaterThanNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_GREATER_THAN_EQUAL, op ):
+            elif re.match( ">=", op ):
                 intermediateNode = INodes.GreaterThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_NOT_EQUAL, op ):
+            elif re.match( "%s$"%tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_AND, op ):
-                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-                
-            elif re.match( tokRules.t_L_OR, op ):
-                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
+            # elif re.match( "%s$"%tokRules.t_L_AND, op ):
+            #                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+            #                
+            #            elif re.match( "%s$"%tokRules.t_L_OR, op ):
+            #                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -191,6 +197,38 @@ class BinaryNode(OperatorNode):
         reg, exp3, parents = translateOperation(reg, reg1, parents)
         reg = reg + (reg2 - reg1)
         return reg + 1, (exp1 + exp2 + exp3), parents
+
+class LogicalSeperatorNode(BinaryNode):
+    def __init__(self, lineno, clauseno, operator, children ):
+        super(LogicalSeperatorNode, self).__init__( lineno, clauseno, operator, children )
+    
+    def translate(self, registersDict, reg, parents):
+        def translateOperation(parents):
+            op = self.getOperator()
+            logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
+            reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
+            logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
+            if re.match( "%s$"%tokRules.t_L_AND, op ):
+                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
+            else:
+                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+            reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
+            jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
+            logicalExpressionLabelNode.setParents(parents + [jumpNode])
+            logicalExpressionEndLabelNode.setParents([jumpNode]) 
+                   
+            iNodes = []
+            iNodes.append(logicalExpressionLabelNode)
+            iNodes += exp1
+            iNodes.append(checkNode)
+            iNodes += exp2
+            iNodes.append(jumpNode)
+            iNodes.append(logicalExpressionEndLabelNode)
+            return reg2, iNodes, [logicalExpressionEndLabelNode]
+        
+        reg, exp, parents = translateOperation(parents)
+        return reg, exp, parents
+        
 
 class UnaryNode(OperatorNode):
     def __init__(self, lineno, clauseno, operator, child ):
@@ -205,27 +243,29 @@ class UnaryNode(OperatorNode):
         if self.getExpression().type == NUMBER:
             self.type = self.getExpression().type
         else:
-            print "Unary Exception"
             raise exception.UnaryException(self.lineno, self.clauseno)
+        op = self.getOperator()
+        if re.match("ate", op) or re.match("drank", op):
+            flags[UNARY_OP].add(('%s' %labels.overFlowLabel))
     
     def translate( self, registersDict, reg, parents ):
         def transUnOp(destReg, node, registersDict, parents):
             op = self.getOperator()
             if re.match( "ate", op ):
-                register, inMemory = registersDict[node.getValue()]
+                register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(node.getValue())
                 intermediateNode = [INodes.IncNode(register, parents)]
                 parents = intermediateNode
             elif re.match( "drank", op ):
-                register, inMemory = registersDict[node.getValue()]
+                register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(node.getValue())
                 intermediateNode = [INodes.DecNode(register, parents)]
                 parents = intermediateNode
-            elif re.match( tokRules.t_B_NOT, op ):
+            elif re.match( "%s$"%tokRules.t_B_NOT, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NotNode(destReg, parents)]
                 parents = intermediateNode
                 destReg = reg1
                 intermediateNode = exp + intermediateNode
-            elif re.match( tokRules.t_MINUS, op ):
+            elif re.match( "%s$"%tokRules.t_MINUS, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NegativeNode(destReg, parents)]
                 parents = intermediateNode
@@ -301,7 +341,6 @@ class AssignmentNode(StatementNode):
             if V.type == expr.type:
                 self.type = expr.type
             else:
-                print "Assignment Exception"
                 raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def check(self, symbolTable, flags):
@@ -309,7 +348,7 @@ class AssignmentNode(StatementNode):
         self.variableCheck(symbolTable, flags, self.getVariable())
         
     def translate(self, registersDict, reg, parents):
-        register, inMemory = registersDict[self.getVariable()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getVariable())
         if inMemory:
             self.getExpression().memoryLocation
             intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
@@ -345,7 +384,6 @@ class DeclarationNode(StatementNode):
         # if T == None:
             # error("Unknown Type")
         if V:
-            print "Declaration Exception"
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable, flags)
@@ -354,9 +392,9 @@ class DeclarationNode(StatementNode):
     
     def translate( self, registersDict, reg, parents ):
         if self.getType() == SENTENCE:
-            registersDict[self.getVariable()] = (reg, IN_MEMORY)
+            registersDict.add(self.getVariable(), (reg, IN_MEMORY))
         else:
-            registersDict[self.getVariable()] = (reg, IN_REGISTER)
+            registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg+1, [], parents
 
 
@@ -396,10 +434,36 @@ class SentenceNode(Factor):
     def __init__(self, lineno, clauseno, child ):
         super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
         self.memoryLocation = None
-        
+    
+    # Returns list of string and it's newlines
+    def newLineSplitter(self, string):
+        newline = r'"\n"'
+        newlineLen = len(newline)
+        copy = string
+        splitList = []
+        while copy!= "":
+            if newline in copy:
+                firstOccurance = copy.index(newline)
+            else:
+                firstOccurance = -1
+            if copy[0:firstOccurance]:
+                splitList.append(copy[0:firstOccurance])
+            if newline in copy:
+                splitList.append(newline)
+                copy = copy[(firstOccurance+newlineLen):-1]
+            else:
+                copy = ""
+        return splitList
+    
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
         if not self.memoryLocation:
+            split = self.newLineSplitter(self.getValue())
+#            split = self.getValue().split
+#            newLines = self.getValue().index("\n")
+#            for newline in len(newLines):
+                
+            
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
@@ -415,14 +479,18 @@ class IDNode(Factor):
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        self.type = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue()).type
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
+        if V:
+            self.type = V.type
+        else:
+            raise exception.IDNotDeclaredException(self.lineno, self.clauseno)
     
     def getRegister(self, registersDict):
-        register, inMemory = registersDict[self.getValue()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getValue())
         return register
         
     def translate(self, registersDict, reg, parents):
-        register, inMemory = registersDict[self.getValue()]
+        register, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getValue())
         self.register = register
         intermediateNode = INodes.MovNode(reg, register, parents)
         return reg + 1 , [intermediateNode], [intermediateNode]
@@ -450,15 +518,7 @@ class IONode(ASTNode):
             idType = NUMBER
         return idType
 
-    def getFormatting(self, idType):        
-        formatting = ""
-        if idType == NUMBER:
-            formatting = "intfmt"
-        elif idType == LETTER:
-            formatting = "charfmt"
-        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = "stringfmt"
-        return formatting
+
         
 
 class SpokeNode(IONode):
@@ -467,6 +527,16 @@ class SpokeNode(IONode):
     
     def getExpression(self):
         return self.children[0]
+        
+    def getPrintFunction(self, idType):        
+        formatting = ""
+        if idType == NUMBER:
+            formatting = labels.printNumberLabel
+        elif idType == LETTER:
+            formatting = labels.printLetterLabel
+        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
+            formatting = labels.printSentenceLabel
+        return formatting
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -478,9 +548,10 @@ class SpokeNode(IONode):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)    
         idType = self.getIDType(self.getExpression())
-        formatting = "output" + self.getFormatting(idType)
+        # formatting = "output" + self.getFormatting(idType)
+        functionCall = self.getPrintFunction(idType)
         # Should catch error here if formatting not set...
-        intermediateNode = INodes.SpokeNode(reg, parents, formatting)
+        intermediateNode = INodes.SpokeNode(reg, parents, functionCall)
         return reg1, exp + [intermediateNode], [intermediateNode]
 
 
@@ -490,6 +561,14 @@ class InputNode(IONode):
         
     def getVariable(self):
         return self.children[0]
+        
+    def getFormatting(self, idType):        
+        formatting = ""
+        if idType == NUMBER:
+            formatting = labels.inputNumberLabel
+        elif idType == LETTER:
+            formatting = labels.inputLetterLabel
+        return formatting
         
     #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
@@ -502,12 +581,17 @@ class InputNode(IONode):
     def translate(self, registersDict, reg, parents):
         idType = self.getIDType(self.getVariable())
         # Incase first declaration of variable.
-        if self.getVariable() not in registersDict:
-            registersDict[self.getVariable().getValue()] = (reg, IN_REGISTER)
+        variable = self.getVariable().getValue()
+        V = registersDict.lookupCurrLevelAndEnclosingLevels(variable)
+        if not V:
+            registersDict.add(variable, (reg, IN_REGISTER))
+            register = reg
+        else:
+            register, inMemory = V
         formatting = self.getFormatting(idType)
         
         # Should catch error here if formatting not set...
-        intermediateNode = INodes.InputNode(reg, parents, formatting)
+        intermediateNode = INodes.InputNode(register, parents, formatting)
         
         return reg+1, [intermediateNode], [intermediateNode]
 
@@ -533,7 +617,7 @@ class ReturnNode(ASTNode):
         returnReg = reg
         reg, exp, parents = self.getReturnExpression().translate(registerDict, reg, parents)
         intermediateNode = INodes.ReturnNode(returnReg, parents)
-        return reg, (exp + [intermediateNode]), parents
+        return reg, (exp + [intermediateNode]), [intermediateNode]
         
 
 
@@ -586,7 +670,6 @@ class ArrayAccessNode(ASTNode):
         # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
         
         if self.index < 0:
-            print "Array Index Out Of Bounds"
             raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
     
     def getVariable(self):
@@ -728,16 +811,16 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        
+        newRegistersDict = RegisterMap(registersDict)
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
         
-        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, [loopStartLabelNode])
+        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(newRegistersDict, reg, [loopStartLabelNode])
         
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
         
         falseCheckNode = INodes.JumpFalseNode(reg, loopEndLabelNode, postExpressionParents)
         
-        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [falseCheckNode])
+        reg2, bodyNodes, postBodyParents = self.getBody().translate(newRegistersDict, reg1, [falseCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
         loopStartLabelNode.setParents(parents +[jumpNode])
@@ -771,7 +854,7 @@ class IfNode(ConditionalNode):
             nextLogicalClause.check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-                
+        newRegistersDict = RegisterMap(registersDict)
         # Get a list of all logical sections
         logicalClause = self
         logicalClauses = self.getLogicalClauses() #instance of logicalclausesnode
@@ -801,35 +884,39 @@ class IfNode(ConditionalNode):
             expression = logicalNode.getExpression()
             if expression != None:
                 checkReg = reg
-                reg, expressionNodes, postExpressionParents = expression.translate(registersDict, reg, [startLabelNode])
+                reg, expressionNodes, postExpressionParents = expression.translate(newRegistersDict, reg, [startLabelNode])
                 trueCheckNode = INodes.JumpTrueNode(checkReg, falseLabelNode, postExpressionParents)
                 falseLabelNode.setParents([trueCheckNode])
             else:
                 trueCheckNode = None
                 
             # Evaulate body
-            if trueCheckNode != None:
-                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [trueCheckNode])
+            if trueCheckNode:
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [trueCheckNode])
             else:
-                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(registersDict, reg, [startLabelNode])
+                reg, bodyNodes, postBodyParents = logicalNode.getBody().translate(newRegistersDict, reg, [startLabelNode])
             
             # End of body - jump or nothing if at end
             if falseLabelNode != endLabelNode:
                 jumpNode = INodes.JumpNode(endLabelNode, postBodyParents)
                 endParents.append(jumpNode)
+                falseLabelNode.setParents(falseLabelNode.parents + [jumpNode])
             else:
+
                 jumpNode = None
                 endParents.extend(postBodyParents)
             
             # Add all the nodes together into the iNodes list
-            iNodes += expressionNodes
-            if trueCheckNode != None:
+            if trueCheckNode:
+                iNodes += expressionNodes
                 iNodes.append(trueCheckNode)
             iNodes += bodyNodes
-            if jumpNode != None:
+            if jumpNode:
                 iNodes.append(jumpNode)
             iNodes.append(falseLabelNode)
-        
+            
+            startLabelNode = falseLabelNode
+            
         # Set the parents of the end node to also have the end jumps from 
         # previous clauses
         endLabelNode.setParents(endLabelNode.parents + endParents)
@@ -987,7 +1074,7 @@ class ArgumentNode(ASTNode):
         self.type = self.getArgument().type
     
     def translate( self, registersDict, reg, parents, argNumber ):
-        registersDict[self.getArgument().getVariable()] = (reg, IN_REGISTER)
+        registersDict.add(self.getArgument().getVariable(), (reg, IN_REGISTER))
         intermediateNode = INodes.ArgumentNode( reg, parents, argNumber, self.isArray )
         self.intermediateNode = intermediateNode
         return reg + 1, [intermediateNode], [intermediateNode]
@@ -1014,10 +1101,8 @@ class FunctionCallNode(ASTNode):
         func = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getName())
         self.getArguments().check(symbolTable, flags)
         if not func:
-            print "Function not in symbol table"
             raise exception.FunctionMissingException(self.lineno, self.clauseno)
         elif func.getArguments().getLength() != self.getArguments().getLength():
-            print "Function Argument Count Exception"
             raise exception.FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
             # self.relatedFunction = func
@@ -1116,9 +1201,9 @@ class LookingGlassNode(ASTNode):
         self.getStatementList().check(symbolTable, flags)
         self.getReturnStatement().check(symbolTable, flags)
         
-    def translate(self, registerMap, reg, parents):
-        reg, exp1, parents = self.getStatementList().translate(registerMap, reg, parents)
-        reg, exp2, parents = self.getReturnStatement().translate(registerMap, reg, parents)
+    def translate(self, registersDict, reg, parents):
+        reg, exp1, parents = self.getStatementList().translate(registersDict, reg, parents)
+        reg, exp2, parents = self.getReturnStatement().translate(registersDict, reg, parents)
         return reg, (exp1+ exp2), parents
 
 

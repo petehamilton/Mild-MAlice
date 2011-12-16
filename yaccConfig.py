@@ -98,8 +98,8 @@ def p_statement_loop(p):
 
 
 def p_statement_if_either(p):
-    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list IF_OR statement_list logical_ending'
-    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[8])
+    'statement    : IF_EITHER L_PAREN expression R_PAREN IF_SO statement_list logical_clause logical_ending'
+    p[0] = ASTNodes.IfNode(p.lineno(2), p.clauseno(2), p[3], p[6], p[7])
 
 def p_statement_if_perhaps(p):
     'statement    : IF_PERHAPS L_PAREN expression R_PAREN IF_SO statement_list logical_ending'
@@ -185,12 +185,14 @@ def p_expression_binary(p):
                     | expression L_GREATER_THAN expression
                     | expression L_GREATER_THAN_EQUAL expression
                     | expression L_LESS_THAN_EQUAL expression
-                    | expression L_NOT_EQUAL expression
-                    | expression L_AND expression
-                    | expression L_OR expression'''
+                    | expression L_NOT_EQUAL expression'''
     p[0] = ASTNodes.BinaryNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
-
-
+    
+def p_expression_binary_and_or(p):
+    '''expression   : expression L_AND expression
+                    | expression L_OR expression'''
+    p[0] = ASTNodes.LogicalSeperatorNode(p.lineno(1), p.clauseno(1), p[2], [p[1],p[3]])
+                    
 #TODO: MOVE THESE EXPRESSIONS INTO GENERAL BINARY EXPRESSION ABOVE AND MOVE
 # DIV/0 CHECK INTO ASTNODE CHECK FUNCTION
 def p_expression_divide(p):
