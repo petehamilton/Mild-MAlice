@@ -541,7 +541,7 @@ class InputNode(IONode):
         
     def check(self, symbolTable, flags):
         if not self.getVariable().isId():
-            raise exception.InputNonIDException(self.lineno, self.clauseno)
+            raise exception.InputNonIDOrArrayPieceException(self.lineno, self.clauseno)
         self.setSymbolTable(symbolTable)
 
         idType = self.getIDType(self.getVariable())
@@ -626,19 +626,13 @@ class SentenceTypeNode(TypeNode):
 class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, indexExpression ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable, indexExpression] )
-    
-    #TODO: CHECK IF ID
+    # Checks that the
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable, flags)
         self.type = self.getVariable().type
-        
-        # Can't raise out of upper bounds exception til runtime?
-        # maybe just do all at runtime? This won't work since index is a node/factor
-        # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
-        
-        if self.index < 0:
-            raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
+        self.variableCheck(symbolTable, flags, self.getVariable())
+        # Array accessing checks done at runtime.
     
     def getValue(self):
         return self.getVariable().getValue()
@@ -648,7 +642,8 @@ class ArrayAccessNode(ASTNode):
     
     def getIndexExpression(self):
         return self.children[1]
-        
+       
+    # Checks that the array has been declared.
     def variableCheck(self, symbolTable, flags, variable):
         expr = self.getIndexExpression()
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
@@ -657,10 +652,6 @@ class ArrayAccessNode(ASTNode):
             raise exception.AssignmentNullException(self.lineno, self.clauseno)
         self.type = V.type
     
-    def check(self, symbolTable, flags):
-        self.setSymbolTable(symbolTable)
-        self.variableCheck(symbolTable, flags, self.getVariable())
-        
     def translate(self, registersDict, reg, parents):
         baseRegister, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getVariable().getValue())
         destReg = reg
