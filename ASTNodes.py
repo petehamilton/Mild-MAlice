@@ -178,17 +178,14 @@ class BinaryNode(OperatorNode):
             elif re.match( ">=", op ):
                 intermediateNode = INodes.GreaterThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_L_NOT_EQUAL, op ):
+            elif re.match( "%s$"%tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_AND, op ):
+            elif re.match( "%s$"%tokRules.t_L_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-                #destReg += 1
                 
-            elif re.match( tokRules.t_L_OR, op ):
+            elif re.match( "%s$"%tokRules.t_L_OR, op ):
                 intermediateNode = INodes.OrNode(destReg, nextReg, parents)
-                #destReg += 1
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -229,13 +226,13 @@ class UnaryNode(OperatorNode):
                 register, inMemory = registersDict[node.getValue()]
                 intermediateNode = [INodes.DecNode(register, parents)]
                 parents = intermediateNode
-            elif re.match( tokRules.t_B_NOT, op ):
+            elif re.match( "%s$"%tokRules.t_B_NOT, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NotNode(destReg, parents)]
                 parents = intermediateNode
                 destReg = reg1
                 intermediateNode = exp + intermediateNode
-            elif re.match( tokRules.t_MINUS, op ):
+            elif re.match( "%s$"%tokRules.t_MINUS, op ):
                 reg1, exp, parents = node.translate(registersDict, destReg, parents)
                 intermediateNode = [INodes.NegativeNode(destReg, parents)]
                 parents = intermediateNode
