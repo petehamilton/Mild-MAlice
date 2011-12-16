@@ -663,8 +663,8 @@ class ArrayAccessNode(ASTNode):
     #TODO: CHECK IF ID
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        self.getValue().check(symbolTable, flags)
-        self.type = self.getValue().type
+        self.getVariable().check(symbolTable, flags)
+        self.type = self.getVariable().type
         
         # Can't raise out of upper bounds exception til runtime?
         # maybe just do all at runtime? This won't work since index is a node/factor
@@ -672,6 +672,9 @@ class ArrayAccessNode(ASTNode):
         
         if self.index < 0:
             raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
+    
+    def getValue(self):
+        return self.getVariable().getValue()
     
     def getVariable(self):
         return self.children[0]
@@ -681,7 +684,7 @@ class ArrayAccessNode(ASTNode):
         
     def variableCheck(self, symbolTable, flags, variable):
         expr = self.getIndexExpression()
-        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getVariable().getValue())
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
         expr.check(symbolTable, flags)
         if not V:
             raise exception.AssignmentNullException(self.lineno, self.clauseno)
@@ -769,8 +772,11 @@ class ArrayDeclarationNode(StatementNode):
             self.children[1].check(symbolTable, flags)
             self.type = self.children[1].type
             symbolTable.add(self.getVariable(), self)
-            
-        if self.length.factorType != NUMBER:
+        
+        factorType = self.length.getFactorType()
+        if factorType == ID:
+            factorType = symbolTable.lookupCurrLevelAndEnclosingLevels(self.length.getValue()).type
+        if factorType != NUMBER:
             print "Array declaration exception"
             # TODO, uncomment me and make me work
             # raise ArrayDeclarationException(self.lineno, self.clauseno)
