@@ -310,7 +310,7 @@ class CodeGenerator(object):
             if ASTNodes.SPOKE in self.flags:
                 for item in self.flags[ASTNodes.SPOKE]:
                     spokeTypes.add(item)
-            if ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP or ASTNodes.UNARY_OP:
+            if ASTNodes.INPUT in self.flags or ASTNodes.BINARY_OP in self.flags or ASTNodes.UNARY_OP in self.flags :
                 spokeTypes.add(ASTNodes.SENTENCE)
             return list(spokeTypes)
         

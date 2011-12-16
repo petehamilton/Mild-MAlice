@@ -209,28 +209,21 @@ class LogicalSeperatorNode(BinaryNode):
             logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
             
             
-            reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
+            reg1, exp1, leftParents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             if re.match( "&&", op ):
-                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+                checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, leftParents)
             else:
-                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
+                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, leftParents)
                 
                 
-            reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
-            if re.match( "&&", op ):
-                checkNode2 = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
-            else:
-                checkNode2 = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
-            
-            logicalExpressionLabelNode.setParents(parents)
-            logicalExpressionEndLabelNode.setParents([checkNode2]) 
+            reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, [checkNode] + parents + [logicalExpressionLabelNode])
+            logicalExpressionEndLabelNode.setParents([checkNode] + parents) 
                    
             iNodes = []
             iNodes.append(logicalExpressionLabelNode)
             iNodes += exp1
             iNodes.append(checkNode)
             iNodes += exp2
-            iNodes.append(checkNode2)
             iNodes.append(logicalExpressionEndLabelNode)
             return reg2, iNodes, [logicalExpressionEndLabelNode]
         
