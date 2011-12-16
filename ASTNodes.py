@@ -53,6 +53,7 @@ IN_REGISTER = False
 ################################################################################
 # MAIN AST NODE
 ################################################################################
+# Base class for all other AST Nodes.
 class ASTNode(object):
     def __init__(self, nodeType, lineno, clauseno, children):
         self.nodeType = nodeType
@@ -67,7 +68,8 @@ class ASTNode(object):
         
     def getNodeType(self):
         return self.nodeType
-
+        
+    # Returns string representation of Node. Useful for debugging.
     def __str__(self):
         return "%s(%s,%r,%s,%s)" % (self.__class__.__name__, self.nodeType,self.lineno,self.clauseno,self.children)
     
@@ -127,12 +129,14 @@ class BinaryNode(OperatorNode):
         leftExpression.check(symbolTable, flags)
         rightExpression.check(symbolTable, flags)
         
+        # Check that we're only using binary operators on numbers.
         if leftExpression.type == rightExpression.type == NUMBER:
             self.type = leftExpression.type
         else:
             raise exception.BinaryException(self.lineno, self.clauseno)
         
         op = self.getOperator()
+        # Set the flags for integer overflow and division by zero
         if re.match( tokRules.t_PLUS, op ) or re.match( tokRules.t_MINUS, op ) or re.match( tokRules.t_MULTIPLY, op ):
             flags[BINARY_OP].add(('%s' %labels.overFlowLabel))
         elif re.match( tokRules.t_DIVIDE, op ) or re.match( tokRules.t_MOD, op ):
@@ -182,12 +186,6 @@ class BinaryNode(OperatorNode):
                 
             elif re.match( "%s$"%tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
-                
-            # elif re.match( "%s$"%tokRules.t_L_AND, op ):
-            #                intermediateNode = INodes.AndNode(destReg, nextReg, parents)
-            #                
-            #            elif re.match( "%s$"%tokRules.t_L_OR, op ):
-            #                intermediateNode = INodes.OrNode(destReg, nextReg, parents)
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -202,20 +200,19 @@ class LogicalSeperatorNode(BinaryNode):
     def __init__(self, lineno, clauseno, operator, children ):
         super(LogicalSeperatorNode, self).__init__( lineno, clauseno, operator, children )
     
+    # translate evaluates the left and side of the logical and/or. Performs lazy evaluation.
+    # For and if the left hand side fails does not evaluate the right.
+    # For or if the left hand side evaluates to true then doesn't evaluate the right.
     def translate(self, registersDict, reg, parents):
         def translateOperation(parents):
             op = self.getOperator()
             logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
             logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
-            
-            
             reg1, exp1, leftParents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             if re.match( "&&", op ):
                 checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, leftParents)
             else:
                 checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, leftParents)
-                
-                
             reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg, [checkNode] + parents + [logicalExpressionLabelNode])
             logicalExpressionEndLabelNode.setParents([checkNode] + parents) 
                    
@@ -277,8 +274,6 @@ class UnaryNode(OperatorNode):
         reg, exp2, parents = transUnOp( reg, self.getExpression(), registersDict, parents )
         return reg, exp2, parents
         
-        
-
 
 ################################################################################
 # STATEMENT/STATEMENT LIST NODES
@@ -314,13 +309,10 @@ class StatementNode(ASTNode):
     def getExpression(self):
         return self.children[1]
 
-
-
 ################################################################################
 # VARIABLE MODIFIER NODES - Assignment and declaration for id
 ################################################################################
 
-#TODO: Maybe not dest, use something more appropriate
 class AssignmentNode(StatementNode):
     def __init__(self, lineno, clauseno, dest, expression ):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [dest, expression] )
@@ -331,6 +323,8 @@ class AssignmentNode(StatementNode):
     def getExpression(self):
         return self.children[1]
         
+    # Checks that we've declared the variable and that the expression it's being assigned
+    # to is of the right type.
     def variableCheck(self, symbolTable, flags, variable):
         expr = self.getExpression()
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(variable)
@@ -355,6 +349,7 @@ class AssignmentNode(StatementNode):
             intermediateNode = INodes.ImmMovNode(register, self.getExpression().memoryLocation, parents)
             return reg, [intermediateNode], [intermediateNode]
         else:
+            # Optimisation to do an immediate move of a primative type.
             if isinstance(self.getExpression(), NumberNode) or isinstance(self.getExpression(), LetterNode):
                 intermediateNode = INodes.ImmMovNode( register, self.getExpression().getValue(), parents)
                 returnExp = [intermediateNode]
@@ -369,21 +364,18 @@ class AssignmentNode(StatementNode):
 class DeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode ):
         super(DeclarationNode, self).__init__( DECLARATION, lineno, clauseno, [variableName, typeNode] )
-        
-    
+
     def getVariable(self):    
         return self.children[0]
         
-    # Returns type node's type.
     def getType(self):
         return self.children[1].getType()
-
+    
+    # Checks that we haven't already declared the variable in the current
+    # scope.
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
         V = symbolTable.lookupCurrLevelOnly(self.getVariable())
-        # if T == None:
-            # error("Unknown Type")
         if V:
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
@@ -397,7 +389,6 @@ class DeclarationNode(StatementNode):
         else:
             registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg+1, [], parents
-
 
 ################################################################################
 # FACTOR/PRIMATIVE NODES
@@ -413,6 +404,9 @@ class Factor(ASTNode):
     
     def getValue(self):
         return self.children[0]
+    
+    def isId(self):
+        return False
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -436,35 +430,9 @@ class SentenceNode(Factor):
         super(SentenceNode, self).__init__( SENTENCE, lineno, clauseno, child )
         self.memoryLocation = None
     
-    # Returns list of string and it's newlines
-    def newLineSplitter(self, string):
-        newline = r'"\n"'
-        newlineLen = len(newline)
-        copy = string
-        splitList = []
-        while copy!= "":
-            if newline in copy:
-                firstOccurance = copy.index(newline)
-            else:
-                firstOccurance = -1
-            if copy[0:firstOccurance]:
-                splitList.append(copy[0:firstOccurance])
-            if newline in copy:
-                splitList.append(newline)
-                copy = copy[(firstOccurance+newlineLen):-1]
-            else:
-                copy = ""
-        return splitList
-    
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
         if not self.memoryLocation:
-            split = self.newLineSplitter(self.getValue())
-#            split = self.getValue().split
-#            newLines = self.getValue().index("\n")
-#            for newline in len(newLines):
-            
-            
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
@@ -478,6 +446,10 @@ class IDNode(Factor):
         super(IDNode, self).__init__( ID, lineno, clauseno, child )
         self.register = None
     
+    def isId(self):
+        return True
+    
+    # checks that the id is in scope.
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
@@ -519,25 +491,23 @@ class IONode(ASTNode):
             idType = NUMBER
         return idType
 
-
-        
-
 class SpokeNode(IONode):
     def __init__(self, lineno, clauseno, child ):
         super(SpokeNode, self).__init__( SPOKE, lineno, clauseno, child )
     
     def getExpression(self):
         return self.children[0]
-        
+    
+    # Sets the right function call for the id type.
     def getPrintFunction(self, idType):        
         formatting = ""
         if idType == NUMBER:
-            formatting = labels.printNumberLabel
+            printFunction = labels.printNumberLabel
         elif idType == LETTER:
-            formatting = labels.printLetterLabel
-        elif idType == SENTENCE: #TODO, IS THIS RIGHT?
-            formatting = labels.printSentenceLabel
-        return formatting
+            printFunction = labels.printLetterLabel
+        elif idType == SENTENCE:
+            printFunction = labels.printSentenceLabel
+        return printFunction
 
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -549,9 +519,7 @@ class SpokeNode(IONode):
         spokeExpression = self.getExpression()
         reg1, exp, parents = spokeExpression.translate(registersDict, reg, parents)    
         idType = self.getIDType(self.getExpression())
-        # formatting = "output" + self.getFormatting(idType)
         functionCall = self.getPrintFunction(idType)
-        # Should catch error here if formatting not set...
         intermediateNode = INodes.SpokeNode(reg, parents, functionCall)
         return reg1, exp + [intermediateNode], [intermediateNode]
 
@@ -563,18 +531,20 @@ class InputNode(IONode):
     def getVariable(self):
         print self.children[0]
         return self.children[0]
-        
+      
+    # returns the formatting for the call to scanf
     def getFormatting(self, idType):        
-        formatting = ""
         if idType == NUMBER:
             formatting = labels.inputNumberLabel
         elif idType == LETTER:
             formatting = labels.inputLetterLabel
         return formatting
         
-    #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
+        if not self.getVariable().isId():
+            raise exception.InputNonIDOrArrayPieceException(self.lineno, self.clauseno)
         self.setSymbolTable(symbolTable)
+
         idType = self.getIDType(self.getVariable())
         flags[INPUT].add(idType)
         self.getVariable().check(symbolTable, flags)
@@ -686,18 +656,15 @@ class ArrayAccessNode(ASTNode):
     def __init__(self, lineno, clauseno, variable, indexExpression ):
         super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable, indexExpression] )
     
-    #TODO: CHECK IF ID
+    def isId(self):
+        return True
+    
+    # Checks that the
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getVariable().check(symbolTable, flags)
         self.type = self.getVariable().type
-        
-        # Can't raise out of upper bounds exception til runtime?
-        # maybe just do all at runtime? This won't work since index is a node/factor
-        # maybe (index.getFactorType() == NUMBER and self.index.getValue() < 0)
-        
-        if self.index < 0:
-            raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
+        self.variableCheck(symbolTable, flags, self.getVariable())
     
     def getValue(self):
         return self.getVariable().getValue()
@@ -707,7 +674,8 @@ class ArrayAccessNode(ASTNode):
     
     def getIndexExpression(self):
         return self.children[1]
-        
+       
+    # Checks that the array has been declared.
     def variableCheck(self, symbolTable, flags, variable):
         expr = self.getIndexExpression()
         V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getValue())
@@ -716,10 +684,6 @@ class ArrayAccessNode(ASTNode):
             raise exception.AssignmentNullException(self.lineno, self.clauseno)
         self.type = V.type
     
-    def check(self, symbolTable, flags):
-        self.setSymbolTable(symbolTable)
-        self.variableCheck(symbolTable, flags, self.getVariable())
-        
     def translate(self, registersDict, reg, parents):
         baseRegister, inMemory = registersDict.lookupCurrLevelAndEnclosingLevels(self.getVariable().getValue())
         destReg = reg
@@ -787,12 +751,8 @@ class ArrayDeclarationNode(StatementNode):
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        # T = symbolTable.lookupCurrLevelAndEnclosingLevels(self.type)
         V = symbolTable.lookupCurrLevelOnly(self.getVariable())
-        # if T == None:
-            # error("Unknown Type")
         if V:
-            print "Declaration Exception"
             raise exception.DeclarationException(self.lineno, self.clauseno)
         else:   
             self.children[1].check(symbolTable, flags)
@@ -802,8 +762,7 @@ class ArrayDeclarationNode(StatementNode):
         factorType = self.length.getFactorType()
         if factorType == ID:
             factorType = symbolTable.lookupCurrLevelAndEnclosingLevels(self.length.getValue()).type
-        if factorType != NUMBER:
-            print "Array declaration exception"
+        #if factorType != NUMBER:
             # TODO, uncomment me and make me work
             # raise ArrayDeclarationException(self.lineno, self.clauseno)
     
@@ -847,19 +806,14 @@ class LoopNode(ConditionalNode):
     def translate(self, registersDict, reg, parents):
         newRegistersDict = RegisterDict(registersDict)
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
-        
         reg1, expressionNodes, postExpressionParents = self.getExpression().translate(newRegistersDict, reg, [loopStartLabelNode])
-        
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
-        
         falseCheckNode = INodes.JumpTrueNode(reg, loopEndLabelNode, postExpressionParents)
-        
         reg2, bodyNodes, postBodyParents = self.getBody().translate(newRegistersDict, reg1, [falseCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
         loopStartLabelNode.setParents(parents +[jumpNode])
         loopEndLabelNode.setParents([jumpNode])
-        
         
         iNodes = []
         iNodes.append(loopStartLabelNode)
@@ -878,9 +832,9 @@ class IfNode(ConditionalNode):
     
     def getLogicalClauses(self):
         return self.children[2]
-
+    
+    # Checks if node it's self and all it's logical clauses.
     def check(self, symbolTable, flags):
-        self.setSymbolTable(symbolTable)
         newSymbolTable = SymbolTable(symbolTable)
         super(IfNode, self).check(newSymbolTable, flags)
         nextLogicalClause = self.getLogicalClauses();
@@ -903,7 +857,6 @@ class IfNode(ConditionalNode):
         #Iterate over the logical sections
         numLogicalNodes = len(logicalNodes)
         endParents = []
-        
         startLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_start"), parents)
         endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_end"), [])
         
@@ -963,8 +916,6 @@ class ElseIfNode(ConditionalNode):
     def getLogicalClauses(self):
         return None
 
-# Some way to inherit this from conditionalNode as well? Although I suppose it's
-# not that conditional in that there is no logical check?
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
@@ -991,15 +942,14 @@ class LogicalClausesNode(ASTNode):
 
     def getLogicalClauses(self):
         return self.children[1]
-
+        
+    # Checks its logical clause and recurses on the rest of logical clauses
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getLogicalClause().check(symbolTable, flags)
-        
         logicalClauses = self.getLogicalClauses();
-        if logicalClauses != None:
+        if logicalClauses:
             logicalClauses.check(symbolTable, flags)
-
 
 
 ################################################################################
@@ -1021,20 +971,14 @@ class FunctionDeclarationNode(DeclarationNode):
     def getBody(self):
         return self.body
         
-    # def getArrayLocations(self):
-    #     return self.getArguments().getArrayLocations(0)
-    
     def getReturnType(self):
         return self.children[1]
     
-    # TODO CHECK RETURN VALUE SAME AS RETURN TYPE
+    # Checks that the function has been declared.
+    # Adds the function name to the flags and creates a new symbol table for the function.
+    # Then recursively checks the arguments.
     def check(self, symbolTable, flags):    
         super(FunctionDeclarationNode, self).check(symbolTable, flags)
-        # referenceCount = 0
-        #    referenceLocations = self.getReferenceLocations()
-        #    if len(referenceLocations):
-        #        referenceCount = max(referenceLocations)
-        # flags[FUNCTION].add((self.getName(), referenceCount))
         flags[FUNCTION].add(self.getName())
         self.setSymbolTable(symbolTable)    
         newSymbolTable = SymbolTable(symbolTable)
@@ -1042,17 +986,11 @@ class FunctionDeclarationNode(DeclarationNode):
         self.getArguments().check(newSymbolTable, flags)
         if self.getBody():
             self.getBody().check(newSymbolTable, flags)
-        # self.getReturnValue().check(newSymbolTable)
         
     def translate( self, registersDict, reg, parents ):
         reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [], 0)
         reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [argsExp[-1]])
-        # It should have no parents?, uses no registers in declaration?
-        # deallocStartLabelNode = INodes.LabelNode("dealloc_start", [intermediateNode])
-        # deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registersDict, deallocStartLabelNode)
-        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.newSymbolTable, registersDict )
-        
-        
+        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.symbolTable, registersDict )
         return reg, [intermediateNode], [intermediateNode]
 
 class ArgumentsNode(ASTNode):
@@ -1067,12 +1005,10 @@ class ArgumentsNode(ASTNode):
 
     def getLength(self):
         return 1 + self.getArguments().getLength() 
-    
+        
+    # Returns list of arguments
     def toList(self):
           return self.getArgument().toList() + self.getArguments().toList()
-    
-    # def getArrayLocations(self, position):
-    #        return self.getArgument().getArrayLocations(position) + self.getArguments().getArrayLocations(position+1)
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -1085,8 +1021,6 @@ class ArgumentsNode(ASTNode):
         reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents, argNumber+1)
         return reg, (exp1 + exp2), parents
         
-    
-
 class ArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, argumentDeclaration, array = False):
         super(ArgumentNode, self).__init__( ARGUMENT, lineno, clauseno, [argumentDeclaration])
@@ -1098,14 +1032,10 @@ class ArgumentNode(ASTNode):
     
     def getLength(self):
         return 1
-        
+    
+    # Returns a list of the arguments    
     def toList(self):
         return [self]
-    # def getArrayLocations(self, position):
-    #         if self.reference:
-    #             return [position]
-    #         else:
-    #             return []
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -1119,7 +1049,6 @@ class ArgumentNode(ASTNode):
         return reg + 1, [intermediateNode], [intermediateNode]
 
 
-
 ################################################################################
 # FUNCTION CALL NODES
 ################################################################################
@@ -1127,13 +1056,13 @@ class ArgumentNode(ASTNode):
 class FunctionCallNode(ASTNode):
     def __init__(self, lineno, clauseno, functionName, arguments):
         super(FunctionCallNode, self).__init__( FUNCTION_CALL, lineno, clauseno, [functionName, arguments] )
-        # self.relatedFunction = None
         
     def getName(self):
         return self.children[0]
         
     def getArguments(self):
         return self.children[1]
+        
         
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -1144,7 +1073,7 @@ class FunctionCallNode(ASTNode):
         elif func.getArguments().getLength() != self.getArguments().getLength():
             raise exception.FunctionArgumentCountException(self.lineno, self.clauseno)
         else:
-            # self.relatedFunction = func
+            # Checks function arguments are the same type
             for passingArg, functionArg in zip(self.getArguments().toList(), func.getArguments().toList()):
                 if not passingArg.type == functionArg.type:
                     raise exception.FunctionArgumentTypeMisMatch(self.lineno, self.clauseno)
@@ -1153,9 +1082,7 @@ class FunctionCallNode(ASTNode):
     def translate(self, registerDict, reg, parents):
         argumentReg = reg
         reg, exp, parents = self.getArguments().translate(registerDict, reg, parents)
-        # reg, exp, parents = self.getArguments().translate(registerDict, reg, parents, self.relatedFunction.getArrayLocations(), 0)
         registersPushed = self.getArguments().getLength()
-        #intermediateNode = INodes.FunctionCallNode( argumentReg, parents, registersPushed, self.getName(), self.getArguments().toList())
         intermediateNode = INodes.FunctionCallNode(argumentReg, parents, registersPushed, self.getName())
         return reg, (exp + [intermediateNode]), [intermediateNode]
         
@@ -1181,19 +1108,16 @@ class FunctionArgumentsNode(ASTNode):
         if self.getArguments():
             self.getArguments().check(symbolTable, flags)
     
+    # Translates argument before arguments so gets pushed in reverse order.
     def translate(self, registersDict, reg, parents):        
-    # def translate(self, registersDict, reg, parents, refLocations, argument):
-        # reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents, refLocations, argument+1)
-        # reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents, refLocations, argument)
-        reg, exp2, parents = self.getArguments().translate(registersDict, reg, parents)
-        reg, exp1, parents = self.getArgument().translate(registersDict, reg, parents)
-        return reg, (exp2 + exp1), parents #exp2 + exp1 so that arguments get pushed in reverse order.
+        reg, exp1, parents = self.getArguments().translate(registersDict, reg, parents)
+        reg, exp2, parents = self.getArgument().translate(registersDict, reg, parents)
+        return reg, (exp1 + exp2), parents
         
         
 class FunctionArgumentNode(ASTNode):
     def __init__(self, lineno, clauseno, exp):
         super(FunctionArgumentNode, self).__init__( FUNCTION_ARGUMENT, lineno, clauseno, [exp] )
-        # self.intermediateNode = None
         
     def getExpression(self):
         return self.children[0]
@@ -1209,20 +1133,10 @@ class FunctionArgumentNode(ASTNode):
         self.getExpression().check(symbolTable, flags)
         self.type = self.getExpression().type
         
-    # def translate(self, registerDict, reg, parents, refLocations, argument):
     def translate(self, registerDict, reg, parents):
-        # reference = False
         pushReg = reg
-        # exp = []
-        # if isinstance(self.getExpression(), IDNode) :
-            # pushReg = self.getExpression().getRegister(registerDict)
-        # else:
         reg, exp, parents = self.getExpression().translate(registerDict, reg, parents)
-        # if argument in refLocations:
-            # reference = True
-        # intermediateNode = INodes.FunctionArgumentNode( pushReg, parents, argument, reference )
         intermediateNode = INodes.FunctionArgumentNode( pushReg, parents )
-        # self.intermediateNode = intermediateNode
         return reg, (exp + [intermediateNode]), [intermediateNode]
 
 class LookingGlassNode(ASTNode):

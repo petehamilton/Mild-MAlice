@@ -12,9 +12,8 @@ from codeGenerator import CodeGenerator
 import grammarExceptions as e
 from SymbolTable import SymbolTable
 
-#['r%d' %r for r in range(8,16)]  + 
+# Registers available for 64-bit architecture.
 registers = ["r8", "r9", "r10", "r12", "r13", "r14", "r15", "rbx", "rcx", "rdx", "rsi", "rdi"]
-# registers = ['r%d' %r for r in range(15,16)]
 
 def run():
     if len(sys.argv) > 1:
@@ -36,14 +35,8 @@ def run():
 def parse_code(code):
     try:
         lexer = lex.lex(module=tokRules)
-        # lexer.input(code)
-        # while True:
-        #     tok = lexer.token()
-        #     if not tok: break
-        #     print tok
         parser = yacc.yacc()
         result = parser.parse(code)
-        # result.display()
         if result:
             symbolTable = SymbolTable()
             flags = defaultdict(set)
@@ -57,7 +50,7 @@ def parse_code(code):
         print "(Paragraph : %d Clause: %d)"  %(exception.lineno, exception.clauseno)
         sys.exit(1)
 
-
+# Writes code to asm file.
 def writeASM( result, fileName ):
     asmFile = open(fileName + ".asm", 'w')
     for line in result:

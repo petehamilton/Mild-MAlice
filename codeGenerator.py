@@ -11,8 +11,6 @@ class CodeGenerator(object):
     output_int_fmt = 'outputintfmt: db "%ld", 0'
     output_char_fmt = 'outputcharfmt: db "%c", 0'
     output_string_fmt = 'outputstringfmt: db "%s", 0'
-    # int_message = 'intfmt_message: db "Please enter an integer and press enter: ", 0'
-    # char_message = 'charfmt_message: db "Please enter a character and press enter: ", 0'
     input_int_fmt = labels.inputNumberLabel + ': db "%ld", 0' 
     input_char_fmt = labels.inputLetterLabel +': db "%c", 0'
     newline = "\n"
@@ -132,35 +130,6 @@ class CodeGenerator(object):
             liveOut = calculateLiveRange(intermediateNodes)
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
-    
-            # print "***************************************"
-            # for n in intermediateNodes:
-            #    print n, n.parents, liveOut[n]
-            # print "***************************************"
-
-            # Code which prints out the intermediate nodes nd their parents, each
-            # with a unique number
-            print "**************************************"
-            i = 0
-            nodeDict = {}
-            for n in intermediateNodes:
-               if n not in nodeDict:
-                   nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-                   i += 1
-            
-            for i in intermediateNodes:
-               print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
-            print "**************************************"
-            # End of parent inspection code
-            
-            # Uncomment to generate temporary code, 
-            # same assembly but uses T0,T1,T2 etc
-            # Start of Temp Code Outputter
-            #for k, v in registerMap.iteritems():
-            #    registerMap[k] = "T%d"%k
-            # End of Temp Code Outputter
-            
-            print registerMap
             return registerMap, overflowValues
             
         def generateFinalCode(intermediateNodes, registerMap):
@@ -172,9 +141,11 @@ class CodeGenerator(object):
         def generateFunctionCode(functionNode, registerMap):
             return functionNode.generateCode(registerMap)
             
+        
         functionCode = []
         functionOverflow = []
         rmap = RegisterDict()
+        # Parse functions first
         if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( rmap, 0, [] )
             for function in functionNodes:
@@ -208,7 +179,7 @@ class CodeGenerator(object):
             intermediateNodes = zeroNodes
         
         self.flags[ASTNodes.ARRAY_DEC] = True
-        intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
+        intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]]))
         intermediateNodes.extend(deallocNodes)
         
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
@@ -218,6 +189,7 @@ class CodeGenerator(object):
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
+        # Works out what should be in the data section
         def getDataSection():
             code = set()
             if ASTNodes.SPOKE in self.flags:
@@ -246,8 +218,6 @@ class CodeGenerator(object):
                     code.add(self.indent(self.output_string_fmt))
             return list(code)
             
-            
-        
         externSection = []
         dataSection = []
         bssSection = []
@@ -306,6 +276,7 @@ class CodeGenerator(object):
     # This function generates the code that remains the same for each assembly file at the bottom
     # of the file.
     def finish(self, flags):
+        # calculate the types of values spoken.
         def calculateSpokeTypes(flags):
             spokeTypes = set()
             if ASTNodes.SPOKE in self.flags:
@@ -315,6 +286,7 @@ class CodeGenerator(object):
                 spokeTypes.add(ASTNodes.SENTENCE)
             return list(spokeTypes)
         
+        # Creates relevant print functions.
         def makePrintFunctions():
             spokeTypes = calculateSpokeTypes(self.flags)
             spokeCode = []
@@ -346,6 +318,8 @@ class CodeGenerator(object):
                                 + finishCode)
             return spokeCode
             
+        
+        # Calculates which runtime errors have been set in the code.
         def calculateRunTimeErrors():
             runTimeErrors = set()
             if ASTNodes.BINARY_OP in self.flags:
@@ -355,7 +329,8 @@ class CodeGenerator(object):
                 for label in self.flags[ASTNodes.UNARY_OP]:
                     runTimeErrors.add(label)
             return list(runTimeErrors)
-    
+        
+        # Creates relevant runtime error code.
         def calculateRunTimeErrorsCode():
             runTimeErrorLabels = calculateRunTimeErrors()
             runTimeErrors = []
@@ -370,8 +345,6 @@ class CodeGenerator(object):
         finishLine = [self.indent("call %s" %labels.osReturnLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
-        # deallocationCode = ["%s:" %labels.deallocationLabel]
-        # Add deallocation code here?
         deallocationCode = []
         deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
