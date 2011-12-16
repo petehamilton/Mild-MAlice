@@ -447,7 +447,8 @@ class FunctionDeclarationNode(IntermediateNode):
             if isinstance(node, ReturnNode):
                node.setJumpLabel(self.returnLabel)
                returnCodeParents.append(node)
-
+        
+        returnNode = FunctionReturnCode(returnCodeParents, self.returnLabel)            
         deallocStartLabelNode = LabelNode(makeUniqueLabel(labels.deallocationLabel), returnCodeParents)
         deallocNodes = generateDeallocationNodes(symbolTable, registersDict, deallocStartLabelNode)
         for node in deallocNodes:
