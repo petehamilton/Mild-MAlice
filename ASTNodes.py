@@ -825,7 +825,6 @@ class IfNode(ConditionalNode):
         #Iterate over the logical sections
         numLogicalNodes = len(logicalNodes)
         endParents = []
-        
         startLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_start"), parents)
         endLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("conditional_end"), [])
         
@@ -885,8 +884,6 @@ class ElseIfNode(ConditionalNode):
     def getLogicalClauses(self):
         return None
 
-# Some way to inherit this from conditionalNode as well? Although I suppose it's
-# not that conditional in that there is no logical check?
 class ElseNode(ASTNode):
     def __init__(self, lineno, clauseno, thenBody):
         super(ElseNode, self).__init__(ELSE, lineno, clauseno, [thenBody])
@@ -913,15 +910,14 @@ class LogicalClausesNode(ASTNode):
 
     def getLogicalClauses(self):
         return self.children[1]
-
+        
+    # Checks its logical clause and recurses on the rest of logical clauses
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
         self.getLogicalClause().check(symbolTable, flags)
-        
         logicalClauses = self.getLogicalClauses();
-        if logicalClauses != None:
+        if logicalClauses:
             logicalClauses.check(symbolTable, flags)
-
 
 
 ################################################################################
