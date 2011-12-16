@@ -187,7 +187,6 @@ class CodeGenerator(object):
 
     # This function generates the set up code needed at the top of an assembly file.
     def setup(self, overflowValues):
-        
         def getDataSection():
             code = set()
             if ASTNodes.SPOKE in self.flags:
@@ -206,6 +205,11 @@ class CodeGenerator(object):
                         code.add(self.indent(self.input_int_fmt))
             if ASTNodes.BINARY_OP in self.flags:
                 for label in self.flags[ASTNodes.BINARY_OP]:
+                    name, message = labels.overFlowMessageDict[label]
+                    code.add(self.indent('%s: db "%s", 0' %(name, message)))
+                    code.add(self.indent(self.output_string_fmt))
+            if ASTNodes.UNARY_OP in self.flags:
+                for label in self.flags[ASTNodes.UNARY_OP]:
                     name, message = labels.overFlowMessageDict[label]
                     code.add(self.indent('%s: db "%s", 0' %(name, message)))
                     code.add(self.indent(self.output_string_fmt))
