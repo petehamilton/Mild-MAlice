@@ -586,16 +586,42 @@ class InputNode(IONode):
         variable = self.getVariable().getValue()
         V = registersDict.lookupCurrLevelAndEnclosingLevels(variable)
         if not V:
+            print "CREATING"
             registersDict.add(variable, (reg, IN_REGISTER))
             register = reg
         else:
+            print "USING"
             register, inMemory = V
+            print register
         formatting = self.getFormatting(idType)
         
-        # Should catch error here if formatting not set...
-        intermediateNode = INodes.InputNode(register, parents, formatting)
+        iNodes = []
         
-        return reg+1, [intermediateNode], [intermediateNode]
+        inputReg = reg
+        inputNode = INodes.InputNode(reg, parents, formatting)
+        iNodes.append(inputNode)
+        parents = [inputNode]
+        
+        reg += 1
+        
+        var = self.getVariable()
+        if isinstance(var, ArrayAccessNode):
+            destReg = reg
+            reg, arrayAccessNodes, parents = self.getVariable().translate(registersDict, destReg, parents)
+            parents = arrayAccessNodes[-1].parents
+            arrayAccessNodes = arrayAccessNodes[:-1]
+            iNodes.extend(arrayAccessNodes)
+            movNode = INodes.ArrayMovNode(destReg, inputReg, True, parents)
+            iNodes.append(movNode)
+            parents = [movNode]
+        else:
+            pass
+            movNode = INodes.MovNode(register, inputReg, parents)
+                        parents = [movNode]
+                        iNodes.append(movNode)
+        
+        
+        return reg, iNodes, parents
 
 
 
@@ -785,7 +811,7 @@ class ArrayDeclarationNode(StatementNode):
     def translate(self, registersDict, reg, parents):
         lengthReg = reg
         reg, lengthNodes, lengthParents = self.length.translate(registersDict, reg, parents)
-        mallocNode = INodes.MallocNode(reg, parents, lengthReg)
+        mallocNode = INodes.MallocNode(reg, lengthParents, lengthReg)
         registersDict.add(self.getVariable(), (reg, IN_REGISTER))
         return reg + 1, lengthNodes + [mallocNode], [mallocNode]
 

@@ -140,17 +140,17 @@ class CodeGenerator(object):
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            # print "**************************************"
-            # i = 0
-            # nodeDict = {}
-            # for n in intermediateNodes:
-            #    if n not in nodeDict:
-            #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
-            #        i += 1
-            # 
-            # for i in intermediateNodes:
-            #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
-            # print "**************************************"
+            print "**************************************"
+            i = 0
+            nodeDict = {}
+            for n in intermediateNodes:
+               if n not in nodeDict:
+                   nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
+                   i += 1
+            
+            for i in intermediateNodes:
+               print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
+            print "**************************************"
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
@@ -160,6 +160,7 @@ class CodeGenerator(object):
             #    registerMap[k] = "T%d"%k
             # End of Temp Code Outputter
             
+            print registerMap
             return registerMap, overflowValues
             
         def generateFinalCode(intermediateNodes, registerMap):
