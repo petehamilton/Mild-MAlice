@@ -448,13 +448,6 @@ class FunctionDeclarationNode(IntermediateNode):
                node.setJumpLabel(self.returnLabel)
                returnCodeParents.append(node)
 
-        returnNode = FunctionReturnCode(returnCodeParents, self.returnLabel)                
-        for node in self.arguments:
-            if node.isReference():
-                movNode = node.returnCode(returnCodeParents)
-                returnCodeParents = [movNode]
-                returnNode.addReturnInstruction(movNode)
-                
         deallocStartLabelNode = LabelNode(makeUniqueLabel(labels.deallocationLabel), returnCodeParents)
         deallocNodes = generateDeallocationNodes(symbolTable, registersDict, deallocStartLabelNode)
         for node in deallocNodes:
@@ -553,10 +546,10 @@ class ArgumentNode(IntermediateNode):
             return ReferenceMovNode( "[reference%d]" %self.argNumber, self.getRegister(), parents)
     
     def generateCode(self, registerMap):
-        if self.reference:
-            return ["mov %s, [reference%d]" %(registerMap[self.registers[0]], self.argNumber)]
-        else:
-            return [ "mov %s, [rbp + %d]" %(registerMap[self.registers[0]], (self.argNumber + 1)*8 + 8) ]
+        #if self.reference:
+        #    return ["mov %s, [reference%d]" %(registerMap[self.registers[0]], self.argNumber)]
+        #else:
+        return [ "mov %s, [rbp + %d]" %(registerMap[self.registers[0]], (self.argNumber + 1)*8 + 8) ]
             
 class FunctionArgumentNode(IntermediateNode):
     def __init__(self, reg, parents):
@@ -579,9 +572,6 @@ class FunctionArgumentNode(IntermediateNode):
 
     def generateCode(self, registerMap):
             register = (registerMap[self.registers[0]])
-            # if self.reference:
-                # return [ "mov %s, %s" %(self.getReferenceLocation(), register) ]
-            # else:
             return [ "push %s" %register ]  
             
 class FunctionCallNode(IntermediateNode):

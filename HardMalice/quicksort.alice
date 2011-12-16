@@ -38,7 +38,7 @@ The room partition(spider number arr, number left, number right, number pivot) c
   temp became arr's storeIndex piece.
   arr's storeIndex piece became arr's right piece.
   arr's right piece became temp.
-  Alice found storeIndex
+  Alice found storeIndex.
 
 
 The room quicksort(spider number arr, number left, number right) contained a number
