@@ -615,10 +615,9 @@ class InputNode(IONode):
             iNodes.append(movNode)
             parents = [movNode]
         else:
-            pass
             movNode = INodes.MovNode(register, inputReg, parents)
-                        parents = [movNode]
-                        iNodes.append(movNode)
+            parents = [movNode]
+            iNodes.append(movNode)
         
         
         return reg, iNodes, parents
