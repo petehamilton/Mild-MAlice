@@ -1014,8 +1014,12 @@ class FunctionDeclarationNode(DeclarationNode):
         reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [], 0)
         reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [argsExp[-1]])
         # It should have no parents?, uses no registers in declaration?
-        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp )
-        return reg, [intermediateNode], parents
+        # deallocStartLabelNode = INodes.LabelNode("dealloc_start", [intermediateNode])
+        # deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registersDict, deallocStartLabelNode)
+        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.symbolTable, registersDict )
+        
+        
+        return reg, [intermediateNode], [intermediateNode]
 
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):
