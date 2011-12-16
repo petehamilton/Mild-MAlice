@@ -290,7 +290,7 @@ class NotNode(UnOpNode):
 # TODO: Added on the fly, review later.
 class NegativeNode(UnOpNode):
     def __init__(self, reg, parents):
-        super(NegativeNode, self).__init__("negative", reg, parents)
+        super(NegativeNode, self).__init__("neg", reg, parents)
 
 class LabelNode(IntermediateNode):
     def __init__(self, label, parents):
