@@ -4,6 +4,7 @@ import labels
 import ASTNodes
 import intermediateNodes as INodes
 from RegisterMap import RegisterMap
+from RegisterDict import RegisterDict
 from collections import defaultdict
 
 class CodeGenerator(object):
@@ -112,7 +113,7 @@ class CodeGenerator(object):
                 # it returns a register map of  { tempReg : realRegister } and a list of overflowed registers
                 # to be used in the setup.
                 def mapToRegisters(colors):
-                    registerMap = {}
+                    registerMap = RegisterMap()
                     overflowValues = []
                     for k, v in colors.items():
                         if v >= len(self.availableRegisters):
@@ -132,24 +133,24 @@ class CodeGenerator(object):
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
     
-            #print "***************************************"
-            #for n in intermediateNodes:
+            # print "***************************************"
+            # for n in intermediateNodes:
             #    print n, n.parents, liveOut[n]
-            #print "***************************************"
+            # print "***************************************"
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            #print "**************************************"
-            #i = 0
-            #nodeDict = {}
-            #for n in intermediateNodes:
+            # print "**************************************"
+            # i = 0
+            # nodeDict = {}
+            # for n in intermediateNodes:
             #    if n not in nodeDict:
             #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
             #        i += 1
-            
-            #for i in intermediateNodes:
+            # 
+            # for i in intermediateNodes:
             #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
-            #print "**************************************"
+            # print "**************************************"
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
@@ -172,21 +173,40 @@ class CodeGenerator(object):
             
         functionCode = []
         functionOverflow = []
-        rmap = RegisterMap()
+        rmap = RegisterDict()
         if len(self.flags[ASTNodes.FUNCTION]):
             reg, intermediateNodes, functionNodes, parents = node.translate( rmap, 0, [] )
             for function in functionNodes:
-                lastReg = max(function.uses()) + 1 
+                if function.uses():
+                    lastReg = max(function.uses()) + 1 
+                else:
+                    lastReg = 0
                 fRegMap, fOverFlowValues = solveDataFlow( function.body, lastReg )
                 functionCode.extend(generateFunctionCode(function, fRegMap))
                 functionOverflow.extend(fOverFlowValues)
         else:
             reg, intermediateNodes, parents = node.translate( rmap, 0, [] )
         
-        deallocStartLabel = INodes.LabelNode("deallocate_start", [intermediateNodes[-1]])
+        parents = []
+        if intermediateNodes:
+            parents = [intermediateNodes[-1]]
+        deallocStartLabel = INodes.LabelNode(labels.deallocationLabel, parents)
         deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, rmap, deallocStartLabel)
+        # Nodes to zero-out registers
+        zeroNodes = []
+        zeroParents = []
+        for n in deallocNodes:
+            if isinstance(n, INodes.DeallocNode):
+                zeroNode = INodes.ImmMovNode(n.registers[0], 0, zeroParents)
+                zeroNodes.append(zeroNode)
+                zeroParents = [zeroNode]
+                
+        if zeroNodes:
+            intermediateNodes[0].setParents([zeroNodes[-1]])
+            zeroNodes.extend(intermediateNodes)
+            intermediateNodes = zeroNodes
         
-        if len(deallocNodes) > 2:
+        if len(deallocNodes) > 1:
             self.flags[ASTNodes.ARRAY_DEC] = True
             intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
             intermediateNodes.extend(deallocNodes)
@@ -347,11 +367,12 @@ class CodeGenerator(object):
                 runTimeErrors.extend(code)
             return runTimeErrors
                         
-        finishLine = [self.indent("jmp %s" %labels.deallocationLabel)]
+        finishLine = [self.indent("call %s" %labels.osReturnLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
-        deallocationCode = ["%s:" %labels.deallocationLabel]
+        # deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
+        deallocationCode = []
         deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
                 ["%s:"%labels.osReturnLabel] +

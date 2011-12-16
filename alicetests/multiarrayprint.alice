@@ -1,32 +1,16 @@
 x had 10 number.
-x's 1 piece became 100.
-x's 2 piece became 200.
-x's 3 piece became 300.
-x's 4 piece became 400.
-x's 5 piece became 500.
-x's 6 piece became 600.
-x's 7 piece became 700.
-x's 8 piece became 800.
-x's 9 piece became 800.
-x's 10 piece became 800.
+x's 1  piece became 1.
 
 y had 10 number.
-y's 1 piece became 1000.
-y's 2 piece became 2000.
-y's 3 piece became 3000.
-y's 4 piece became 4000.
-y's 5 piece became 5000.
-y's 6 piece became 6000.
-y's 7 piece became 7000.
-y's 8 piece became 8000.
-y's 9 piece became 9000.
-y's 10 piece became 10000.
+y's 1  piece became 31   .
 
 j was a number and j became 1.
+n was a number and n became 999.
+n spoke.
 eventually (j == 10) because
-    x's j piece spoke.
-    "_" said Alice.
-    y's j piece spoke.
-    ":" said Alice.
+    "   3x3: " said Alice.
+    n said Alice.
+    "   N: " said Alice.
+    n spoke.
     j ate.
 enough times.

@@ -462,7 +462,7 @@ class SentenceNode(Factor):
 #            split = self.getValue().split
 #            newLines = self.getValue().index("\n")
 #            for newline in len(newLines):
-                
+            
             
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
@@ -684,13 +684,7 @@ class ArrayAccessNode(ASTNode):
         expr.check(symbolTable, flags)
         if not V:
             raise exception.AssignmentNullException(self.lineno, self.clauseno)
-        else:
-            expr.check(symbolTable, flags)
-            if V.type == expr.type:
-                self.type = expr.type
-            else:
-                print "Assignment Exception"
-                raise exception.AssignmentTypeException(self.lineno, self.clauseno)
+        self.type = V.type
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
@@ -725,6 +719,13 @@ class ArrayAssignmentNode(AssignmentNode):
         self.setSymbolTable(symbolTable)
         self.getExpression().check(symbolTable, flags)
         self.getArrayAccess().check(symbolTable, flags)
+        # TODO: Check for type match here
+        # expr.check(symbolTable, flags)
+        # print V, expr
+        # if V.type == expr.type:
+        #     self.type = expr.type
+        # else:
+        #     raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def translate(self, registersDict, reg, parents):
         arrayAccessReg = reg
@@ -1013,8 +1014,12 @@ class FunctionDeclarationNode(DeclarationNode):
         reg, argsExp, parents = self.getArguments().translate(registersDict, reg, [], 0)
         reg, bodyExp, parents = self.getBody().translate(registersDict, reg, [argsExp[-1]])
         # It should have no parents?, uses no registers in declaration?
-        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp )
-        return reg, [intermediateNode], parents
+        # deallocStartLabelNode = INodes.LabelNode("dealloc_start", [intermediateNode])
+        # deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, registersDict, deallocStartLabelNode)
+        intermediateNode = INodes.FunctionDeclarationNode( [], self.getName(), argsExp, bodyExp, self.symbolTable, registersDict )
+        
+        
+        return reg, [intermediateNode], [intermediateNode]
 
 class ArgumentsNode(ASTNode):
     def __init__(self, lineno, clauseno, argument, arguments ):

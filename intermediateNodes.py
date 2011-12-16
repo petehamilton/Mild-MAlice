@@ -16,12 +16,6 @@ def makeUniqueLabel(label):
 # NODES
 ################################################################################
 
-def makeUniqueLabel(label):
-    global currentUniqueID
-    uniqueID = currentUniqueID
-    currentUniqueID += 1
-    return "%s_%d" % (label, uniqueID)
-
 class IntermediateNode(object):
     def __init__(self, parents):
         self.parents = parents
@@ -439,7 +433,7 @@ class InputNode(IntermediateNode):
 
                 
 class FunctionDeclarationNode(IntermediateNode):
-    def __init__(self, parents, name, arguments, body):
+    def __init__(self, parents, name, arguments, body, symbolTable, registersDict):
         super(FunctionDeclarationNode, self).__init__(parents)
         self.arguments = arguments
         self.body = arguments + body
@@ -460,6 +454,13 @@ class FunctionDeclarationNode(IntermediateNode):
                 movNode = node.returnCode(returnCodeParents)
                 returnCodeParents = [movNode]
                 returnNode.addReturnInstruction(movNode)
+                
+        deallocStartLabelNode = LabelNode(makeUniqueLabel(labels.deallocationLabel), returnCodeParents)
+        deallocNodes = generateDeallocationNodes(symbolTable, registersDict, deallocStartLabelNode)
+        print symbolTable, registersDict, deallocNodes
+        for node in deallocNodes:
+             returnNode.addReturnInstruction(node)
+            
         self.body.append(returnNode)
             
     def defined(self):
@@ -623,8 +624,8 @@ class MallocNode(IntermediateNode):
                 "call malloc"] +
                 poppedRegs +
                 ["test rax, rax",
-                "jz malloc_failure"] +
-                ["mov %s, rax" % destReg] + [""])
+                 "mov %s, rax" % destReg,
+                "jz malloc_failure"] + [""])
 
 class DeallocNode(IntermediateNode):
     def __init__(self, arrayBaseReg, parents):
@@ -699,8 +700,6 @@ def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
             deallocNode = DeallocNode(reg, lastINode)
             deallocNodes.append(deallocNode)
             lastINode = [deallocNode]
-    deallocEndNode = LabelNode("deallocate_end", lastINode)
-    deallocNodes.append(deallocEndNode)
     return deallocNodes
     
     
