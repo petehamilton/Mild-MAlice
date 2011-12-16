@@ -139,41 +139,40 @@ class BinaryNode(OperatorNode):
     def translate(self, registersDict, reg, parents):
         def translateOperation(destReg, nextReg, parents):
             op = self.getOperator()
-            if re.match( tokRules.t_PLUS, op ):
+            if re.match( "%s$"%tokRules.t_PLUS, op ):
                 intermediateNode = INodes.AddNode(destReg, nextReg, parents)
             
-            elif re.match( tokRules.t_MINUS, op ):
+            elif re.match( "%s$"%tokRules.t_MINUS, op ):
                 intermediateNode = INodes.SubNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_MULTIPLY, op ):
+            elif re.match( "%s$"%tokRules.t_MULTIPLY, op ):
                 intermediateNode = INodes.MulNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_DIVIDE, op ):
+            elif re.match( "%s$"%tokRules.t_DIVIDE, op ):
                 intermediateNode = INodes.DivNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_MOD, op ):
+            elif re.match( "%s$"%tokRules.t_MOD, op ):
                 intermediateNode = INodes.ModNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_B_OR, op ):
+            elif re.match("%s$"%tokRules.t_B_OR, op ):
                 intermediateNode = INodes.OrNode(destReg, nextReg, parents)
 
-            elif re.match( tokRules.t_B_XOR, op ):
+            elif re.match( "%s$"%tokRules.t_B_XOR, op ):
                 intermediateNode = INodes.XORNode(destReg, nextReg, parents)
                 
-            elif re.match( tokRules.t_B_AND, op ):
+            elif re.match( "%s$"%tokRules.t_B_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
             
-            elif re.match( tokRules.t_L_EQUAL, op ):
+            elif re.match( "%s$"%tokRules.t_L_EQUAL, op ):
                 intermediateNode = INodes.EqualNode(destReg, nextReg, parents)
                 
-            elif re.match( "$%s"%tokRules.t_L_LESS_THAN, op ):
-                print "Here"
+            elif re.match( "%s$"%tokRules.t_L_LESS_THAN, op ):
                 intermediateNode = INodes.LessThanNode(destReg, nextReg, parents)
                 
             elif re.match( "<=", op ):
                 intermediateNode = INodes.LessThanEqualNode(destReg, nextReg, parents)
                 
-            elif re.match( "$%s"%tokRules.t_L_GREATER_THAN, op ):
+            elif re.match( "%s$"%tokRules.t_L_GREATER_THAN, op ):
                 intermediateNode = INodes.GreaterThanNode(destReg, nextReg, parents)
                 
             elif re.match( ">=", op ):
