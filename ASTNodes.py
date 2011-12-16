@@ -433,7 +433,6 @@ class SentenceNode(Factor):
     def check(self, symbolTable, flags):
         super(SentenceNode, self).check(symbolTable, flags)
         if not self.memoryLocation:
-            split = self.newLineSplitter(self.getValue())
             self.memoryLocation = 'sentence%d' %SentenceNode.sentenceCount
             flags[SENTENCE].add((self.memoryLocation, self.getValue()))
             SentenceNode.sentenceCount += 1
@@ -531,16 +530,15 @@ class InputNode(IONode):
         
     def getVariable(self):
         return self.children[0]
-        
+      
+    # returns the formatting for the call to scanf
     def getFormatting(self, idType):        
-        formatting = ""
         if idType == NUMBER:
             formatting = labels.inputNumberLabel
         elif idType == LETTER:
             formatting = labels.inputLetterLabel
         return formatting
         
-    #TODO: CHECK IF ID    
     def check(self, symbolTable, flags):
         if not self.getVariable().isId():
             raise exception.InputNonIDException(self.lineno, self.clauseno)
@@ -562,10 +560,7 @@ class InputNode(IONode):
         else:
             register, inMemory = V
         formatting = self.getFormatting(idType)
-        
-        # Should catch error here if formatting not set...
         intermediateNode = INodes.InputNode(register, parents, formatting)
-        
         return reg+1, [intermediateNode], [intermediateNode]
 
 

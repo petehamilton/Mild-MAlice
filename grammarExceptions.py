@@ -72,6 +72,11 @@ class IDNotDeclaredException(SemanticException):
         super(IDNotDeclaredException, self).__init__(lineno, clauseno, value)
         self.message = "Error the variable you're trying to use has not yet been declared."
     
+class InputNonIDException(SemanticException):
+    def __init__( self, lineno, clauseno, value = "" ):
+        super(InputNonIDException, self).__init__(lineno, clauseno, value)
+        self.message = "You can only input to a variable."
+    
 
 ################################################################################
 # SYNTAX EXCEPTIONS
