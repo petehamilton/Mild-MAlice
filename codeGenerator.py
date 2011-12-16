@@ -206,10 +206,9 @@ class CodeGenerator(object):
             zeroNodes.extend(intermediateNodes)
             intermediateNodes = zeroNodes
         
-        if len(deallocNodes) > 1:
-            self.flags[ASTNodes.ARRAY_DEC] = True
-            intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
-            intermediateNodes.extend(deallocNodes)
+        self.flags[ASTNodes.ARRAY_DEC] = True
+        intermediateNodes.append(INodes.LabelNode("malloc_failure", [intermediateNodes[-1]])) # TODO!!: Add some actual error handling!
+        intermediateNodes.extend(deallocNodes)
         
         registerMap, overflowValues = solveDataFlow(intermediateNodes, reg)
         finalCode = generateFinalCode( intermediateNodes, registerMap )
