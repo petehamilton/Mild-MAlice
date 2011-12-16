@@ -48,6 +48,33 @@ class IntermediateNode(object):
     # regular expressions. 
     def isInMemory(self, value):
         return re.match('\[\w+\]', value)
+    
+    def preventBadRegisters(self, op, dest, src):
+        instructions = []
+        if dest == src and op == "mov":
+            return []
+        if op == "mov":
+            if self.isInMemory(dest) and self.isInMemory(src):
+                instructions = ["mov rax, %s" % src,
+                                 "%s %s, rax" % (op, dest)]
+        else:
+            if self.isInMemory(dest):
+                instructions = ["mov rax, %s" % dest,
+                                 "%s rax, %s" % (op, src),
+                                 "mov %s, rax" % dest]
+        if not instructions:
+            instructions = ["%s %s, %s" %(op, dest, src)]
+        return instructions
+    
+    def preserveRegisters(self, destReg):
+        preserveRegisters = ['rsi', 'rdi', 'r8', 'r9', 'r10']
+        if not destReg:
+            registersToPreserve = list(set(preserveRegisters))
+        else:
+            registersToPreserve = list(set(preserveRegisters) - set([destReg]))
+        registersToPreserveReverse = registersToPreserve[0:]
+        registersToPreserveReverse.reverse()
+        return self.pushRegs(registersToPreserve), self.popRegs(registersToPreserveReverse)
         
 class InstructionNode(IntermediateNode):
     def __init__(self, instruction, parents):
@@ -69,9 +96,7 @@ class MovNode(InstructionNode):
         return [self.registers[1]]
     
     def generateCode(self, registerMap):
-        if registerMap[self.registers[0]] == registerMap[self.registers[1]]:
-            return []
-        return ["%s " %(self.instruction) + (', ').join(["%s" % registerMap[r] for r in self.registers])]
+        return self.preventBadRegisters("mov", registerMap[self.registers[0]], registerMap[self.registers[1]] )
 
 class ImmMovNode(InstructionNode):  
     def __init__(self, reg, imm, parents):
@@ -83,10 +108,7 @@ class ImmMovNode(InstructionNode):
     # get overwritten in function calls.
     def generateCode(self, registerMap):
         destReg = registerMap[self.registers[0]]
-        if self.isInMemory(destReg):
-            return ["mov rax, %s \n%s %s, rax" %(self.imm, self.instruction, destReg)]
-            
-        return ["%s %s, %s" %(self.instruction, registerMap[self.registers[0]], self.imm)]
+        return self.preventBadRegisters(self.instruction, registerMap[self.registers[0]], self.imm)
 
     def uses(self):
         return []
@@ -134,8 +156,8 @@ class DivNode(BinOpNode):
                 ["mov rax, %s" %destReg,
                  "mov rcx, %s" %nextReg,
                  "mov rdx, %d" %0,
-                 "idiv rcx",
-                 "mov %s, %s"%(destReg, self.regToReturn)] +
+                 "idiv rcx"] +
+                 preventBadRegisters("mov", destReg, self.regToReturn) +
                self.popRegs(registersToPreserveReverse))
         
 class ModNode(DivNode):
@@ -168,16 +190,14 @@ class LogicalOpNode(BinOpNode):
         start_label = makeUniqueLabel("logical_eval_start")
         true_label = makeUniqueLabel("logical_eval_true")
         end_label = makeUniqueLabel("logical_eval_end")
-        return [
-                start_label + ":",
-                "cmp %s, %s" % (destReg, nextReg),
-                self.instruction + " " + true_label,
+        return ([start_label + ":"] + 
+                self.preventBadRegisters("cmp", destReg, nextReg) +
+                [self.instruction + " " + true_label,
                 "mov %s, 0" % destReg,
                 "jmp " + end_label,
                 true_label + ":",
                 "mov %s, 1" % destReg,
-                end_label + ":"
-        ]
+                end_label + ":"])
         
 class EqualNode(LogicalOpNode):
     def __init__(self, reg1, reg2, parents):
@@ -587,17 +607,20 @@ class MallocNode(IntermediateNode):
     
     def alteredRegisters(self):
         return [self.registers[0]]
-        
+    
     def generateCode(self, registerMap):
-        # Add the push/pop to this for volatile registers
-        return ["mov rdi, %s" %(registerMap[self.registers[1]]),
+        destReg, indexReg = registerMap[self.registers[0]], registerMap[self.registers[1]]
+        pushedRegs, poppedRegs = self.preserveRegisters("rax")
+        
+        return ([""] + pushedRegs +
+                ["mov rdi, %s" % indexReg,
                 "imul rdi, 8",
                 "xor rax, rax",
-                "call malloc",
-                "add rsp, 8",
-                "test rax, rax",
-                "jz malloc_failure",
-                "mov %s, rsp" % (registerMap[self.registers[0]])]
+                "call malloc"] +
+                poppedRegs +
+                ["test rax, rax",
+                "jz malloc_failure"] +
+                ["mov %s, rax" % destReg] + [""])
 
 class DeallocNode(IntermediateNode):
     def __init__(self, arrayBaseReg, parents):
@@ -611,12 +634,55 @@ class DeallocNode(IntermediateNode):
         return []
     
     def generateCode(self, registerMap):
-        # Add the push/pop to this for volatile registers
-        return ["%s:" % (makeUniqueLabel("dealloc")),
-                "mov rdi, %s" % (registerMap[self.registers[0]]),
+        baseReg = registerMap[self.registers[0]]
+        pushedRegs, poppedRegs = self.preserveRegisters(None)
+        
+        return ([""] + ["%s:" % (makeUniqueLabel("dealloc"))] +
+                pushedRegs +
+                ["mov rdi, %s" % (baseReg),
                 "xor rax, rax",
-                "call free",
-                "add rsp, 8"]
+                "call free"] + 
+                poppedRegs + [""])
+
+class ArrayAccessNode(IntermediateNode):
+    def __init__(self, destReg, arrayBaseReg, indexReg, parents):
+        super(ArrayAccessNode, self).__init__(parents)
+        self.registers = [destReg, arrayBaseReg, indexReg]
+    
+    def uses(self):
+        return [self.registers[1],self.registers[2]]
+    
+    def alteredRegisters(self):
+        return [self.registers[0]]
+    
+    def generateCode(self, registerMap):
+        # Add the push/pop to this for volatile registers
+        movInstr = self.preventBadRegisters("mov", registerMap[self.registers[0]], registerMap[self.registers[2]])
+        subInstr = self.preventBadRegisters("sub", registerMap[self.registers[0]], 1)
+        #TODO: Check that index is > 0 and < max
+        mulInstr = self.preventBadRegisters("imul", registerMap[self.registers[0]], 8)
+        return (movInstr + 
+                subInstr + 
+                mulInstr +
+               ["add %s, %s" % (registerMap[self.registers[0]], registerMap[self.registers[1]])])
+               
+class ArrayMovNode(InstructionNode):
+    def __init__(self, reg1, reg2, setsValue, parents):
+        super(ArrayMovNode, self).__init__("mov", parents)
+        self.registers = [reg1, reg2]
+        self.setsValue = setsValue
+    
+    def uses(self):
+        return [self.registers[0],self.registers[1]]
+        
+    def alteredRegisters(self):
+        return []
+    
+    def generateCode(self, registerMap):
+        if self.setsValue:
+            return self.preventBadRegisters("mov", "[%s]" % registerMap[self.registers[0]], registerMap[self.registers[1]] )
+        else:
+            return self.preventBadRegisters("mov", registerMap[self.registers[0]], "[%s]" % registerMap[self.registers[1]] )
 
 #TODO: Make me not-horrible
 def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
@@ -632,3 +698,6 @@ def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
     deallocEndNode = LabelNode("deallocate_end", lastINode)
     deallocNodes.append(deallocEndNode)
     return deallocNodes
+    
+    
+    

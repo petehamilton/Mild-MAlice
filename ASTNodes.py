@@ -284,7 +284,7 @@ class AssignmentNode(StatementNode):
     def __init__(self, lineno, clauseno, dest, expression ):
         super(AssignmentNode, self).__init__( ASSIGNMENT, lineno, clauseno, [dest, expression] )
     
-    def getDestination(self):
+    def getVariable(self):
         return self.children[0]
     
     def getExpression(self):
@@ -306,7 +306,7 @@ class AssignmentNode(StatementNode):
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        self.variableCheck(symbolTable, flags, self.getDestination())
+        self.variableCheck(symbolTable, flags, self.getVariable())
         
     def translate(self, registersDict, reg, parents):
         register, inMemory = registersDict[self.getVariable()]
@@ -572,12 +572,8 @@ class SentenceTypeNode(TypeNode):
 ################################################################################
 
 class ArrayAccessNode(ASTNode):
-    def __init__(self, lineno, clauseno, variable, index ):
-        super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable] )
-        self.index = index
-    
-    def getValue(self):
-        return self.children[0]
+    def __init__(self, lineno, clauseno, variable, indexExpression ):
+        super(ArrayAccessNode, self).__init__( INPUT, lineno, clauseno, [variable, indexExpression] )
     
     #TODO: CHECK IF ID
     def check(self, symbolTable, flags):
@@ -592,15 +588,76 @@ class ArrayAccessNode(ASTNode):
         if self.index < 0:
             print "Array Index Out Of Bounds"
             raise exception.ArrayIndexOutOfBoundsException(self.lineno, self.clauseno)
-
-class ArrayAssignmentNode(AssignmentNode):
-    def __init__(self, lineno, clauseno, array_access, expression ):
-        super(ArrayAssignmentNode, self).__init__(lineno, clauseno, array_access, expression)
+    
+    def getVariable(self):
+        return self.children[0]
+    
+    def getIndexExpression(self):
+        return self.children[1]
+        
+    def variableCheck(self, symbolTable, flags, variable):
+        expr = self.getIndexExpression()
+        V = symbolTable.lookupCurrLevelAndEnclosingLevels(self.getVariable().getValue())
+        expr.check(symbolTable, flags)
+        if not V:
+            raise exception.AssignmentNullException(self.lineno, self.clauseno)
+        else:
+            expr.check(symbolTable, flags)
+            if V.type == expr.type:
+                self.type = expr.type
+            else:
+                print "Assignment Exception"
+                raise exception.AssignmentTypeException(self.lineno, self.clauseno)
     
     def check(self, symbolTable, flags):
         self.setSymbolTable(symbolTable)
-        idNode = self.getDestination().getValue()
-        self.variableCheck(symbolTable, flags, idNode.getValue())
+        self.variableCheck(symbolTable, flags, self.getVariable())
+        
+    def translate(self, registersDict, reg, parents):
+        baseRegister, inMemory = registersDict[self.getVariable().getValue()]
+        destReg = reg
+        reg, indexINodes, indexParents = self.getIndexExpression().translate(registersDict, destReg, parents)
+        arrayAccessNode = INodes.ArrayAccessNode(destReg, baseRegister, destReg, indexParents)
+        arrayMovNode = INodes.ArrayMovNode(destReg, destReg, False, [arrayAccessNode])
+        
+        iNodes = []
+        iNodes.extend(indexINodes)
+        iNodes.append(arrayAccessNode)
+        iNodes.append(arrayMovNode)
+        return reg, iNodes, [arrayMovNode]
+
+class ArrayAssignmentNode(AssignmentNode):
+    def __init__(self, lineno, clauseno, arrayAccess, expression ):
+        super(ArrayAssignmentNode, self).__init__(lineno, clauseno, arrayAccess, expression)
+        self.arrayAccess = arrayAccess
+        self.expression = expression
+    
+    def getArrayAccess(self):
+        return self.arrayAccess
+    
+    def getExpression(self):
+        return self.expression
+    
+    def check(self, symbolTable, flags):
+        self.setSymbolTable(symbolTable)
+        self.getExpression().check(symbolTable, flags)
+        self.getArrayAccess().check(symbolTable, flags)
+    
+    def translate(self, registersDict, reg, parents):
+        arrayAccessReg = reg
+        reg, arrayAccessNodes, parents = self.getArrayAccess().translate(registersDict, arrayAccessReg, parents)
+        arrayAccessNodes = arrayAccessNodes[:-1] # Remove the last instruction to move the value into the register, maintains base pointer
+        parents = [arrayAccessNodes[-1]]
+        expressionReg = reg
+        reg, expressionNodes, parents = self.getExpression().translate(registersDict, expressionReg, parents)
+        movNode = INodes.ArrayMovNode(arrayAccessReg, expressionReg, True,  parents)
+        
+        iNodes = []
+        iNodes.extend(arrayAccessNodes)
+        iNodes.extend(expressionNodes)
+        iNodes.append(movNode)
+        
+        return reg, iNodes, [movNode]
 
 class ArrayDeclarationNode(StatementNode):
     def __init__(self, lineno, clauseno, variableName, typeNode,  length):

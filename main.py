@@ -13,6 +13,7 @@ import grammarExceptions as e
 from SymbolTable import SymbolTable
 
 registers = ['r%d' %r for r in range(8,16)]  + ["rbx", "rcx", "rdx", "rsi", "rdi"]
+# registers = ['r%d' %r for r in range(15,16)]
 
 def run():
     if len(sys.argv) > 1:
