@@ -457,8 +457,10 @@ class ReturnNode(IntermediateNode):
         self.jumpLabel = label    
     
     def generateCode(self, registerMap):
-        return ([ "mov rax, %s" %(registerMap[self.registers[0]]),
-                  "jmp %s" %self.jumpLabel])
+        moveCode = "mov rax, %s" %(registerMap[self.registers[0]])
+        if self.jumpLabel:
+            return [ moveCode, "jmp %s" %self.jumpLabel ]
+        return [moveCode]
  
 class ReferenceMovNode(InstructionNode):  
     def __init__(self, imm, reg, parents):
