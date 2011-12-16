@@ -165,27 +165,35 @@ class BinaryNode(OperatorNode):
             
             elif re.match( tokRules.t_L_EQUAL, op ):
                 intermediateNode = INodes.EqualNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_LESS_THAN, op ):
                 intermediateNode = INodes.LessThanNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_LESS_THAN_EQUAL, op ):
                 intermediateNode = INodes.LessThanEqualNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_GREATER_THAN, op ):
                 intermediateNode = INodes.GreaterThanNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_GREATER_THAN_EQUAL, op ):
                 intermediateNode = INodes.GreaterThanEqualNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_NOT_EQUAL, op ):
                 intermediateNode = INodes.NotEqualNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_AND, op ):
                 intermediateNode = INodes.AndNode(destReg, nextReg, parents)
+                #destReg += 1
                 
             elif re.match( tokRules.t_L_OR, op ):
                 intermediateNode = INodes.OrNode(destReg, nextReg, parents)
+                #destReg += 1
             
             return destReg, [intermediateNode], [intermediateNode]
             
@@ -551,7 +559,7 @@ class ReturnNode(ASTNode):
         returnReg = reg
         reg, exp, parents = self.getReturnExpression().translate(registerDict, reg, parents)
         intermediateNode = INodes.ReturnNode(returnReg, parents)
-        return reg, (exp + [intermediateNode]), parents
+        return reg, (exp + [intermediateNode]), [intermediateNode]
         
 
 
@@ -752,7 +760,9 @@ class IfNode(ConditionalNode):
             if falseLabelNode != endLabelNode:
                 jumpNode = INodes.JumpNode(endLabelNode, postBodyParents)
                 endParents.append(jumpNode)
+                falseLabelNode.setParents(falseLabelNode.parents + [jumpNode])
             else:
+
                 jumpNode = None
                 endParents.extend(postBodyParents)
             
@@ -764,7 +774,9 @@ class IfNode(ConditionalNode):
             if jumpNode != None:
                 iNodes.append(jumpNode)
             iNodes.append(falseLabelNode)
-        
+            
+            startLabelNode = falseLabelNode
+            
         # Set the parents of the end node to also have the end jumps from 
         # previous clauses
         endLabelNode.setParents(endLabelNode.parents + endParents)
