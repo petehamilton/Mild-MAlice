@@ -206,23 +206,31 @@ class LogicalSeperatorNode(BinaryNode):
         def translateOperation(parents):
             op = self.getOperator()
             logicalExpressionLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_start"), parents)
-            reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             logicalExpressionEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("evaluate_end"), [])
+            
+            
+            reg1, exp1, parents = self.getLeftExpression().translate(registersDict, reg, [logicalExpressionLabelNode])
             if re.match( "&&", op ):
-                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
-            else:
                 checkNode = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+            else:
+                checkNode = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
+                
+                
             reg2, exp2, parents = self.getRightExpression().translate(registersDict, reg1, [checkNode])
-            jumpNode = INodes.JumpNode( logicalExpressionLabelNode, parents )
-            logicalExpressionLabelNode.setParents(parents + [jumpNode])
-            logicalExpressionEndLabelNode.setParents([jumpNode]) 
+            if re.match( "&&", op ):
+                checkNode2 = INodes.JumpFalseNode(reg, logicalExpressionEndLabelNode, parents)
+            else:
+                checkNode2 = INodes.JumpTrueNode(reg, logicalExpressionEndLabelNode, parents)
+            
+            logicalExpressionLabelNode.setParents(parents)
+            logicalExpressionEndLabelNode.setParents([checkNode2]) 
                    
             iNodes = []
             iNodes.append(logicalExpressionLabelNode)
             iNodes += exp1
             iNodes.append(checkNode)
             iNodes += exp2
-            iNodes.append(jumpNode)
+            iNodes.append(checkNode2)
             iNodes.append(logicalExpressionEndLabelNode)
             return reg2, iNodes, [logicalExpressionEndLabelNode]
         
