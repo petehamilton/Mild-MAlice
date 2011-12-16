@@ -827,7 +827,7 @@ class LoopNode(ConditionalNode):
         
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
         
-        falseCheckNode = INodes.JumpFalseNode(reg, loopEndLabelNode, postExpressionParents)
+        falseCheckNode = INodes.JumpTrueNode(reg, loopEndLabelNode, postExpressionParents)
         
         reg2, bodyNodes, postBodyParents = self.getBody().translate(newRegistersDict, reg1, [falseCheckNode])
         
@@ -894,7 +894,7 @@ class IfNode(ConditionalNode):
             if expression != None:
                 checkReg = reg
                 reg, expressionNodes, postExpressionParents = expression.translate(newRegistersDict, reg, [startLabelNode])
-                trueCheckNode = INodes.JumpTrueNode(checkReg, falseLabelNode, postExpressionParents)
+                trueCheckNode = INodes.JumpFalseNode(checkReg, falseLabelNode, postExpressionParents)
                 falseLabelNode.setParents([trueCheckNode])
             else:
                 trueCheckNode = None

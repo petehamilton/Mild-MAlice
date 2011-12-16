@@ -373,11 +373,11 @@ class JumpBooleanNode(IntermediateNode):
         
 class JumpTrueNode(JumpBooleanNode):
     def __init__(self, reg, trueLabelNode, parents):
-        super(JumpTrueNode, self).__init__('je', reg, trueLabelNode, parents)
+        super(JumpTrueNode, self).__init__('jne', reg, trueLabelNode, parents)
 
 class JumpFalseNode(JumpBooleanNode):
     def __init__(self, reg, falseLabelNode, parents):
-        super(JumpFalseNode, self).__init__('jne', reg, falseLabelNode, parents)
+        super(JumpFalseNode, self).__init__('je', reg, falseLabelNode, parents)
 
 class SpokeNode(IntermediateNode):
     def __init__(self, reg, parents, printFunction):
