@@ -132,24 +132,24 @@ class CodeGenerator(object):
             registerMap, overflowValues = calculateRealRegisters( liveOut, lastReg )
             intermediateNodes.reverse() #Put nodes back in right order.
     
-            #print "***************************************"
-            #for n in intermediateNodes:
+            # print "***************************************"
+            # for n in intermediateNodes:
             #    print n, n.parents, liveOut[n]
-            #print "***************************************"
+            # print "***************************************"
 
             # Code which prints out the intermediate nodes nd their parents, each
             # with a unique number
-            #print "**************************************"
-            #i = 0
-            #nodeDict = {}
-            #for n in intermediateNodes:
+            # print "**************************************"
+            # i = 0
+            # nodeDict = {}
+            # for n in intermediateNodes:
             #    if n not in nodeDict:
             #        nodeDict[n] = "%d (%s)"%(i, n.__class__.__name__)
             #        i += 1
-            
-            #for i in intermediateNodes:
+            # 
+            # for i in intermediateNodes:
             #    print nodeDict[i], [nodeDict[n] for n in i.parents], liveOut[i]
-            #print "**************************************"
+            # print "**************************************"
             # End of parent inspection code
             
             # Uncomment to generate temporary code, 
@@ -185,6 +185,20 @@ class CodeGenerator(object):
         
         deallocStartLabel = INodes.LabelNode(labels.deallocationLabel, [intermediateNodes[-1]])
         deallocNodes = INodes.generateDeallocationNodes(self.symbolTable, rmap, deallocStartLabel)
+        
+        # Nodes to zero-out registers
+        zeroNodes = []
+        zeroParents = []
+        for n in deallocNodes:
+            if isinstance(n, INodes.DeallocNode):
+                zeroNode = INodes.ImmMovNode(n.registers[0], 0, zeroParents)
+                zeroNodes.append(zeroNode)
+                zeroParents = [zeroNode]
+        
+        if zeroNodes:
+            intermediateNodes[0].setParents([zeroNodes[-1]])
+            zeroNodes.extend(intermediateNodes)
+            intermediateNodes = zeroNodes
         
         if len(deallocNodes) > 2:
             self.flags[ASTNodes.ARRAY_DEC] = True
@@ -350,8 +364,9 @@ class CodeGenerator(object):
         finishLine = [self.indent("call %s" %labels.osReturnLabel)]
         runTimeErrorsCode = calculateRunTimeErrorsCode()
         spokeFunctionCode = makePrintFunctions()    
-        deallocationCode = ["%s:" %labels.deallocationLabel]
+        # deallocationCode = ["%s:" %labels.deallocationLabel]
         # Add deallocation code here?
+        deallocationCode = []
         deallocationCode.extend( ([self.indent("call %s		; return to operating system"%labels.osReturnLabel)] +
                 [self.newline] +
                 ["%s:"%labels.osReturnLabel] +
