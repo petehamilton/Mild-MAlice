@@ -1,0 +1,6 @@
+x was a number and x became 100.
+y was a number and y became 200.
+z was a number and z became 300.
+b was a number and b became x * y * 5 * z.
+
+b spoke.
