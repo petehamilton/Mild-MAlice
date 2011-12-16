@@ -43,12 +43,12 @@ class RegisterMap(object):
             return None
         
     def lookupCurrLevelAndEnclosingLevels(self, name):
-        S = self
-        while S != None:
-            obj = S.lookupCurrLevelOnly(name)
+        R = self
+        while R != None:
+            obj = R.lookupCurrLevelOnly(name)
             if obj:
                 return obj
-            S = S.enclosingSymbolTable
+            R = R.enclosingRegisterMap
         return None
         
         

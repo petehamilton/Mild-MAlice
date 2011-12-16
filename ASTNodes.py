@@ -1,6 +1,7 @@
 # This module contains the nodes created by the parser.
 import grammarExceptions as exception
 from SymbolTable import SymbolTable
+from RegisterMap import RegisterMap
 import tokRules
 import intermediateNodes as INodes
 import re
@@ -668,16 +669,16 @@ class LoopNode(ConditionalNode):
         super(LoopNode, self).check(newSymbolTable, flags)
     
     def translate(self, registersDict, reg, parents):
-        
+        newRegistersDict = RegisterMap(registersDict)
         loopStartLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_start"), parents)
         
-        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(registersDict, reg, [loopStartLabelNode])
+        reg1, expressionNodes, postExpressionParents = self.getExpression().translate(newRegistersDict, reg, [loopStartLabelNode])
         
         loopEndLabelNode = INodes.LabelNode(INodes.makeUniqueLabel("loop_end"), []) #Defined here and parents set later
         
         falseCheckNode = INodes.JumpFalseNode(reg, loopEndLabelNode, postExpressionParents)
         
-        reg2, bodyNodes, postBodyParents = self.getBody().translate(registersDict, reg1, [falseCheckNode])
+        reg2, bodyNodes, postBodyParents = self.getBody().translate(newRegistersDict, reg1, [falseCheckNode])
         
         jumpNode = INodes.JumpNode(loopStartLabelNode, postBodyParents)
         loopStartLabelNode.setParents(parents +[jumpNode])
