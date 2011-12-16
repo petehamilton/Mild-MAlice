@@ -529,17 +529,6 @@ class FunctionArgumentNode(IntermediateNode):
     def __init__(self, reg, parents):
          super(FunctionArgumentNode, self).__init__(parents)
          self.registers = [reg]
-         # self.count = argCount
-         # self.reference = reference
-    
-    # def getReferenceLocation(self):
-    #     if self.reference:
-    #         return "[reference%d]" %self.count
-    #     else:
-    #         return None
-    # 
-    # def isReference(self):
-    #     return self.reference
     
     def getRegister(self, registerMap):
         return (registerMap[self.registers[0]])
@@ -554,15 +543,11 @@ class FunctionCallNode(IntermediateNode):
         self.registersPushed = registersPushed
         self.registers = [reg]
         self.functionName = name
-        # self.arguments = arguments
     
     def generateCode(self, registerMap):
-        # referenceCode = [ "mov %s, %s " %(arg.getRegister(registerMap), arg.getReferenceLocation()) for arg in self.arguments if arg.isReference()]
         return (["call %s" %self.functionName,
                 "add rsp, %d" %(8*self.registersPushed),
                 "mov %s, rax" %(registerMap[self.registers[0]])])
-                 # +
-                # referenceCode)
 
 
 class MallocNode(IntermediateNode):
@@ -627,7 +612,6 @@ class ArrayAccessNode(IntermediateNode):
         # Add the push/pop to this for volatile registers
         movInstr = self.preventBadRegisters("mov", registerMap[self.registers[0]], registerMap[self.registers[2]])
         subInstr = self.preventBadRegisters("sub", registerMap[self.registers[0]], 1)
-        #TODO: Check that index is > 0 and < max
         mulInstr = self.preventBadRegisters("imul", registerMap[self.registers[0]], 8)
         return (movInstr + 
                 subInstr + 
@@ -652,7 +636,6 @@ class ArrayMovNode(InstructionNode):
         else:
             return self.preventBadRegisters("mov", registerMap[self.registers[0]], "[%s]" % registerMap[self.registers[1]] )
 
-#TODO: Make me not-horrible
 def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
     deallocNodes = []
     deallocNodes.append(startLabelNode)
@@ -664,6 +647,3 @@ def generateDeallocationNodes(symbolTable, registerDict, startLabelNode):
             deallocNodes.append(deallocNode)
             lastINode = [deallocNode]
     return deallocNodes
-    
-    
-    
